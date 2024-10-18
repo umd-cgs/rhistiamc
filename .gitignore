@@ -1,0 +1,20 @@
+# Ignore these
+
+## the contents of data-containing folders:
+data/*
+figures/*
+output/*
+runs/*
+
+### exceptions:
+!*/.gitkeep
+
+## personalized files
+.RData
+.Rproj.user
+.Rhistory
+.Ruserdata
+
+## large files
+*.Rds
+*.xlsx
