@@ -1,0 +1,181 @@
+Source,Sector Names,Aggregated Sector,IPPC Code
+CEDSv2021_04_21,1A1a_Electricity-autoproducer,Energy Industries,1 A 1
+CEDSv2021_04_21,1A1a_Electricity-public,Energy Industries,1 A 1
+CEDSv2021_04_21,1A1a_Heat-production,Energy Industries,1 A 1
+CEDSv2021_04_21,1A1bc_Other-transformation,Energy Industries,1 A 1
+CEDSv2021_04_21,1A2a_Ind-Comb-Iron-steel,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2b_Ind-Comb-Non-ferrous-metals,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2c_Ind-Comb-Chemicals,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2d_Ind-Comb-Pulp-paper,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2e_Ind-Comb-Food-tobacco,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2f_Ind-Comb-Non-metalic-minerals,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2g_Ind-Comb-Construction,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2g_Ind-Comb-machinery,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2g_Ind-Comb-mining-quarying,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2g_Ind-Comb-other,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2g_Ind-Comb-textile-leather,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2g_Ind-Comb-transpequip,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A2g_Ind-Comb-wood-products,Manufacturing Industries and Construction,1 A 2
+CEDSv2021_04_21,1A3ai_Domestic-aviation,Transport,1 A 3
+CEDSv2021_04_21,1A3ai_International-shipping,Transport,1 A 3
+CEDSv2021_04_21,1A3ai_International-aviation,Transport,1 A 3
+CEDSv2021_04_21,1A3b_Road,Transport,1 A 3
+CEDSv2021_04_21,1A3c_Rail,Transport,1 A 3
+CEDSv2021_04_21,1A3di_Oil_Tanker_Loading,Transport,1 A 3
+CEDSv2021_04_21,1A3dii_Domestic-navigation,Transport,1 A 3
+CEDSv2021_04_21,1A3eii_Other-transp,Transport,1 A 3
+CEDSv2021_04_21,1A4a_Commercial-institutional,Other Energy Sector,1 A 4
+CEDSv2021_04_21,1A4b_Residential,Other Energy Sector,1 A 4
+CEDSv2021_04_21,1A4c_Agriculture-forestry-fishing,Other Energy Sector,1 A 4
+CEDSv2021_04_21,1A5_Other-unspecified,Non-Specified,1 A 5
+CEDSv2021_04_21,1B1_Fugitive-solid-fuels,Solid Fuels,1 B 1
+CEDSv2021_04_21,1B2_Fugitive-petr-and-gas,Oil and Gas,1 B 2 a
+CEDSv2021_04_21,1B2_Fugitive-petr,Oil and Gas,1 B 2 a
+CEDSv2021_04_21,1B2b_Fugitive-NG-distr,Gas Distribution,1 B 2 b
+CEDSv2021_04_21,1B2b_Fugitive-NG-prod,Gas Production,1 B 2 b
+CEDSv2021_04_21,1B2d_Fugitive-other-energy,Fugitive Other,1 B 2 d
+CEDSv2021_04_21,2A1_Cement-production,Other Emission from Energy Production,2 A 1
+CEDSv2021_04_21,2A2_Lime-production,Lime-production,2 A 2
+CEDSv2021_04_21,2Ax_Other-minerals,Glass-production,2 A 3
+CEDSv2021_04_21,2B_Chemical-industry,Chemical Industry,2 B 1
+CEDSv2021_04_21,2B2_Chemicals-Nitric-acid,Chemical Industry,2 B 2
+CEDSv2021_04_21,2B3_Chemicals-Adipic-acid,Chemical Industry,2 B 3
+CEDSv2021_04_21,2C_Metal-production,Metal Industry,2 C
+CEDSv2021_04_21,2D_Chemical-products-manufacture-processing,Non- Energy Products from Fuels and Solvent Use,2 D
+CEDSv2021_04_21,2D_Degreasing-Cleaning,Non- Energy Products from Fuels and Solvent Use,2 D
+CEDSv2021_04_21,2D_Other-product-use,Non- Energy Products from Fuels and Solvent Use,2 D
+CEDSv2021_04_21,2D_Paint-application,Non- Energy Products from Fuels and Solvent Use,2 D
+CEDSv2021_04_21,2H_Pulp-and-paper-food-beverage-wood,Industry Process and Product Use,2 H 1
+CEDSv2021_04_21,2L_Other-process-emissions,Industry Process and Product Use,2 H 3
+CEDSv2021_04_21,3B_Manure-management,Manure Management,3 A 2
+CEDSv2021_04_21,3D_Rice-Cultivation,Rice Cultivation,3 C 7
+CEDSv2021_04_21,3D_Soil-emissions,Aggregate Sources and Non-CO2 Emissions Sources on Land,3 C
+CEDSv2021_04_21,3E_Enteric-fermentation,Enteric Fermentation,3 A 1
+CEDSv2021_04_21,3I_Agriculture-other,Land,3 B
+CEDSv2021_04_21,5A_Solid-waste-disposal,Solid Waste,4:00 AM
+CEDSv2021_04_21,5C_Waste-combustion,Incineration,4 C
+CEDSv2021_04_21,5D_Wastewater-handling,Wastewater,4 D
+CEDSv2021_04_21,5E_Other-waste-handling,Biological Treatment of Solid Waste,4 E
+CEDSv2021_04_21,6A_Other-in-total,Waste,4 E
+CEDSv2021_04_21,6B_Other-not-in-total,Waste,4 E
+CEDSv2021_04_21,7A_Fossil-fuel-fires,Combustion,1 A 4
+CEDSv2021_04_21,7BC_Indirect-N2O-non-agricultural-N,Combustion,1 A 4
+EDGAR,Main Activity Electricity and Heat Production,Energy Industries,1 A 1
+EDGAR,Petroleum Refining - Manufacture of Solid Fuels and Other Energy Industries,Energy Industries,1 A 1
+EDGAR,Manufacturing Industries and Construction,Manufacturing Industries and Construction,1 A 2
+EDGAR,Civil Aviation,Transport,1 A 3
+EDGAR,Road Transportation no resuspension,Transport,1 A 3
+EDGAR,Railways,Transport,1 A 3
+EDGAR,Water-borne Navigation,Transport,1 A 3
+EDGAR,Other Transportation,Transport,1 A 3
+EDGAR,Other Sectors,Other Sectors,1 A 4
+EDGAR,Non-Specified,Non-Specified,1 A 5
+EDGAR,Solid Fuels,Solid Fuels,1 B 1
+EDGAR,Oil and Natural Gas,Oil and Gas,1 B 2
+EDGAR,Chemical Industry,Chemical Industry,2 B
+EDGAR,Metal Industry,Metal Industry,2 C
+EDGAR,Enteric Fermentation,Enteric Fermentation,3 A 1
+EDGAR,Manure Management,Manure Management,3 A 2
+EDGAR,Emissions from biomass burning,GHG emissions from biomass burning,3 C 1
+EDGAR,Rice cultivations,Rice Cultivation,3 C 7
+EDGAR,Solid Waste Disposal,Solid Waste,4:00 AM
+EDGAR,Biological Treatment of Solid Waste,Biological Treatment of Solid Waste,4 B
+EDGAR,Incineration and Open Burning of Waste,Incineration,4 C
+EDGAR,Wastewater Treatment and Discharge,Wastewater,4 D
+EDGAR,Other,Other,4 E
+EDGAR,Fugitive emissions from solid fuels,Solid Fuels,1 B 1
+EDGAR,Fugitive emissions from oil and gas,Oil and Gas,1 B 2
+EPA_Greenhouse Gas Inventory Data Explorer,Industrial processes,Industry Process and Product Use,2
+EPA_Greenhouse Gas Inventory Data Explorer,Agriculture,Agriculture,3
+EPA_Greenhouse Gas Inventory Data Explorer,Energy,Total Energy,1
+EPA_Greenhouse Gas Inventory Data Explorer,Waste,Waste,4
+EPA_Greenhouse Gas Inventory Data Explorer,"Land use, land-use change, and forestry",Land,3
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Coal Mining,Solid Fuels,1 B 1
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Other Waste CH4 and N2O,Waste,4 E
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Biomass,Aggregate Sources and Non-CO2 Emissions Sources on Land,3 C
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Oil and Natural Gas Systems,Oil and Gas,1 B 2
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Stationary and Mobile,Non- Specificed,1 A 5
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Other Energy,Total Energy,1 C
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Landfills,Land,3 B
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Other Ag CH4 and N2O,Total Agriculture,3 C
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Livestock,Livestock,3A
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Other IP CH4 and N2O,Industry Process and Product Use,2
+EPA_Non-CO2 Greenhouse Emission Projections & Mitigation Potential Reports,Rice Cultivation,Rice Cultivation,3 C 7
+FAO Totals,Enteric Fermentation,Enteric Fermentation,3 A 1
+FAO Totals,Manure Management,Manure Management,3 A 2
+FAO Totals,Rice Cultivation,Rice Cultivation,3 C 7
+FAO Totals,Burning - Crop residues,GHG emissions from biomass burning,3 C 1 b
+FAO Totals,Savanna fires,GHG emissions from biomass burning,3 C 1 c
+FAO Totals,Fires in humid tropical forests,GHG emissions from biomass burning,3 C 1 a
+FAO Totals,Forest fires,GHG emissions from biomass burning,3 C 1 a
+FAO Totals,Fires in organic soils,GHG emissions from biomass burning,3 C 1 d
+FAO Totals,On-farm energy use,Aggregate Sources and Non-CO2 Emissions Sources on Land,3 D 2/2 H 2
+FAO Shares,Farm-gate emissions,Livestock,3:00 AM
+FAO Shares,Land Use change,Land,3 B
+FAO Shares,Pre- and post- production,Food and Beverages Industry,2 H 2
+FAO Shares,On-farm electricity use,Food and Beverages Industry,2 H 2
+FAO Shares,Food Processing,Food and Beverages Industry,2 H 2
+FAO Shares,Food Transport,Food and Beverages Industry,2 H 2
+FAO Shares,Food Retail,Food and Beverages Industry,2 H 2
+FAO Shares,Food Waste Disposal,Food and Beverages Industry,2 H 2
+FAO Shares,Food Household Consumption,Food and Beverages Industry,2 H 2
+FAO Shares,Food Packaging,Food and Beverages Industry,2 H 2
+UNFCCC,Total.GHG.emissions.with.LULUCF,Total,
+UNFCCC,5...Land.Use.Change.and.Forestry,Land,3 B
+UNFCCC,6.B..Wastewater.Handling,Wastewater,4 D
+UNFCCC,6...Waste,Waste,4 E
+UNFCCC,1.B.2..Oil.and.Natural.Gas,Oil and Gas,1 B 2
+UNFCCC,1.B.1..Solid.Fuels,Solid Fuels,1 B 1
+UNFCCC,3.C..Rice.Cultivation,Rice Cultivation,3 C 7
+UNFCCC,4.A..Enteric.Fermentation,Enteric Fermentation,3 A 1
+UNFCCC,3...Agriculture,Total Agriculture,3 D
+UNFCCC,1...Energy,Total Energy,1 C
+GMB Bottom up,Biomass burning inventories,,
+GMB Bottom up,Biogeochemical model for wetland emissions,,
+GMB Bottom up,Emission totals,Total,
+GMB Bottom up,Total anthropogenic excl. biomass burning,Total anthropogenic excl. biomass burning,
+GMB Bottom up,Biomass burning,GHG emissions from biomass burning,3 C 1
+GMB Bottom up,Biofuel,Other emissions from Energy Production,1 B 3
+GMB Bottom up,Total Fossil fuel,,
+GMB Bottom up,Coal mining,Solid Fuels,1 B 1
+GMB Bottom up,Oil and gas,Oil and Gas,1 B 2
+GMB Bottom up,Industry,Industry Process and Product Use,1 A 2
+GMB Bottom up,Transport,Transport,1 A 3
+GMB Bottom up,Total Agriculture and Waste,,
+GMB Bottom up,Landfills and Waste,Waste,3 B
+GMB Bottom up,Enteric fermentation and Manure,Livestock,0.125
+GMB Bottom up,Rice cultivation,Rice cultivation,3 C 7
+GMB Bottom up,Wetlands,Wetlands,3 B 4
+GMB Bottom up,Oil and Gas,Oil and Gas,1 B 2
+GMB Top Down,Wetlands - Posterior,,
+GMB Top Down,Other Natural Sources - Posterior,,
+GMB Top Down,Agriculture and Waste - Posterior,,
+GMB Top Down,Fossil fuels - Posterior,,
+GMB Top Down,Biomass and Biofuel Burning - Posterior,,
+GMB Top Down,Soil Sink - Posterior,,
+GAINS,Dairy cows,Livestock,3A
+GAINS,Non-dairy cattle,Livestock,3A
+GAINS,Pigs,Livestock,3A
+GAINS,"Sheep, goats & other livestock",Livestock,3A
+GAINS,Rice cultivation,Rice cultivation,3 C 7
+GAINS,Agricultural waste burning,GHG emissions from biomass burning,3 C 1
+GAINS,Combustion -biomass fuels,Combustion,1 A 4
+GAINS,Combustion -fossil fuel,Combustion,1 A 4
+GAINS,Coal mining,Solid Fuels,1 B 1
+GAINS,Abandoned coal mines,Solid Fuels,1 B 1
+GAINS,Oil production,Oil and Gas,1 B 2 a iii 2
+GAINS,Oil refinery,Oil and Gas,1 B 2 a iii 4
+GAINS,Natural gas production,Gas Production,1 B 2 b iii 2
+GAINS,Unconventional gas production,Gas Production,1 B 2b
+GAINS,Long-distance gas transmission,Gas Distribution,1 B 2 b iii 4
+GAINS,Gas distribution networks,Gas Distribution,2 B 2 b iii 5
+GAINS,Solid waste -municipal,Solid Waste,4A
+GAINS,Solid waste -industry,Solid Waste,4A
+GAINS,Wastewater -domestic,Wastewater,4B
+GAINS,Wastewater -industry,Wastewater,4B
+GAINS,Total excl forest fires and savannah burning,Total,
+GFEI_v2,oil,Oil and Gas,
+GFEI_v2,gas,Oil and Gas,
+GFEI_v2,coal,Solid Fuels,
+Lu_2021,oil,Oil and Gas,
+Lu_2021,gas,Oil and Gas,

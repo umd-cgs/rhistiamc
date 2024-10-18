@@ -1,0 +1,88 @@
+EI,IAMC,unit,factor
+biodiesel_cons_kboed,,,
+biodiesel_cons_pj,,,
+biodiesel_prod_kboed,,,
+biodiesel_prod_pj,,,
+biofuels_cons_ej,Secondary Energy|Liquids|Biomass,EJ,1
+biofuels_cons_kbd,,,
+biofuels_cons_kboed,,,
+biofuels_cons_pj,,,
+biofuels_prod_kbd,,,
+biofuels_prod_kboed,,,
+biofuels_prod_pj,,,
+biogeo_ej,,,
+biogeo_twh,,,
+biogeo_twh_net,,,
+co2_combust_mtco2,Emissions|CO2|Energy,Mt CO2,1
+co2_combust_pc,,,
+co2_combust_per_ej,,,
+co2_mtco2,,,
+coalcons_ej,Primary Energy|Coal,EJ,1
+coalprod_ej,Production|Coal,EJ,1
+coalprod_mt,Production|Coal,Mt,1
+diesel_gasoil_cons_kbd,,,
+elect_twh,Secondary Energy|Electricity,EJ,0.0036
+electbyfuel_coal,Secondary Energy|Electricity|Coal,EJ,0.0036
+electbyfuel_gas,Secondary Energy|Electricity|Gas,EJ,0.0036
+electbyfuel_hydro,Secondary Energy|Electricity|Hydro,EJ,0.0036
+electbyfuel_nuclear,Secondary Energy|Electricity|Nuclear,EJ,0.0036
+electbyfuel_oil,Secondary Energy|Electricity|Oil,EJ,0.0036
+electbyfuel_other,Secondary Energy|Electricity|Other,EJ,0.0036
+electbyfuel_ren_power,,,
+electbyfuel_total,,,
+ethanol_cons_kboed,,,
+ethanol_cons_pj,,,
+ethanol_prod_kboed,,,
+ethanol_prod_pj,,,
+fuel_oil_cons_kbd,,,
+gascons_bcfd,,,
+gascons_bcm,,,
+gascons_ej,Primary Energy|Gas,EJ,1
+gasflared_bcm,,,
+gasflared_mtco2,,,
+gasoline_cons_kbd,,,
+gasprod_bcfd,,,
+gasprod_bcm,,,
+gasprod_ej,Production|Gas,EJ,1
+hydro_ej,,,
+hydro_twh,,,
+hydro_twh_net,,,
+kerosene_cons_kbd,,,
+light_dist_cons_kbd,,,
+liqcons_kbd,,,
+lithium_kt,Production|Lithium,kt,1
+lithiumres_kt,Reserve|Lithium,kt,1
+lpg_cons_kbd,,,
+methane_process_mtco2,,,
+middle_dist_cons_kbd,,,
+naphtha_cons_kbd,,,
+nuclear_ej,,,
+nuclear_twh,,,
+nuclear_twh_net,,,
+oilcons_ej,Primary Energy|Oil,EJ,1
+oilcons_kbd,,,
+oilcons_mt,,,
+oilprod_crudecond_kbd,,,
+oilprod_kbd,Production|Oil,EJ,0.00219
+oilprod_mt,,,
+oilprod_ngl_kbd,,,
+other_oil_cons_kbd,,,
+pop,Population,Mio,1
+primary_eintensity,,,
+primary_ej,,,
+primary_ej_pc,,,
+rareearths_kt,Production|Rare Earths,kt,1
+rareearthsres_kt,Reserve|Rare Earths,kt,1
+refcap_kbd,Refinery capacity,Mb/day,0.001
+refcaputil_pct,,,
+refthru_kbd,Refinery throughput,Mb/day,0.001
+ren_power_ej,,,
+ren_power_twh,,,
+ren_power_twh_net,,,
+renewables_ej,,,
+solar_ej,,,
+solar_twh,Secondary Energy|Electricity|Solar,EJ,0.0036
+solar_twh_net,,,
+wind_ej,,,
+wind_twh,Secondary Energy|Electricity|Wind,EJ,0.0036
+wind_twh_net,,,

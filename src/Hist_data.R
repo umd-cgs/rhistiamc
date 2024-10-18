@@ -24,8 +24,14 @@ library(countrycode)
 source("src/functions.R")
 
 
-#start year for harmonized datasets
+# Start year for harmonized datasets
 starty <- 1990 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
+
+# Choose the desired regions for the historical data to be aggregated up to, in 
+# addition to by country: Model name / number of regions
+model_regions <- "gcam32"   # Using GCAM core regions
+# model_regions <- "r10"
+# model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
 save_option <- T 
@@ -35,8 +41,8 @@ save_option <- T
 #### 1. read in __________________________ ####### 
 
 ###### emissions: ghg - PRIMAP hist --------------------------------------------------
-# https://zenodo.org/records/10705513  
-# - Guetschow_et_al_2024-PRIMAP-hist_v2.5.1_final_no_extrap_no_rounding_27-Feb-2024
+# https://zenodo.org/records/13752654  
+# - Guetschow_et_al_2024a-PRIMAP-hist_v2.6_final_no_rounding_13-Sep-2024
 prim <- read.csv("data/Guetschow_et_al_2024a-PRIMAP-hist_v2.6_final_no_rounding_13-Sep-2024.csv")
 unique(prim$entity)
 unique(prim$area..ISO3.)
@@ -1224,7 +1230,6 @@ data_iso <- data_iso |>
   rename(region=iso)
 
 #### 2.c separate World data ################# 
-#add world
 data_World <- data_iso |> filter(region == "World")
 
 data_iso <- data_iso |> filter(region != "World")
@@ -1232,65 +1237,51 @@ data_iso <- data_iso |> filter(region != "World")
 
 
 
-#### 2.d convert to GCAM 32 regions ####
+#### 2.d convert to model regions ####
+#### eg. GCAM 32 regions 
 ##For our analysis, we require certain variables to be mapped according to the documentation of IAMC.
 ##The mapping files are created using the documentation which can be found on the following link:
 ##-- https://data.ene.iiasa.ac.at/ar6/#/docs
 # GCAM region mapping, including the other regions from Energy Institute
 #there is a bit of overlap between o-afr and o-wafr/eafr for a few oil and coal variables
-reg_map <- read.csv("mappings/iso_EI_GCAM_regID.csv",skip = 6) |>
-  left_join(read.csv("mappings/GCAM_region_names.csv",skip = 6))|>
-  mutate(iso=toupper(iso))
 
-## check_match(data_iso, reg_map, "iso")
+
+# Use model_regions setting from the constants step to choose region mapping
+if (model_regions == "gcam32"){
+  reg_map <- read.csv("mappings/iso_EI_GCAM_regID.csv",skip = 6) |>
+    left_join(read.csv("mappings/GCAM_region_names.csv",skip = 6))|>
+    mutate(iso=toupper(iso))
+  
+  ## check_match(data_iso, reg_map, "iso")
+  
+} else if(model_regions == "r5"){
+  ## aggregate to R5: five regions making up the world
+  reg_map <- read.csv2("mappings/regionmappingR5.csv") |> 
+    rename(iso=CountryCode,region=RegionCode)
+  
+} else if(model_regions == "r10"){ 
+  ## aggregate to R10: ten regions making up the world
+  reg_map <- read.csv("mappings/iso_r10.csv") 
+  
+}
 
 data_reg <- data_iso |> 
   #filter(value == "NA") |>
   rename(iso = region) |>
-  mutate(value=as.numeric(value))
-
-data_reg32 <- data_reg |> left_join(reg_map) |>
+  mutate(value=as.numeric(value)) |>
+  left_join(reg_map) |>
   select(year,variable,unit,value,region,model,scenario) |> 
   group_by(year,variable,unit,region,model,scenario) |> 
   summarise(value=sum(value, na.rm = T)) |> 
   ungroup() |> 
   na.omit(region)
 
-#By default do not produce tthe other files, on demand set F to T
-if(F){
-## alternative: aggregating to R5 instead of GCAM
-r5_map <- read.csv2("mappings/regionmappingR5.csv") |> rename(iso=CountryCode,region=RegionCode)
-data_reg5 <- rbind(data_reg) |> left_join(r5_map) |>
-  select(year,variable,unit,value,region,model,scenario) |>
-  group_by(year,variable,unit,region,model,scenario) |>
-  summarise(value=sum(value, na.rm = T)) |>
-  ungroup() |>
-  na.omit(region) |>
-  rename(variable=variable)
-# data write out for R5 without 2023, as incomplete for all regions, and without world data
-data_reg5 <- data_reg5|>filter(year!=2023)
-write.csv(data_reg5,file = "output/historical_r5.csv",row.names = F,quote = F)
-
-## alternative: aggregating to R10 instead of GCAM
-r10_map <- read.csv("mappings/iso_r10.csv") 
-data_reg10 <- rbind(data_reg) |> left_join(r10_map) |>
-  select(year,variable,unit,value,region,model,scenario) |>
-  group_by(year,variable,unit,region,model,scenario) |>
-  summarise(value=sum(value, na.rm = T)) |>
-  ungroup() |>
-  na.omit(region) |>
-  rename(variable=variable)
-# data write out for R5 without 2023, as incomplete for all regions, and without world data
-data_reg10 <- data_reg10|>filter(year!=2023)
-write.csv(data_reg10,file = "output/historical_r10.csv",row.names = F,quote = F)
-}
-
+  
 #adjust global values for statistical review data with O-AFR
 
 ###### special case IEA, not fully mappable, thus added here #####
-ieagcam <- c("World","United States","Brazil","Middle East","Russia","China","India","Japan","Southeast Asia","Europe","European Union")
 
-# GCAM region mapping
+# Model region mapping
 ##For our analysis, we require certain variables to be mapped according to the documentation of IAMC.
 ##The mapping files are created using the documentation which can be found on the following link:
 ##-- https://data.ene.iiasa.ac.at/ar6/#/docs
@@ -1299,10 +1290,13 @@ map_iea <- read.csv("mappings/map_IEAWEO23_iamc.csv")
 
 
 #historic data
-datieah <- iea23 |> filter(year<2030,region %in% ieagcam,scenario=="Stated Policies Scenario") |>
+datieah <- iea23 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region))|>
+  filter(region %in% c(unique(reg_map$region), 
+                       "Europe", "European Union", # Remove these regions if preferred
+                       "World")) |>
   mutate(model="IEA WEO 2023",scenario="historical")|>
   filter(!is.na(var))
 
@@ -1318,11 +1312,15 @@ datieah <- datieah |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 
 
 #scenario data
-datieas <- iea23 |> filter(year>2021,region %in% ieagcam) |>
+datieas <- iea23 |> filter(year>2021) |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region
-  ))|>mutate(model="IEA WEO 2023")|>
+    ))|>
+  filter(region %in% c(unique(reg_map$region), 
+                       "Europe", "European Union", # Remove these regions if preferred
+                       "World")) |>
+  mutate(model="IEA WEO 2023")|>
   filter(!is.na(var))
 
 # bring to GCAM region mapping and IAMC format
@@ -1345,36 +1343,36 @@ datieas <- datieas |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 # Convert to wide formats before writing
 
 
-### Only ISO:
-write_this <- data_iso |>
-  group_by(model, scenario, region, variable, value, unit) |>
-  arrange(year) |>
-  pivot_wider(names_from = year, values_from = value) |>
-  unique() |>
-  ungroup()
-
-#write out iso IAMC file
-write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
-
-
-# ### ISO with World:
-# 
-# write_this <- rbind(data_iso, data_World) |>
+# ### ISO:
+# write_this <- data_iso |>
 #   group_by(model, scenario, region, variable, value, unit) |>
 #   arrange(year) |>
 #   pivot_wider(names_from = year, values_from = value) |>
-#   select(-c("2024")) |> #no data in this column
 #   unique() |>
 #   ungroup()
 # 
-# #write out iso and World IAMC file
-# write.csv(write_this, "output/historical_iso_and_World.csv",row.names = F,quote = F)
+# #write out iso IAMC file
+# write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
+
+
+### ISO with World:
+
+write_this <- rbind(data_iso, data_World) |>
+  group_by(model, scenario, region, variable, value, unit) |>
+  arrange(year) |>
+  pivot_wider(names_from = year, values_from = value) |>
+  select(-c("2024")) |> #no data in this column
+  unique() |>
+  ungroup()
+
+#write out iso and World IAMC file
+write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 
 
 
 ### Region32 and World (only with historical IEA / without IEA future scenarios):
 
-write_this <- rbind(data_reg32, datieah, data_World) |>
+write_this <- rbind(data_reg, datieah, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
@@ -1383,12 +1381,14 @@ write_this <- rbind(data_reg32, datieah, data_World) |>
   ungroup()
 
 #write out IAMC file
-write.csv(write_this, "output/historical_gcam32.csv",row.names = F,quote = F)
+write.csv(write_this, 
+          file.path("output",paste0("historical_", model_regions, ".csv")),
+          row.names = F,quote = F)
 
 
 ### Region32 and World (with all IEA scenarios):
 
-write_this <- rbind(data_reg32, datieah, datieas, data_World) |>
+write_this <- rbind(data_reg, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
@@ -1398,8 +1398,9 @@ write_this <- rbind(data_reg32, datieah, datieas, data_World) |>
 
 
 #write out IAMC file
-write.csv(write_this, "output/historical_ref_gcam32.csv",row.names = F,quote = F)
-
+write.csv(write_this, 
+          file.path("output",paste0("historical_ref_", model_regions, ".csv")),
+          row.names = F,quote = F)
 
 
 

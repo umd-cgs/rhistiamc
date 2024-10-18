@@ -1,0 +1,77 @@
+variable,IAMC,unit
+population,Population,persons
+gdp,GDP|PPP,$ (Year 2011)
+cement_co2,Emissions|CO2|Cement,MTCO2
+cement_co2_per_capita,,tonnes per person
+co2,Emissions|CO2,MTCO2
+co2_growth_abs,,MTCO2
+co2_growth_prct,,%
+co2_including_luc,,MTCO2
+co2_including_luc_growth_abs,,MTCO2
+co2_including_luc_growth_prct,,%
+co2_including_luc_per_capita,,tonnes per person
+co2_including_luc_per_gdp,,Kg/$
+co2_including_luc_per_unit_energy,,Kg/Kwh
+co2_per_capita,,tonnes per person
+co2_per_gdp,,Kg/$
+co2_per_unit_energy,,Kg/Kwh
+coal_co2,Emission|CO2|Coal,MTCO2
+coal_co2_per_capita,,tonnes per person
+consumption_co2,,MTCO2
+consumption_co2_per_capita,,tonnes per person
+consumption_co2_per_gdp,,Kg/$
+cumulative_cement_co2,,MTCO2
+cumulative_co2,,MTCO2
+cumulative_co2_including_luc,,MTCO2
+cumulative_coal_co2,,MTCO2
+cumulative_flaring_co2,,MTCO2
+cumulative_gas_co2,,MTCO2
+cumulative_luc_co2,,MTCO2
+cumulative_oil_co2,,MTCO2
+cumulative_other_co2,,MTCO2
+energy_per_capita,,KWh/person
+energy_per_gdp,,KWh/$
+flaring_co2,Emissions|CO2|Flaring,MTCO2
+flaring_co2_per_capita,,tonnes per person
+gas_co2,Emissions|CO2|Gas,MTCO2
+gas_co2_per_capita,,tonnes per person
+ghg_excluding_lucf_per_capita,,tonnes per person
+ghg_per_capita,,tonnes per person
+land_use_change_co2,,MTCO2
+land_use_change_co2_per_capita,,tonnes per person
+methane,Emissions|CH4,MTCO2
+methane_per_capita,,tonnes per person
+nitrous_oxide,Emissions|NO2,MTCO2
+nitrous_oxide_per_capita,,tonnes per person
+oil_co2,Emissions|CO2|Oil,MTCO2
+oil_co2_per_capita,,tonnes per person
+other_co2_per_capita,,tonnes per person
+other_industry_co2,Emissions|CO2|Other,MTCO2
+primary_energy_consumption,,terawatt-hours
+share_global_cement_co2,,%
+share_global_co2,,%
+share_global_co2_including_luc,,%
+share_global_coal_co2,,%
+share_global_cumulative_cement_co2,,%
+share_global_cumulative_co2,,%
+share_global_cumulative_co2_including_luc,,%
+share_global_cumulative_coal_co2,,%
+share_global_cumulative_flaring_co2,,%
+share_global_cumulative_gas_co2,,%
+share_global_cumulative_luc_co2,,%
+share_global_cumulative_oil_co2,,%
+share_global_cumulative_other_co2,,%
+share_global_flaring_co2,,%
+share_global_gas_co2,,%
+share_global_luc_co2,,%
+share_global_oil_co2,,%
+share_global_other_co2,,%
+share_of_temperature_change_from_ghg,,%
+temperature_change_from_ch4,,°C
+temperature_change_from_co2,,°C
+temperature_change_from_ghg,,°C
+temperature_change_from_n2o,,°C
+total_ghg,,MTCO2
+total_ghg_excluding_lucf,,MTCO2
+trade_co2,,MTCO2
+trade_co2_share,,%

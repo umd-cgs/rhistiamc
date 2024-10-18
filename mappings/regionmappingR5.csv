@@ -1,0 +1,250 @@
+X;CountryCode;RegionCode
+Aruba;ABW;R5_LAM
+Afghanistan;AFG;R5_ASIA
+Angola;AGO;R5_MAF
+Anguilla;AIA;R5_LAM
+Aland Islands;ALA;R5_OECD
+Albania;ALB;R5_OECD
+Andorra;AND;R5_OECD
+United Arab Emirates;ARE;R5_MAF
+Argentina;ARG;R5_LAM
+Armenia;ARM;R5_REF
+American Samoa;ASM;R5_ASIA
+Antarctica;ATA;R5_LAM
+French Southern Territories;ATF;R5_ASIA
+Antigua and Barbuda;ATG;R5_LAM
+Australia;AUS;R5_OECD
+Austria;AUT;R5_OECD
+Azerbaijan;AZE;R5_REF
+Burundi;BDI;R5_MAF
+Belgium;BEL;R5_OECD
+Benin;BEN;R5_MAF
+Bonaire, Sint Eustatius and Saba;BES;R5_LAM
+Burkina Faso;BFA;R5_MAF
+Bangladesh;BGD;R5_ASIA
+Bulgaria;BGR;R5_OECD
+Bahrain;BHR;R5_MAF
+Bahamas;BHS;R5_LAM
+Bosnia and Herzegovina;BIH;R5_OECD
+Saint Barthelemy;BLM;R5_LAM
+Belarus;BLR;R5_REF
+Belize;BLZ;R5_LAM
+Bermuda;BMU;R5_LAM
+Bolivia, Plurinational State of;BOL;R5_LAM
+Brazil;BRA;R5_LAM
+Barbados;BRB;R5_LAM
+Brunei Darussalam;BRN;R5_ASIA
+Bhutan;BTN;R5_ASIA
+Bouvet Island;BVT;R5_LAM
+Botswana;BWA;R5_MAF
+Central African Republic;CAF;R5_MAF
+Canada;CAN;R5_OECD
+Cocos (Keeling) Islands;CCK;R5_ASIA
+Switzerland;CHE;R5_OECD
+Chile;CHL;R5_LAM
+China;CHN;R5_ASIA
+Cote d Ivoire;CIV;R5_MAF
+Cameroon;CMR;R5_MAF
+Congo, the Democratic Republic of the;COD;R5_MAF
+Congo;COG;R5_MAF
+Cook Islands;COK;R5_ASIA
+Colombia;COL;R5_LAM
+Comoros;COM;R5_MAF
+Cape Verde;CPV;R5_MAF
+Costa Rica;CRI;R5_LAM
+Cuba;CUB;R5_LAM
+Curacao;CUW;R5_LAM
+Christmas Island;CXR;R5_ASIA
+Cayman Islands;CYM;R5_LAM
+Cyprus;CYP;R5_OECD
+Czech Republic;CZE;R5_OECD
+Germany;DEU;R5_OECD
+Djibouti;DJI;R5_MAF
+Dominica;DMA;R5_LAM
+Denmark;DNK;R5_OECD
+Dominican Republic;DOM;R5_LAM
+Algeria;DZA;R5_MAF
+Ecuador;ECU;R5_LAM
+Egypt;EGY;R5_MAF
+Eritrea;ERI;R5_MAF
+Western Sahara;ESH;R5_MAF
+Spain;ESP;R5_OECD
+Estonia;EST;R5_OECD
+Ethiopia;ETH;R5_MAF
+Finland;FIN;R5_OECD
+Fiji;FJI;R5_ASIA
+Falkland Islands (Malvinas);FLK;R5_OECD
+France;FRA;R5_OECD
+Faroe Islands;FRO;R5_OECD
+Micronesia, Federated States of;FSM;R5_ASIA
+Gabon;GAB;R5_MAF
+United Kingdom;GBR;R5_OECD
+Georgia;GEO;R5_REF
+Guernsey;GGY;R5_OECD
+Ghana;GHA;R5_MAF
+Gibraltar;GIB;R5_OECD
+Guinea;GIN;R5_MAF
+Guadeloupe;GLP;R5_LAM
+Gambia;GMB;R5_MAF
+Guinea-Bissau;GNB;R5_MAF
+Equatorial Guinea;GNQ;R5_MAF
+Greece;GRC;R5_OECD
+Grenada;GRD;R5_LAM
+Greenland;GRL;R5_OECD
+Guatemala;GTM;R5_LAM
+French Guiana;GUF;R5_LAM
+Guam;GUM;R5_ASIA
+Guyana;GUY;R5_LAM
+Hong Kong;HKG;R5_ASIA
+Heard Island and McDonald Islands;HMD;R5_OECD
+Honduras;HND;R5_LAM
+Croatia;HRV;R5_OECD
+Haiti;HTI;R5_LAM
+Hungary;HUN;R5_OECD
+Indonesia;IDN;R5_ASIA
+Isle of Man;IMN;R5_OECD
+India;IND;R5_ASIA
+British Indian Ocean Territory;IOT;R5_ASIA
+Ireland;IRL;R5_OECD
+Iran, Islamic Republic of;IRN;R5_MAF
+Iraq;IRQ;R5_MAF
+Iceland;ISL;R5_OECD
+Israel;ISR;R5_MAF
+Italy;ITA;R5_OECD
+Jamaica;JAM;R5_LAM
+Jersey;JEY;R5_OECD
+Jordan;JOR;R5_MAF
+Japan;JPN;R5_OECD
+Kazakhstan;KAZ;R5_REF
+Kenya;KEN;R5_MAF
+Kyrgyzstan;KGZ;R5_REF
+Cambodia;KHM;R5_ASIA
+Kiribati;KIR;R5_ASIA
+Saint Kitts and Nevis;KNA;R5_LAM
+Korea, Republic of;KOR;R5_ASIA
+Kuwait;KWT;R5_MAF
+Lao People's Democratic Republic;LAO;R5_ASIA
+Lebanon;LBN;R5_MAF
+Liberia;LBR;R5_MAF
+Libya;LBY;R5_MAF
+Saint Lucia;LCA;R5_LAM
+Liechtenstein;LIE;R5_OECD
+Sri Lanka;LKA;R5_ASIA
+Lesotho;LSO;R5_MAF
+Lithuania;LTU;R5_OECD
+Luxembourg;LUX;R5_OECD
+Latvia;LVA;R5_OECD
+Macao;MAC;R5_ASIA
+Saint Martin (French part);MAF;R5_LAM
+Morocco;MAR;R5_MAF
+Monaco;MCO;R5_OECD
+Moldova, Republic of;MDA;R5_REF
+Madagascar;MDG;R5_MAF
+Maldives;MDV;R5_ASIA
+Mexico;MEX;R5_LAM
+Marshall Islands;MHL;R5_ASIA
+Macedonia, the former Yugoslav Republic of;MKD;R5_OECD
+Mali;MLI;R5_MAF
+Malta;MLT;R5_OECD
+Myanmar;MMR;R5_ASIA
+Montenegro;MNE;R5_OECD
+Mongolia;MNG;R5_ASIA
+Northern Mariana Islands;MNP;R5_ASIA
+Mozambique;MOZ;R5_MAF
+Mauritania;MRT;R5_MAF
+Montserrat;MSR;R5_LAM
+Martinique;MTQ;R5_LAM
+Mauritius;MUS;R5_MAF
+Malawi;MWI;R5_MAF
+Malaysia;MYS;R5_ASIA
+Mayotte;MYT;R5_ASIA
+Namibia;NAM;R5_MAF
+New Caledonia;NCL;R5_ASIA
+Niger;NER;R5_MAF
+Norfolk Island;NFK;R5_ASIA
+Nigeria;NGA;R5_MAF
+Nicaragua;NIC;R5_LAM
+Niue;NIU;R5_ASIA
+Netherlands;NLD;R5_OECD
+Norway;NOR;R5_OECD
+Nepal;NPL;R5_ASIA
+Nauru;NRU;R5_ASIA
+New Zealand;NZL;R5_OECD
+Oman;OMN;R5_MAF
+Pakistan;PAK;R5_ASIA
+Panama;PAN;R5_LAM
+Pitcairn;PCN;R5_ASIA
+Peru;PER;R5_LAM
+Philippines;PHL;R5_ASIA
+Palau;PLW;R5_ASIA
+Papua New Guinea;PNG;R5_ASIA
+Poland;POL;R5_OECD
+Puerto Rico;PRI;R5_OECD
+Korea, Democratic People's Republic of;PRK;R5_ASIA
+Portugal;PRT;R5_OECD
+Paraguay;PRY;R5_LAM
+Palestine, State of;PSE;R5_MAF
+French Polynesia;PYF;R5_ASIA
+Qatar;QAT;R5_MAF
+Reunion;REU;R5_MAF
+Romania;ROU;R5_OECD
+Russian Federation;RUS;R5_REF
+Rwanda;RWA;R5_MAF
+Saudi Arabia;SAU;R5_MAF
+Sudan;SDN;R5_MAF
+Senegal;SEN;R5_MAF
+Singapore;SGP;R5_ASIA
+South Georgia and the South Sandwich Islands;SGS;R5_LAM
+Saint Helena, Ascension and Tristan da Cunha;SHN;R5_OECD
+Svalbard and Jan Mayen;SJM;R5_OECD
+Solomon Islands;SLB;R5_ASIA
+Sierra Leone;SLE;R5_MAF
+El Salvador;SLV;R5_LAM
+San Marino;SMR;R5_OECD
+Somalia;SOM;R5_MAF
+Saint Pierre and Miquelon;SPM;R5_OECD
+Serbia;SRB;R5_OECD
+South Sudan;SSD;R5_MAF
+Sao Tome and Principe;STP;R5_MAF
+Suriname;SUR;R5_LAM
+Slovakia;SVK;R5_OECD
+Slovenia;SVN;R5_OECD
+Sweden;SWE;R5_OECD
+Swaziland;SWZ;R5_MAF
+Sint Maarten (Dutch part);SXM;R5_LAM
+Seychelles;SYC;R5_ASIA
+Syrian Arab Republic;SYR;R5_MAF
+Turks and Caicos Islands;TCA;R5_OECD
+Chad;TCD;R5_MAF
+Togo;TGO;R5_MAF
+Thailand;THA;R5_ASIA
+Tajikistan;TJK;R5_REF
+Tokelau;TKL;R5_ASIA
+Turkmenistan;TKM;R5_REF
+Timor-Leste;TLS;R5_ASIA
+Tonga;TON;R5_ASIA
+Trinidad and Tobago;TTO;R5_LAM
+Tunisia;TUN;R5_MAF
+Turkey;TUR;R5_OECD
+Tuvalu;TUV;R5_ASIA
+Taiwan, Province of China;TWN;R5_ASIA
+Tanzania, United Republic of;TZA;R5_MAF
+Uganda;UGA;R5_MAF
+Ukraine;UKR;R5_REF
+United States Minor Outlying Islands;UMI;R5_ASIA
+Uruguay;URY;R5_LAM
+United States;USA;R5_OECD
+Uzbekistan;UZB;R5_REF
+Holy See (Vatican City State);VAT;R5_OECD
+Saint Vincent and the Grenadines;VCT;R5_LAM
+Venezuela, Bolivarian Republic of;VEN;R5_LAM
+Virgin Islands, British;VGB;R5_OECD
+Virgin Islands, U.S.;VIR;R5_OECD
+Viet Nam;VNM;R5_ASIA
+Vanuatu;VUT;R5_ASIA
+Wallis and Futuna;WLF;R5_OECD
+Samoa;WSM;R5_ASIA
+Yemen;YEM;R5_MAF
+South Africa;ZAF;R5_MAF
+Zambia;ZMB;R5_MAF
+Zimbabwe;ZWE;R5_MAF

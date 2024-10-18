@@ -1,0 +1,127 @@
+variable,IAMC,unit
+population,Population,persons
+gdp,GDP,$ (Year 2011)
+biofuel_cons_change_pct,,%
+biofuel_cons_change_twh,,TWh
+biofuel_cons_per_capita,,KWh
+biofuel_consumption,,TWh
+biofuel_elec_per_capita,,KWh
+biofuel_electricity,Primary Energy|Electricity|Biofuel,TWh
+biofuel_share_elec,,%
+biofuel_share_energy,,%
+carbon_intensity_elec,,grams of CO₂ equivalents per kilowatt-hour
+coal_cons_change_pct,,%
+coal_cons_change_twh,,TWh
+coal_cons_per_capita,,KWh
+coal_consumption,,TWh
+coal_elec_per_capita,,KWh
+coal_electricity,Primary Energy|Electricity|Coal,TWh
+coal_prod_change_pct,,%
+coal_prod_change_twh,,TWh
+coal_prod_per_capita,,KWh
+coal_production,,TWh
+coal_share_elec,,%
+coal_share_energy,,%
+electricity_demand,Primary Energy|Electricity|Demand,TWh
+electricity_generation,,TWh
+electricity_share_energy,,%
+energy_cons_change_pct,,%
+energy_cons_change_twh,,TWh
+energy_per_capita,,KWh per person
+energy_per_gdp,,KWh per $
+fossil_cons_change_pct,,%
+fossil_cons_change_twh,,TWh
+fossil_elec_per_capita,Primary Energy|Electricity|Fossil Per Capita,KWh
+fossil_electricity,Primary Energy|Electricity|Fossil,TWh
+fossil_energy_per_capita,,KWh
+fossil_fuel_consumption,,TWh
+fossil_share_elec,,%
+fossil_share_energy,,%
+gas_cons_change_pct,,%
+gas_cons_change_twh,,TWh
+gas_consumption,,TWh
+gas_elec_per_capita,,KWh
+gas_electricity,Primary Energy|Electricity|Gas,TWh
+gas_energy_per_capita,Primary Energy|Electricity|Gas Per Capita,KWh
+gas_prod_change_pct,,%
+gas_prod_change_twh,,TWh
+gas_prod_per_capita,,KWh
+gas_production,,TWh
+gas_share_elec,,%
+gas_share_energy,,%
+greenhouse_gas_emissions,,MTCO2
+hydro_cons_change_pct,,%
+hydro_cons_change_twh,,TWh
+hydro_consumption,,TWh
+hydro_elec_per_capita,,KWh
+hydro_electricity,Primary Energy|Electricity|Hydro,TWh
+hydro_energy_per_capita,Primary Energy|Electricity|Hydro  Per Capita,KWh
+hydro_share_elec,,%
+hydro_share_energy,,%
+low_carbon_cons_change_pct,,%
+low_carbon_cons_change_twh,,TWh
+low_carbon_consumption,,TWh
+low_carbon_elec_per_capita,,KWh
+low_carbon_electricity,,TWh
+low_carbon_energy_per_capita,,KWh
+low_carbon_share_elec,,%
+low_carbon_share_energy,,%
+net_elec_imports,,TWh
+net_elec_imports_share_demand,,%
+nuclear_cons_change_pct,,%
+nuclear_cons_change_twh,,TWh
+nuclear_consumption,,TWh
+nuclear_elec_per_capita,,KWh
+nuclear_electricity,Primary Energy|Electricity|Nuclear,TWh
+nuclear_energy_per_capita,Primary Energy|Electricity|Nuclear Per Capita,KWh
+nuclear_share_elec,,%
+nuclear_share_energy,,%
+oil_cons_change_pct,,%
+oil_cons_change_twh,,TWh
+oil_consumption,,TWh
+oil_elec_per_capita,,KWh
+oil_electricity,Primary Energy|Electricity|Oil,TWh
+oil_energy_per_capita,Primary Energy|Electricity|Oil Per Capita,KWh
+oil_prod_change_pct,,%
+oil_prod_change_twh,,TWh
+oil_prod_per_capita,,KWh
+oil_production,,TWh
+oil_share_elec,,%
+oil_share_energy,,%
+other_renewable_consumption,,TWh
+other_renewable_electricity,Primary Energy|Electricity|Other Renewables,TWh
+other_renewable_exc_biofuel_electricity,,TWh
+other_renewables_cons_change_pct,,%
+other_renewables_cons_change_twh,,TWh
+other_renewables_elec_per_capita,,KWh
+other_renewables_elec_per_capita_exc_biofuel,,KWh
+other_renewables_energy_per_capita,,KWh
+other_renewables_share_elec,,%
+other_renewables_share_elec_exc_biofuel,,%
+other_renewables_share_energy,,%
+per_capita_electricity,,KWh
+primary_energy_consumption,,TWh
+renewables_cons_change_pct,,%
+renewables_cons_change_twh,,TWh
+renewables_consumption,,TWh
+renewables_elec_per_capita,,KWh
+renewables_electricity,Primary Energy|Electricity|Renewables,TWh
+renewables_energy_per_capita,Primary Energy|Electricity|Renewables per Capita,KWh
+renewables_share_elec,,%
+renewables_share_energy,,%
+solar_cons_change_pct,,%
+solar_cons_change_twh,,TWh
+solar_consumption,,TWh
+solar_elec_per_capita,Primary Energy|Electricity|Solar per Capita,KWh
+solar_electricity,Primary Energy|Electricity|Solar,TWh
+solar_energy_per_capita,,KWh
+solar_share_elec,,%
+solar_share_energy,,%
+wind_cons_change_pct,,%
+wind_cons_change_twh,,TWh
+wind_consumption,Primary Energy|Electricity|Wind per Capita,TWh
+wind_elec_per_capita,,KWh
+wind_electricity,Primary Energy|Electricity|Wind,TWh
+wind_energy_per_capita,,KWh
+wind_share_elec,,%
+wind_share_energy,,%
