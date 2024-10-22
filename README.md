@@ -1,6 +1,6 @@
 # Historical data repository using the IAMC format
 
-*Structure for collaboratively collecting and processing up-to-date historic reference data on energy supply and demand and emissions, for assessing the plausibility of near-term scenario trajectories*
+*Structure for collaboratively collecting and processing up-to-date historical reference data on energy supply and demand and emissions, for assessing the plausibility of near-term scenario trajectories*
 
 ## Folder structure:
 
