@@ -28,6 +28,8 @@ After cloning this repository to your local computer:
 
 4. Run the src/Hist_Data.R script
 
+5. If desired to make figures or perform analysis on the historical and IAM data (optional), then open and run the src/combine_and_plot.R
+
 ## Notes: 
 Only the files in mappings and src are git managed, others are ignored to reduce repository size (see .gitignore).
 
@@ -39,6 +41,6 @@ The script src/Hist_data.R reads in a lot of data from publicly available source
 See comment lines on top of this script for short explanation on structure.
 
 
-## Contributing
+## Contributing:
 
 We invite collaboration on and improvement of this community repository. Please use the Issues tab for any questions / comments and use or improvement. To contribute to the repository, first fork this one (umd-cgs/hist_iamc) to your local organization's GitHub, then push commits to that one and start a pull request to this repository. We will consider these pull requests and discuss any questions that we have with your team. 

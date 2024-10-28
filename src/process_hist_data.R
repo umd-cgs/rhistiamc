@@ -38,6 +38,14 @@ save_option <- T
 
 ### Process the data -----
 
+# CHECK if the historical data processed outputs (from the hist_iamc repo) have 
+# been updated at this location: output_both_repos
+# https://drive.google.com/drive/u/0/folders/1TVv7d-kgyqqhK3ojneWNsZjW01YTxEVp
+
+# IF SO, put the generated datasets (Rds files with source specific, more detailed data, 
+# and csv files with harmonized set of IAMC variables) into the output/ folder 
+# within this local repo
+
 #### 1. read in __________________________ ####### 
 
 ###### emissions: ghg - PRIMAP hist --------------------------------------------------
@@ -1335,9 +1343,9 @@ datieas <- datieas |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 
 
 
-### 4 write and remove data #### 
+### 3 write and remove data #### 
 
-#### 4.a combine and write multiple datasets --------------
+#### 3.a combine and write multiple datasets --------------
 # for use in main.R, etc
 
 # Convert to wide formats before writing
@@ -1370,20 +1378,20 @@ write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 
 
 
-### Region32 and World (only with historical IEA / without IEA future scenarios):
-
-write_this <- rbind(data_reg, datieah, data_World) |>
-  group_by(model, scenario, region, variable, value, unit) |>
-  arrange(year) |>
-  pivot_wider(names_from = year, values_from = value) |>
-  select(-c("2024")) |> #no data in this column
-  unique() |>
-  ungroup()
-
-#write out IAMC file
-write.csv(write_this, 
-          file.path("output",paste0("historical_", model_regions, ".csv")),
-          row.names = F,quote = F)
+# ### Region32 and World (only with historical IEA / without IEA future scenarios):
+# 
+# write_this <- rbind(data_reg, datieah, data_World) |>
+#   group_by(model, scenario, region, variable, value, unit) |>
+#   arrange(year) |>
+#   pivot_wider(names_from = year, values_from = value) |>
+#   select(-c("2024")) |> #no data in this column
+#   unique() |>
+#   ungroup()
+# 
+# #write out IAMC file
+# write.csv(write_this, 
+#           file.path("output",paste0("historical_", model_regions, ".csv")),
+#           row.names = F,quote = F)
 
 
 ### Region32 and World (with all IEA scenarios):
@@ -1404,7 +1412,7 @@ write.csv(write_this,
 
 
 
-#### 4.b save and remove original source R objects ####
+#### 3.b save and remove original source R objects ####
 if(save_option == T){
   save(prim,ceds,eemi,eemi_eu,file = "output/emissions.Rds")
   save(ember,emberm,ecap,egeny,egenm,ener,iea_ev, file = "output/energy.Rds")

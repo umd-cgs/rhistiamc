@@ -5,6 +5,34 @@
 # Andy Miller, June 2024
 
 
+# Convert to aggregated regions -------
+
+aggregate_regions <- function(data, region_map){
+  
+  data_regional <- data |>
+    mutate(value=as.numeric(value))
+    #filter(value == "NA") |>
+
+  if ("region" %in% colnames(data) & !("iso" %in% colnames(data))){
+    data_regional <- data_regional |> 
+    rename(iso = region) 
+    }
+    
+  data_regional <- data_regional |>
+  left_join(region_map) |>
+  select(year,variable,unit,value,region,model,scenario) |> 
+  group_by(year,variable,unit,region,model,scenario) |> 
+  summarise(value=sum(value, na.rm = T)) |> 
+  ungroup() |> 
+  na.omit(region)
+
+  return(data_regional)
+  
+}
+
+
+
+
 # check operating system ----------
 
 get_os <- function(){
