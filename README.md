@@ -14,7 +14,7 @@
 
 - **runs**: folder for scenario data in IAMC format to compare against historic data
 
-- **src**: R scripts for primary creation of data, for comparison plots, as well as tools for near-term projections and targets compared to historic data. Check src/main.R for overview
+- **src**: R scripts for primary creation of data, for comparison plots, as well as tools for near-term projections and targets compared to historic data.
 
 
 
@@ -41,7 +41,7 @@ or for a quick start from this [data_rhistiamc](https://drive.google.com/open?id
 4. Run the src/process_hist_data.R script
 
 5. If desired to make figures or perform analysis on the historical and IAM data (optional), then open and run the src/combine_and_plot.R script.
-Make any additional fig_...R scripts based on the ones provided or with a different setup.  
+Make any additional src/fig_...R scripts based on the ones provided or with a different setup.  
 
 
 ## Notes: 
