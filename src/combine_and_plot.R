@@ -12,6 +12,11 @@ library(zoo) #function na.approx to linearly interpolate
 source("src/functions.R")
 
 
+# Choose the desired regions for the analysis, in addition to by country: Model name / number of regions
+# model_regions <- "gcam32"   # Using GCAM core regions
+# model_regions <- "r10"  # R10: ten regions making up the world
+model_regions <- "r5"  # R5: five regions making up the world
+
 #### 1. Update, load hist & scen data -----
 
 
@@ -41,6 +46,50 @@ data_hist <- data_hist |>
   mutate(value=as.numeric(value),
          year=as.numeric(year))
 
+# Use model_regions setting from the constants step to choose region mapping
+if (model_regions == "gcam32"){
+  reg_map <- read.csv("mappings/iso_EI_GCAM_regID.csv",skip = 6) |>
+    left_join(read.csv("mappings/GCAM_region_names.csv",skip = 6))|>
+    mutate(iso=toupper(iso))
+  
+  ## check_match(data_iso, reg_map, "iso")
+  
+} else if(model_regions == "r5"){
+  ## aggregate to R5: five regions making up the world
+  reg_map <- read.csv2("mappings/regionmappingR5.csv") |> 
+    rename(iso=CountryCode,region=RegionCode)
+  
+} else if(model_regions == "r10"){ 
+  ## aggregate to R10: ten regions making up the world
+  reg_map <- read.csv("mappings/iso_r10.csv") 
+  
+}
+
+# Add aggregated regions to the historical data
+data_hist <- data_hist |>
+  bind_rows(aggregate_regions(data_hist, reg_map) |>
+              # Remove regions that are in the iso and World data:
+              filter(!(region %in% unique(data_hist$region)))) |>
+  unique()
+
+data_hist <- data_hist |>
+  mutate(region = gsub("R10AFRICA", "Africa (R10)", region),
+         region = gsub("R10CHINA+", "China+ (R10)", region),
+         region = gsub("R10EUROPE", "Europe (R10)", region),
+         region = gsub("R10INDIA+", "India+ (R10)", region),
+         region = gsub("R10LATIN_AM", "Latin America (R10)", region),
+         region = gsub("R10MIDDLE_EAST", "Middle East (R10)", region),
+         region = gsub("R10NORTH_AM", "North America (R10)", region),
+         region = gsub("R10PAC_OECD", "Pacific OECD (R10)", region),
+         region = gsub("R10REF_ECON", "Reforming Economies (R10)", region),
+         region = gsub("R5_ASIA", "Asia (R5)", region),
+         region = gsub("R5_LAM", "Latin America (R5)", region),
+         region = gsub("R5_MAF", "Middle East & Africa (R5)", region),
+         region = gsub("R5_OECD", "OECD & EU (R5)", region),
+         region = gsub("R5_REF", "Reforming Economies (R5)", region))
+
+  
+
 #add EU27BX data
 eu27bx <- c("AUT","BEL","BGR","HRV","CYP","CZE","DNK","EST","FIN","FRA","DEU","GRC","HUN","IRL","ITA","LVA","LTU","LUX","MLT","NLD","POL","PRT","ROU","SVK","SVN","ESP","SWE")
 data_hist <- data_hist |> rbind(
@@ -49,13 +98,27 @@ data_hist <- data_hist |> rbind(
     summarize(value=sum(value)) |> mutate(region="EU27BX"))
 
 #### AND read in scenario data
-# NOTE: change option to anything besides "gcam" to read in general multi-model results
+# Choose which scenario data to read in
 data_scen_option <- "ngfs_phase_IV"
+# data_scen_option <- 
+
 if (data_scen_option == "ngfs_phase_IV") { 
   
   #use the publicly available 3 model scenario set from phase 4
   #file from download page from https://data.ene.iiasa.ac.at/ngfs/#/workspaces
   data_scen <- read_xlsx(file.path("runs/", "IAM_data.xlsx"))
+  colnames(data_scen) <- tolower(colnames(data_scen))
+  
+  data_scen <- data_scen |>
+    pivot_longer(cols = -c(model, variable, region, unit, scenario),
+                 names_to = "year",
+                 values_to = "value") |>
+    arrange(model, region, year, variable, scenario) |>
+    filter(!is.na(value)) |> 
+    mutate(value=as.numeric(value),
+           year=as.numeric(year))
+  
+  
   
 } else {
 
@@ -78,7 +141,7 @@ if(country_adjust){
   
 }
 
-#### 3. Define countries of interest -----
+#### 3. Define countries / regions of interest -----
 # differentiated by priority
 
 #first column: name
@@ -116,79 +179,54 @@ countries <- data.frame(region=countries[,1],
 # countries <- countries |> filter(priority==1)
 
   
+  
 #### 4. Run the plot scripts -----
 # in the order shown below (some build on the outputs of previous scripts). 
 
 
-#### most so far don't directly make use of the data loaded centrally here,
-#### nor of the country set defined above.
-
 # start_yr <- 2000
   start_yr <- 1990
-  
-  ##### sectoral emission shares ------
-  source("src/emiss_hist_GHG_shares.R")
  
-  ##### sectoral emissions and targets ----
-  source("src/emiss_NDC_NGFS_inexpolation.R")
+  ##### Electricity generation mix -----
+  source("src/fig_elec_generation_mix.R")
   
-  ##### emission - comparing scenarios ----
-  ##### makes use of targets defined in previous script
-  # source("src/emiss_GHG_figures.R")
-  source("src/emiss_GHG_figures_new.R")
   
-  ##### waterfall of scenario emission reductions ----
-  source("src/emiss_waterfall.R")
+  ##### Line plots  ---------------------
+  #define set of variables to plot in fig_line_comparison.R
   
-  ##### land use emission plots ----- 
-  #seems currently not to work as it is looking for dat_land
-  # source("src/emiss_land_use.R")
-
-  ##### land use emission plots -----
-  #seems currently not to work as it is looking for dat_ceds (which could just be ceds part of data_hist?)
-  # source("src/emiss_nonCO2_bysector.R")
+  models <- unique(data_scen$model); models
+  # Select models to plot
+  models <- models[grepl("GCAM",models)]; models
   
-  ##### electricity generation mix -----
-  source("src/elec_generation_mix.R")
+  scenarios <- unique(data_scen$scenario); scenarios
+  # Select scenarios to plot
+  scenarios <- scenarios[grepl("Below 2",scenarios) | 
+                           grepl("Current Pol", scenarios) | 
+                           grepl("NDC", scenarios) | 
+                           grepl("Net Zero", scenarios)]; scenarios
   
-  ##### electricity use by sector-----
-  source("src/elec_sectoral_use.R")
-  
-  ##### electricity 2030 developement space: S+W and Efficiency ----
-  # source("src/elec_VRE-Eff.R")
-  
-  ##### use and domestic supply of fossil fuels -----
-  source("src/fossil_figures.R")
-
-  ##### scale up of EVs compared to Norway and China -----
-  source("src/trn_ev_figures.R")
-
-  # by default not run
-  if(F){
-  ##### rank countries -----
-  # Select which variables to rank
-  variables_pp <- c(
-    'Emissions|CO2|Buildings',
-    'Emissions|CO2|Industry',
-    'Emissions|CO2|Other',
-    'Emissions|CO2|Supply|Electricity',
-    'Emissions|CO2|Supply|Other',
-    'Emissions|CO2|Transport',
-    'Emissions|N2O',
-    'Emissions|CH4', 
-    'GDP',
-    'Sales Share|Transportation|Passenger|LDV|BEV+PHEV',
-    'Sales Share|Transportation|ICE',
-    'Sales Share|Transportation|Passenger|LDV|BEV'
+  vars <- data.frame(
+    vars=c(
+      "Primary Energy|Gas"
+      ),
+    names=c("PE_gas"
+    )
   )
   
-  variables_abs <- c('Secondary Energy|Electricity|Wind|Share',
-                     'Secondary Energy|Electricity|Solar|Share',
-                     'Secondary Energy|Electricity|Solar+Wind|Share')
-
-  source("src/historic_regions_ranking.R")
+  # vars <- data.frame(
+  #   vars=c(
+  #     "Temperature|Global Mean","Emissions|CO2|Energy and Industrial Processes","Emissions|CO2","Emissions|Kyoto Gases","Primary Energy|Oil","Primary Energy|Coal","Primary Energy|Coal|Non-electricity (appr)","Primary Energy|Gas",
+  #     "Secondary Energy|Electricity|Solar","Secondary Energy|Electricity|Wind","Secondary Energy|Electricity|Hydro","Secondary Energy|Electricity|Nuclear",
+  #     "Secondary Energy|Electricity|Coal","Secondary Energy|Electricity|Gas","Final Energy|Industry","Final Energy|Industry|Solids|Coal", "Final Energy|Transportation", 
+  #     "Population","GDP|PPP", "Price|Carbon", "Final Energy|Residential and Commercial", "Electrification|Transportation", "Electricity|Share|Solar+Wind"
+  #   ),
+  #   names=c("Temp","Emi_co2_FFI","Emi_co2","Emi_kyo","PE_oil","PE_coal","PE_coal_nonElec","PE_gas",
+  #           "Elec_solar","Elec_wind","Elec_hydro","Elec_nuclear",
+  #           "Elec_coal","Elec_gas","FE_ind", "FE_ind_coal","FE_trp" , 
+  #           "Pop","GDP_ppp", "Carbon_price", "FE_rescom", "Elec_trp","SW_share"
+  #   )
+  # )
+  
+  source("src/fig_line_comparison.R")
   
   
-  ##### Per-person variable plots ------
-  source('src/top_x_per_capita_bar.R')
-  }

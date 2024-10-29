@@ -29,8 +29,8 @@ starty <- 1990 - 1 # can be adjusted for even shorter or longer historic time se
 
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
-model_regions <- "gcam32"   # Using GCAM core regions
-# model_regions <- "r10"
+# model_regions <- "gcam32"   # Using GCAM core regions
+model_regions <- "r10"
 # model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
@@ -65,40 +65,40 @@ prim$year <- parse_number(prim$year)
 ###### emissions: co2 - CEDS --------------------------------------------------
 # https://zenodo.org/records/10904361
 # CEDS v_2024_04_01 Release Emission Data
-ceds <- rbind(test1 <- read.csv("data/CEDS_v_2024_04_01_aggregate/CH4_CEDS_emissions_by_country_v2024_04_01.csv")|>
+ceds <- rbind(read.csv("data/CEDS_v_2024_04_01_aggregate/CH4_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,56)),
-              test2 <-read.csv("data/CEDS_v_2024_04_01_aggregate//CO2_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate//CO2_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,276)),
-              test3 <- read.csv("data/CEDS_v_2024_04_01_aggregate/N2O_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate/N2O_CEDS_emissions_by_country_v2024_04_01.csv")|>
                pivot_longer(cols = seq(4,56)),
-              test4 <- read.csv("data/CEDS_v_2024_04_01_aggregate/SO2_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate/SO2_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,276)),
-              test5 <- read.csv("data/CEDS_v_2024_04_01_aggregate/BC_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate/BC_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,276)),
-              test6 <- read.csv("data/CEDS_v_2024_04_01_aggregate/CO_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate/CO_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,276)),
-              test7 <- read.csv("data/CEDS_v_2024_04_01_aggregate/NH3_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate/NH3_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,276)),
-              test8 <- read.csv("data/CEDS_v_2024_04_01_aggregate/NMVOC_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate/NMVOC_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,276)),
-              test9 <- read.csv("data/CEDS_v_2024_04_01_aggregate/NOx_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate/NOx_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,276)),
-              test10 <- read.csv("data/CEDS_v_2024_04_01_aggregate/OC_CEDS_emissions_by_country_v2024_04_01.csv")|>
+              read.csv("data/CEDS_v_2024_04_01_aggregate/OC_CEDS_emissions_by_country_v2024_04_01.csv")|>
                 pivot_longer(cols = seq(4,276)))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5)))
 
 #sectoral ceds data (so far only for CO2, but could be expanded to more gases, at least for CH4 could be interesting):
-ceds_s <-read.csv("../historic_data/data/CEDS_v_2024_04_01_aggregate/CO2_CEDS_emissions_by_country_sector_v2024_04_01.csv") |>
+ceds_s <-read.csv("data/CEDS_v_2024_04_01_aggregate/CO2_CEDS_emissions_by_country_sector_v2024_04_01.csv") |>
   pivot_longer(cols=seq(5,277))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5))) %>%
   filter(year > starty)
 
-ceds_m <-read.csv("../historic_data/data/CEDS_v_2024_04_01_aggregate/CH4_CEDS_emissions_by_country_sector_v2024_04_01.csv") |>
+ceds_m <-read.csv("data/CEDS_v_2024_04_01_aggregate/CH4_CEDS_emissions_by_country_sector_v2024_04_01.csv") |>
   pivot_longer(cols=seq(5,57))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5)))  %>%
   filter(year > starty)
 
-ceds_n <-read.csv("../historic_data/data/CEDS_v_2024_04_01_aggregate/N2O_CEDS_emissions_by_country_sector_v2024_04_01.csv") |>
+ceds_n <-read.csv("data/CEDS_v_2024_04_01_aggregate/N2O_CEDS_emissions_by_country_sector_v2024_04_01.csv") |>
   pivot_longer(cols=seq(5,57))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5)))%>%
   filter(year > starty)
@@ -1273,17 +1273,7 @@ if (model_regions == "gcam32"){
   
 }
 
-data_reg <- data_iso |> 
-  #filter(value == "NA") |>
-  rename(iso = region) |>
-  mutate(value=as.numeric(value)) |>
-  left_join(reg_map) |>
-  select(year,variable,unit,value,region,model,scenario) |> 
-  group_by(year,variable,unit,region,model,scenario) |> 
-  summarise(value=sum(value, na.rm = T)) |> 
-  ungroup() |> 
-  na.omit(region)
-
+data_reg <- aggregate_regions(data_iso, reg_map)
   
 #adjust global values for statistical review data with O-AFR
 
