@@ -24,21 +24,16 @@ library(ggplot2)
 
 # Select desired data: -------------
 # Defined in combine_and_plot.R
-data_scn <- data_scen |>
-  filter(model %in% models,
-         scenario %in% scenarios)
+data_scn <- data_scen
 
-if (model_regions %in% c("r10", "r5")){
-  data_scn <- data_scn |>
-    filter(grepl(toupper(model_regions), region) | region == "World")
-}
+data_hg <- data_hist
 
 ### for global plots: -------------
 
 vars_global <- vars |>
   mutate(use = ifelse(vars %in% c("Price|Carbon"), 0, 1))
 
-scens_global <- scenarios
+scens_global <- scenarios_selected
 
 ### for regional plots: -------------
 
@@ -46,7 +41,7 @@ scens_global <- scenarios
 vars_regional <- vars |>
   mutate(use = ifelse(vars %in% c("Temperature|Global Mean"), 0, 1))
 
-scens_regional <- scenarios
+scens_regional <- scenarios_selected
 
 # #define set of emissions to plot, as well as file names to use
 # vars_regional <- data.frame(vars=c("Emissions|CO2|Energy and Industrial Processes","Emissions|CO2","Primary Energy|Oil","Primary Energy|Coal","Primary Energy|Gas"
@@ -61,7 +56,7 @@ year_max_reg <- 2050
 
 
 #add PV and CSP for IEA data
-data_hg <- data_hist |> bind_rows(data_hist |>
+data_hg <- data_hg |> bind_rows(data_hg |>
                                   filter(variable %in% c("Secondary Energy|Electricity|Solar|PV","Secondary Energy|Electricity|Solar|CSP"),
                                          model=="IEA WEO 2023")|>
                                   complete(nesting(scenario, region, unit, model, year), 

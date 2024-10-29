@@ -30,23 +30,15 @@ starty <- 1990 - 1 # can be adjusted for even shorter or longer historic time se
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
 # model_regions <- "gcam32"   # Using GCAM core regions
-model_regions <- "r10"
-# model_regions <- "r5"
+# model_regions <- "r10"
+model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
 save_option <- T 
 
 ### Process the data -----
 
-# CHECK if the historical data processed outputs (from the hist_iamc repo) have 
-# been updated at this location: output_both_repos
-# https://drive.google.com/drive/u/0/folders/1TVv7d-kgyqqhK3ojneWNsZjW01YTxEVp
-
-# IF SO, put the generated datasets (Rds files with source specific, more detailed data, 
-# and csv files with harmonized set of IAMC variables) into the output/ folder 
-# within this local repo
-
-#### 1. read in __________________________ ####### 
+#### 1. Read in data _______________________ ####### 
 
 ###### emissions: ghg - PRIMAP hist --------------------------------------------------
 # https://zenodo.org/records/13752654  
@@ -356,10 +348,6 @@ eemi_eu <- ember |>
     fuel=="Total emissions" ~ "Total",
     .default=fuel
   ))|>filter(fuel %in% c("Total","Gas","Coal","Fossil"))
-
-if(save_option == T){
-  save(ecap,egeny,egenm,eemi,file="output/ember.Rds")
-}
 
 
 ###### energy: other - EI SRWED --------------------------------------------------
@@ -1399,7 +1387,7 @@ write_this <- rbind(data_reg, datieah, datieas, data_World) |>
 
 #write out IAMC file
 write.csv(write_this, 
-          file.path("output",paste0("historical_ref_", model_regions, ".csv")),
+          file.path("output",paste0("historical_", model_regions, ".csv")),
           row.names = F,quote = F)
 
 

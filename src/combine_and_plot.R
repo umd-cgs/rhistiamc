@@ -12,13 +12,22 @@ library(zoo) #function na.approx to linearly interpolate
 source("src/functions.R")
 
 
-# Choose the desired regions for the analysis, in addition to by country: Model name / number of regions
-# model_regions <- "gcam32"   # Using GCAM core regions
-# model_regions <- "r10"  # R10: ten regions making up the world
-model_regions <- "r5"  # R5: five regions making up the world
+#### 1. Define settings -------------
 
-#### 1. Update, load hist & scen data -----
+# # Define starting year for the plots 
+# start_yr <- 2000
+start_yr <- 1990
 
+# # Choose the desired regions for the analysis
+# model_regions <- "iso"   # ISO: Using country codes
+# model_regions <- "gcam32"    # Using GCAM core regions
+# model_regions <- "r10"   # R10: ten regions making up the world
+model_regions <- "r5"   # R5: five regions making up the world
+
+
+#### 2. Load data ------------------
+
+##### 2.1 Historical data -----
 
 # PUT the IAM_data.xlsx, downloaded from the following link, and 
 # any other processed scenarios results into the runs/ folder 
@@ -27,14 +36,14 @@ model_regions <- "r5"  # R5: five regions making up the world
 # https://data.ece.iiasa.ac.at/ngfs-phase-4/#/downloads
 
 # IF it's desired to use the provided historical data in the IAMC format, rather 
-# than re-create it using process_hist_data, then download it from:
-# !!! ADD IN THIS WEBSITE LINK-- in our Github README !!!-----------
+# than re-create it using src/process_hist_data.R, then download the files from:
+# PUBLIC_output_rhistiamc:
+# https://drive.google.com/open?id=117cTkVRekeu3vHYrFkH93zstpCqGxkM8&usp=drive_fs
 # into your local output/ folder
 
-## CHANGE ABOVE!!##
 
 #### THEN read in historic data in wide format and convert to long
-data_hist <- read.csv("output/historical_iso.csv", na.strings = "NA")
+data_hist <- read.csv(paste0("output/historical_",model_regions,".csv"), na.strings = "NA")
 colnames(data_hist) <- gsub("^X", "", colnames(data_hist))
 
 data_hist <- data_hist |>
@@ -46,49 +55,6 @@ data_hist <- data_hist |>
   mutate(value=as.numeric(value),
          year=as.numeric(year))
 
-# Use model_regions setting from the constants step to choose region mapping
-if (model_regions == "gcam32"){
-  reg_map <- read.csv("mappings/iso_EI_GCAM_regID.csv",skip = 6) |>
-    left_join(read.csv("mappings/GCAM_region_names.csv",skip = 6))|>
-    mutate(iso=toupper(iso))
-  
-  ## check_match(data_iso, reg_map, "iso")
-  
-} else if(model_regions == "r5"){
-  ## aggregate to R5: five regions making up the world
-  reg_map <- read.csv2("mappings/regionmappingR5.csv") |> 
-    rename(iso=CountryCode,region=RegionCode)
-  
-} else if(model_regions == "r10"){ 
-  ## aggregate to R10: ten regions making up the world
-  reg_map <- read.csv("mappings/iso_r10.csv") 
-  
-}
-
-# Add aggregated regions to the historical data
-data_hist <- data_hist |>
-  bind_rows(aggregate_regions(data_hist, reg_map) |>
-              # Remove regions that are in the iso and World data:
-              filter(!(region %in% unique(data_hist$region)))) |>
-  unique()
-
-data_hist <- data_hist |>
-  mutate(region = gsub("R10AFRICA", "Africa (R10)", region),
-         region = gsub("R10CHINA+", "China+ (R10)", region),
-         region = gsub("R10EUROPE", "Europe (R10)", region),
-         region = gsub("R10INDIA+", "India+ (R10)", region),
-         region = gsub("R10LATIN_AM", "Latin America (R10)", region),
-         region = gsub("R10MIDDLE_EAST", "Middle East (R10)", region),
-         region = gsub("R10NORTH_AM", "North America (R10)", region),
-         region = gsub("R10PAC_OECD", "Pacific OECD (R10)", region),
-         region = gsub("R10REF_ECON", "Reforming Economies (R10)", region),
-         region = gsub("R5_ASIA", "Asia (R5)", region),
-         region = gsub("R5_LAM", "Latin America (R5)", region),
-         region = gsub("R5_MAF", "Middle East & Africa (R5)", region),
-         region = gsub("R5_OECD", "OECD & EU (R5)", region),
-         region = gsub("R5_REF", "Reforming Economies (R5)", region))
-
-  
 
 #add EU27BX data
 eu27bx <- c("AUT","BEL","BGR","HRV","CYP","CZE","DNK","EST","FIN","FRA","DEU","GRC","HUN","IRL","ITA","LVA","LTU","LUX","MLT","NLD","POL","PRT","ROU","SVK","SVN","ESP","SWE")
@@ -97,7 +63,9 @@ data_hist <- data_hist |> rbind(
                       region %in% eu27bx) |> group_by(model,scenario,unit,variable,year) |> 
     summarize(value=sum(value)) |> mutate(region="EU27BX"))
 
-#### AND read in scenario data
+
+##### 2.2 Scenario data -------------------------------
+
 # Choose which scenario data to read in
 data_scen_option <- "ngfs_phase_IV"
 # data_scen_option <- 
@@ -118,7 +86,31 @@ if (data_scen_option == "ngfs_phase_IV") {
     mutate(value=as.numeric(value),
            year=as.numeric(year))
   
+  data_scen <- data_scen |>
+    mutate(region = gsub("GCAM 6.0 NGFS\\|", "", region),
+           region = gsub("MESSAGEix-GLOBIOM 1.1-R12\\|", "", region),
+           region = gsub("REMIND-MAgPIE 3.2-4.6\\|", "", region))
   
+  if (model_regions == "r10") {
+    data_scen <- data_scen |>
+      mutate(region = gsub("Africa (R10)", "R10AFRICA", region),
+             region = gsub("China+ (R10)", "R10CHINA+", region),
+             region = gsub("Europe (R10)", "R10EUROPE", region),
+             region = gsub("India+ (R10)", "R10INDIA+", region),
+             region = gsub("Latin America (R10)", "R10LATIN_AM", region),
+             region = gsub("Middle East (R10)", "R10MIDDLE_EAST", region),
+             region = gsub("North America (R10)", "R10NORTH_AM", region),
+             region = gsub("Pacific OECD (R10)", "R10PAC_OECD", region),
+             region = gsub("Reforming Economies (R10)", "R10REF_ECON", region))
+    
+  } else if (model_regions == "r5") {
+    data_scen <- data_scen |>
+      mutate(region = gsub("Asia \\(R5\\)", "R5_ASIA", region),
+             region = gsub("Latin America \\(R5\\)", "R5_LAM", region),
+             region = gsub("Middle East & Africa \\(R5\\)", "R5_MAF", region),
+             region = gsub("OECD & EU \\(R5\\)", "R5_OECD", region),
+             region = gsub("Reforming Economies \\(R5\\)", "R5_REF", region))
+  }
   
 } else {
 
@@ -128,105 +120,88 @@ if (data_scen_option == "ngfs_phase_IV") {
 }
 
 
-####### 2. (Optionally) Make country adjustments ----
-#### read in country-specific scenario data for a few special countries
-country_adjust <-T
-if(country_adjust){
 
-  # # Read in country-provided data and overwrite or modify 
-  # # some of the scenario results, eg. for historical years
-  # data_scen_c <- 
-  #   
-  # data_scen <- 
-  
+#### 3. Choose scenarios, models, regions ---------------
+# of interest for focus in this analysis and plotting
+
+scenarios_avail <- unique(data_scen$scenario); scenarios_avail
+# Select scenarios to plot (all or a subset)
+scenarios_selected <- scenarios_avail[c(1:2,7:6)]; scenarios_selected
+# scenarios_selected <- scenarios_avail[c(1:length(scenarios_avail))]; scenarios_selected
+
+
+
+
+models_avail <- unique(data_scen$model); models_avail
+# Select models to plot
+
+models_selected <- models_avail[grepl("GCAM",models_avail)]; models_selected
+
+
+
+if (model_regions %in% c("r10", "r5")){
+  regions_avail <- unique((filter(data_hist, grepl(toupper(model_regions), region) | region == "World"))$region); regions_avail
+} else {
+  regions_avail <- unique(data_hist$region); regions_avail
 }
 
-#### 3. Define countries / regions of interest -----
-# differentiated by priority
+# Select all regions or choose a subset
+regions_selected <- regions_avail[c(1:length(regions_avail))]; regions_selected
 
-#first column: name
-#second column: Iso code
-#third column: priority group
-#4th-6th column: scenario names to use: 4th is first (central), 5th shifted to left, 6th to right
-#if there are 2 reference scenarios, these can be 4th and 5th or 5th and 6th 
-#7th to 9th column: scenario display names
+# regions_overlapping <- check_match(data_scen, data_hist, "region", opt = "i")
 
-countries <- matrix(ncol=9,byrow = T,data=c(
-  "South Korea","KOR",1,"o_1p5c","d_delfrag","BEP11","High Ambition","Low Ambition","11th BEP",
-  "USA","USA",4,"o_1p5c","d_delfrag",NA,"High Ambition","Low Ambition",NA,
-  "Asia (R5)", "Asia (R5)", 1, "Nationally Determined Contributions (NDCs)", "Current Policies", "Net Zero 2050", "NDC", "Cpol", "NZ2050",
-  "Latin America (R5)", "Latin America (R5)", 1, "Nationally Determined Contributions (NDCs)", "Current Policies", "Net Zero 2050", "NDC", "Cpol", "NZ2050",
-  "Middle East & Africa (R5)", "Middle East & Africa (R5)", 1, "Nationally Determined Contributions (NDCs)", "Current Policies", "Net Zero 2050", "NDC", "Cpol", "NZ2050",
-  "OECD & EU (R5)", "OECD & EU (R5)", 1, "Nationally Determined Contributions (NDCs)", "Current Policies", "Net Zero 2050", "NDC", "Cpol", "NZ2050",
-  "Reforming Economies (R5)", "Reforming Economies (R5)", 1, "Nationally Determined Contributions (NDCs)", "Current Policies", "Net Zero 2050", "NDC", "Cpol", "NZ2050",
-  "World","World",5,"High Ambition","Low Ambition",NA,"High Ambition","Low Ambition",NA))
+regions_missing <- regions_selected[!(regions_selected %in% unique(data_scen$region))]
+if (length(regions_missing) != 0) {
+  print("These regions names do not appear in data_scen: ")
+  print(regions_missing)
+}
 
-countries <- data.frame(region=countries[,1],
-                        iso=countries[,2],
-                        priority=countries[,3],
-                        scen1=countries[,4],
-                        scen2=countries[,5],
-                        scen3=countries[,6],
-                        name1=countries[,7],
-                        name2=countries[,8],
-                        name3=countries[,9])
+# Filter scenario data accordingly
+data_scen <- data_scen |>
+  filter(model %in% models_selected,
+         scenario %in% scenarios_selected,
+         region %in% regions_selected)
 
 
-  
-  #to use only selection, in-comment appropriate line below
-  # countries <- countries |> filter(iso %in% c("ARG","SAU","TUR","RUS","MEX"))
-  countries <- countries |> filter(iso %in% c("KOR","World"))
-# countries <- countries |> filter(priority==1)
+#define set of variables to plot in fig_line_comparison.R
+vars <- data.frame(
+  vars=c(
+    "Primary Energy|Gas"
+  ),
+  # Aliases for the variables to include in the saved filenames
+  names=c("PE_gas"
+  )
+)
 
-  
+# vars <- data.frame(
+#   vars=c(
+#     "Temperature|Global Mean","Emissions|CO2|Energy and Industrial Processes","Emissions|CO2","Emissions|Kyoto Gases","Primary Energy|Oil","Primary Energy|Coal","Primary Energy|Gas",
+#     "Secondary Energy|Electricity|Solar","Secondary Energy|Electricity|Wind","Secondary Energy|Electricity|Hydro","Secondary Energy|Electricity|Nuclear",
+#     "Secondary Energy|Electricity|Coal","Secondary Energy|Electricity|Gas","Final Energy|Industry","Final Energy|Industry|Solids|Coal", "Final Energy|Transportation",
+#     "Population","GDP|PPP", "Price|Carbon", "Final Energy|Residential and Commercial"
+#   ),
+#   # Aliases for the variables to include in the saved filenames
+#   names=c("Temp","Emi_co2_FFI","Emi_co2","Emi_kyo","PE_oil","PE_coal","PE_gas",
+#           "Elec_solar","Elec_wind","Elec_hydro","Elec_nuclear",
+#           "Elec_coal","Elec_gas","FE_ind", "FE_ind_coal","FE_trp" ,
+#           "Pop","GDP_ppp", "Carbon_price", "FE_rescom",
+#   )
+# )
+
+
   
 #### 4. Run the plot scripts -----
-# in the order shown below (some build on the outputs of previous scripts). 
-
-
-# start_yr <- 2000
-  start_yr <- 1990
- 
-  ##### Electricity generation mix -----
-  source("src/fig_elec_generation_mix.R")
-  
   
   ##### Line plots  ---------------------
-  #define set of variables to plot in fig_line_comparison.R
-  
-  models <- unique(data_scen$model); models
-  # Select models to plot
-  models <- models[grepl("GCAM",models)]; models
-  
-  scenarios <- unique(data_scen$scenario); scenarios
-  # Select scenarios to plot
-  scenarios <- scenarios[grepl("Below 2",scenarios) | 
-                           grepl("Current Pol", scenarios) | 
-                           grepl("NDC", scenarios) | 
-                           grepl("Net Zero", scenarios)]; scenarios
-  
-  vars <- data.frame(
-    vars=c(
-      "Primary Energy|Gas"
-      ),
-    names=c("PE_gas"
-    )
-  )
-  
-  # vars <- data.frame(
-  #   vars=c(
-  #     "Temperature|Global Mean","Emissions|CO2|Energy and Industrial Processes","Emissions|CO2","Emissions|Kyoto Gases","Primary Energy|Oil","Primary Energy|Coal","Primary Energy|Gas",
-  #     "Secondary Energy|Electricity|Solar","Secondary Energy|Electricity|Wind","Secondary Energy|Electricity|Hydro","Secondary Energy|Electricity|Nuclear",
-  #     "Secondary Energy|Electricity|Coal","Secondary Energy|Electricity|Gas","Final Energy|Industry","Final Energy|Industry|Solids|Coal", "Final Energy|Transportation",
-  #     "Population","GDP|PPP", "Price|Carbon", "Final Energy|Residential and Commercial"
-  #   ),
-  #   names=c("Temp","Emi_co2_FFI","Emi_co2","Emi_kyo","PE_oil","PE_coal","PE_gas",
-  #           "Elec_solar","Elec_wind","Elec_hydro","Elec_nuclear",
-  #           "Elec_coal","Elec_gas","FE_ind", "FE_ind_coal","FE_trp" ,
-  #           "Pop","GDP_ppp", "Carbon_price", "FE_rescom",
-  #   )
-  # )
   
   source("src/fig_line_comparison.R")
   
+ 
+  ##### Electricity generation mix -------
+  # NOTE: These figures can only accommodate up to three scenarios at once, so 
+  # it disregards the later ones if more than three supplied 
+
+  source("src/fig_elec_generation_mix.R")
+  
+
   
