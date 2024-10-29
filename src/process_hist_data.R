@@ -1341,21 +1341,23 @@ datieas <- datieas |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 # Convert to wide formats before writing
 
 
-# ### ISO:
-# write_this <- data_iso |>
+# ### ISO with World:
+# 
+# write_this <- rbind(data_iso, data_World) |>
 #   group_by(model, scenario, region, variable, value, unit) |>
 #   arrange(year) |>
 #   pivot_wider(names_from = year, values_from = value) |>
+#   select(-c("2024")) |> #no data in this column
 #   unique() |>
 #   ungroup()
 # 
-# #write out iso IAMC file
+# #write out iso and World IAMC file
 # write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 
 
-### ISO with World:
+### ISO with World (with all IEA scenarios):
 
-write_this <- rbind(data_iso, data_World) |>
+write_this <- rbind(data_iso, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
@@ -1368,7 +1370,7 @@ write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 
 
 
-# ### Region32 and World (only with historical IEA / without IEA future scenarios):
+# ### Aggregate regions and World (only with historical IEA / without IEA future scenarios):
 # 
 # write_this <- rbind(data_reg, datieah, data_World) |>
 #   group_by(model, scenario, region, variable, value, unit) |>
@@ -1384,7 +1386,7 @@ write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 #           row.names = F,quote = F)
 
 
-### Region32 and World (with all IEA scenarios):
+### Aggregate regions and World (with all IEA scenarios):
 
 write_this <- rbind(data_reg, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>

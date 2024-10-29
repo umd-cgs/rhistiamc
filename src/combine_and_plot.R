@@ -215,15 +215,15 @@ countries <- data.frame(region=countries[,1],
   
   # vars <- data.frame(
   #   vars=c(
-  #     "Temperature|Global Mean","Emissions|CO2|Energy and Industrial Processes","Emissions|CO2","Emissions|Kyoto Gases","Primary Energy|Oil","Primary Energy|Coal","Primary Energy|Coal|Non-electricity (appr)","Primary Energy|Gas",
+  #     "Temperature|Global Mean","Emissions|CO2|Energy and Industrial Processes","Emissions|CO2","Emissions|Kyoto Gases","Primary Energy|Oil","Primary Energy|Coal","Primary Energy|Gas",
   #     "Secondary Energy|Electricity|Solar","Secondary Energy|Electricity|Wind","Secondary Energy|Electricity|Hydro","Secondary Energy|Electricity|Nuclear",
-  #     "Secondary Energy|Electricity|Coal","Secondary Energy|Electricity|Gas","Final Energy|Industry","Final Energy|Industry|Solids|Coal", "Final Energy|Transportation", 
-  #     "Population","GDP|PPP", "Price|Carbon", "Final Energy|Residential and Commercial", "Electrification|Transportation", "Electricity|Share|Solar+Wind"
+  #     "Secondary Energy|Electricity|Coal","Secondary Energy|Electricity|Gas","Final Energy|Industry","Final Energy|Industry|Solids|Coal", "Final Energy|Transportation",
+  #     "Population","GDP|PPP", "Price|Carbon", "Final Energy|Residential and Commercial"
   #   ),
-  #   names=c("Temp","Emi_co2_FFI","Emi_co2","Emi_kyo","PE_oil","PE_coal","PE_coal_nonElec","PE_gas",
+  #   names=c("Temp","Emi_co2_FFI","Emi_co2","Emi_kyo","PE_oil","PE_coal","PE_gas",
   #           "Elec_solar","Elec_wind","Elec_hydro","Elec_nuclear",
-  #           "Elec_coal","Elec_gas","FE_ind", "FE_ind_coal","FE_trp" , 
-  #           "Pop","GDP_ppp", "Carbon_price", "FE_rescom", "Elec_trp","SW_share"
+  #           "Elec_coal","Elec_gas","FE_ind", "FE_ind_coal","FE_trp" ,
+  #           "Pop","GDP_ppp", "Carbon_price", "FE_rescom",
   #   )
   # )
   

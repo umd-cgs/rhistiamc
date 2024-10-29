@@ -11,7 +11,7 @@ library(ggplot2)
 # Define settings: --------------
 
 # Whether to plot 32 regions (R32), separated into two plots by by size of economy or
-# 10 regions, as facets on a single plot (R10 or R5)
+# 10 or 5 regions, as facets on a single plot (R10 or R5)
 # model_regions <- "r5" # Now defined in the combine_and_plot.R script
 
 
@@ -29,7 +29,7 @@ data_scn <- data_scen |>
          scenario %in% scenarios)
 
 if (model_regions %in% c("r10", "r5")){
-  data_scn <- data_scen |>
+  data_scn <- data_scn |>
     filter(grepl(toupper(model_regions), region) | region == "World")
 }
 
@@ -74,25 +74,6 @@ data_hg <- data_hist |> bind_rows(data_hist |>
                                   mutate(value = ifelse(value < 0, 0, value)) |>
                                   unique())
 
-## Add any additional variables
-data_hg <- data_hg |>
-  bind_rows(data_hg |>
-              filter(year %in% c(seq(2010,2021),2030,2050),variable %in% c("Secondary Energy|Electricity", "Secondary Energy|Electricity|Solar", "Secondary Energy|Electricity|Wind")) |>
-              complete(nesting(scenario, region, unit, model, year), 
-                       variable = c("Secondary Energy|Electricity|Solar","Secondary Energy|Electricity|Wind"), 
-                       fill = list(value = 0)) |>
-              group_by(model, scenario, region, year) |>
-              mutate(value = 100*(value[variable == "Secondary Energy|Electricity|Solar"] + value[variable == "Secondary Energy|Electricity|Wind"])/value[variable == "Secondary Energy|Electricity"],
-                     variable = "Electricity|Share|Solar+Wind") |>
-              unique())
-## Add any additional variables
-data_hg <- data_hg |>
-  bind_rows(data_hg |>
-              filter(variable %in% c("Final Energy|Transportation|Electricity", "Final Energy|Transportation")) |>
-              group_by(model, scenario, region, year) |>
-              mutate(value = 100*(value[variable == "Final Energy|Transportation|Electricity"])/value[variable == "Final Energy|Transportation"],
-                     variable = "Electrification|Transportation") |>
-              unique())
 
 
 # Make figures -------------
@@ -191,7 +172,7 @@ if (vars_regional[i,]$use == 1){
                   ##mutate(region = factor(region, levels = reg_heavy)),
                 aes(x=year,y=value,color=scenario,linetype = model))+
       theme_bw() + 
-      ggtitle(paste0(vars_regional[i,]$vars, " - ", "R10 regions")) +
+      ggtitle(paste0(vars_regional[i,]$vars, " - ", toupper(model_regions), " regions")) +
       ylab(paste0(unique(c(unique(data_hg[data_hg$variable == vars_regional[i,]$vars,]$unit), unique(data_hg[data_hg$variable == vars_regional[i,]$vars,]$unit))))) +
       facet_wrap(~region, scale = "free_y", nrow = 4)  +
       scale_x_continuous(breaks = seq(2020,year_max_reg,20), minor_breaks = seq(2000,year_max_reg,5), labels = seq(2020,year_max_reg,20))
@@ -211,11 +192,11 @@ if (vars_regional[i,]$use == 1){
     
     print(plots[[i*3-1]])
     
-    ggsave(plots[[i*3-1]], filename=file.path("figures",paste0(vars_regional[i,]$names,"_r10 regions.png")), width = 13, height = 6.5)
+    ggsave(plots[[i*3-1]], filename=file.path("figures",paste0(vars_regional[i,]$names,"_", model_regions, "_regions.png")), width = 13, height = 6.5)
     
     
     
-  }  # end of if statement for r10 model_regions
+  }  # end of if statement for r10 / r5 model_regions
   
   else {    
     
