@@ -43,10 +43,10 @@ model_regions <- "r5"   # R5: five regions making up the world
 
 
 #### THEN read in historic data in wide format and convert to long
-data_hist <- read.csv(paste0("output/historical_",model_regions,".csv"), na.strings = "NA")
-colnames(data_hist) <- gsub("^X", "", colnames(data_hist))
+data_hist_full <- read.csv(paste0("output/historical_",model_regions,".csv"), na.strings = "NA")
+colnames(data_hist_full) <- gsub("^X", "", colnames(data_hist_full))
 
-data_hist <- data_hist |>
+data_hist_full <- data_hist_full |>
   pivot_longer(cols = -c(model, variable, region, unit, scenario),
                names_to = "year",
                values_to = "value") |>
@@ -58,8 +58,8 @@ data_hist <- data_hist |>
 
 #add EU27BX data
 eu27bx <- c("AUT","BEL","BGR","HRV","CYP","CZE","DNK","EST","FIN","FRA","DEU","GRC","HUN","IRL","ITA","LVA","LTU","LUX","MLT","NLD","POL","PRT","ROU","SVK","SVN","ESP","SWE")
-data_hist <- data_hist |> rbind(
-  data_hist |> filter(!variable %in% unique(data_hist[data_hist$region =="EU27BX",]$variable),
+data_hist_full <- data_hist_full |> rbind(
+  data_hist_full |> filter(!variable %in% unique(data_hist_full[data_hist_full$region =="EU27BX",]$variable),
                       region %in% eu27bx) |> group_by(model,scenario,unit,variable,year) |> 
     summarize(value=sum(value)) |> mutate(region="EU27BX"))
 
@@ -74,10 +74,10 @@ if (data_scen_option == "ngfs_phase_IV") {
   
   #use the publicly available 3 model scenario set from phase 4
   #file from download page from https://data.ene.iiasa.ac.at/ngfs/#/workspaces
-  data_scen <- read_xlsx(file.path("runs/", "IAM_data.xlsx"))
-  colnames(data_scen) <- tolower(colnames(data_scen))
+  data_scen_full <- read_xlsx(file.path("runs/", "IAM_data.xlsx"))
+  colnames(data_scen_full) <- tolower(colnames(data_scen_full))
   
-  data_scen <- data_scen |>
+  data_scen_full <- data_scen_full |>
     pivot_longer(cols = -c(model, variable, region, unit, scenario),
                  names_to = "year",
                  values_to = "value") |>
@@ -86,37 +86,54 @@ if (data_scen_option == "ngfs_phase_IV") {
     mutate(value=as.numeric(value),
            year=as.numeric(year))
   
-  data_scen <- data_scen |>
+  data_scen_full <- data_scen_full |>
     mutate(region = gsub("GCAM 6.0 NGFS\\|", "", region),
            region = gsub("MESSAGEix-GLOBIOM 1.1-R12\\|", "", region),
            region = gsub("REMIND-MAgPIE 3.2-4.6\\|", "", region))
   
-  if (model_regions == "r10") {
-    data_scen <- data_scen |>
-      mutate(region = gsub("Africa (R10)", "R10AFRICA", region),
-             region = gsub("China+ (R10)", "R10CHINA+", region),
-             region = gsub("Europe (R10)", "R10EUROPE", region),
-             region = gsub("India+ (R10)", "R10INDIA+", region),
-             region = gsub("Latin America (R10)", "R10LATIN_AM", region),
-             region = gsub("Middle East (R10)", "R10MIDDLE_EAST", region),
-             region = gsub("North America (R10)", "R10NORTH_AM", region),
-             region = gsub("Pacific OECD (R10)", "R10PAC_OECD", region),
-             region = gsub("Reforming Economies (R10)", "R10REF_ECON", region))
-    
-  } else if (model_regions == "r5") {
-    data_scen <- data_scen |>
-      mutate(region = gsub("Asia \\(R5\\)", "R5_ASIA", region),
-             region = gsub("Latin America \\(R5\\)", "R5_LAM", region),
-             region = gsub("Middle East & Africa \\(R5\\)", "R5_MAF", region),
-             region = gsub("OECD & EU \\(R5\\)", "R5_OECD", region),
-             region = gsub("Reforming Economies \\(R5\\)", "R5_REF", region))
-  }
+
   
 } else {
 
   # # Define another set of scenario data processed in IAMC format:
-  # data_scen <-
+  # data_scen_full <-
   
+}
+
+
+# Adjust the format of the scenario data as necessary to match the hist_data
+
+if (model_regions == "iso") {
+  
+  data_scen_full$iso <- countrycode(data_scen_full$region, 'country.name', 'iso3c')
+  
+  data_scen_full <- data_scen_full |>
+    rename(region.name = region, region = iso) |>
+    filter(!is.na(region))
+  
+  
+} else if (model_regions == "r10") {
+  
+  data_scen_full <- data_scen_full |>
+    mutate(region = gsub("Africa (R10)", "R10AFRICA", region),
+           region = gsub("China+ (R10)", "R10CHINA+", region),
+           region = gsub("Europe (R10)", "R10EUROPE", region),
+           region = gsub("India+ (R10)", "R10INDIA+", region),
+           region = gsub("Latin America (R10)", "R10LATIN_AM", region),
+           region = gsub("Middle East (R10)", "R10MIDDLE_EAST", region),
+           region = gsub("North America (R10)", "R10NORTH_AM", region),
+           region = gsub("Pacific OECD (R10)", "R10PAC_OECD", region),
+           region = gsub("Reforming Economies (R10)", "R10REF_ECON", region))
+  
+  
+} else if (model_regions == "r5") {
+  
+  data_scen_full <- data_scen_full |>
+    mutate(region = gsub("Asia \\(R5\\)", "R5_ASIA", region),
+           region = gsub("Latin America \\(R5\\)", "R5_LAM", region),
+           region = gsub("Middle East & Africa \\(R5\\)", "R5_MAF", region),
+           region = gsub("OECD & EU \\(R5\\)", "R5_OECD", region),
+           region = gsub("Reforming Economies \\(R5\\)", "R5_REF", region))
 }
 
 
@@ -124,7 +141,7 @@ if (data_scen_option == "ngfs_phase_IV") {
 #### 3. Choose scenarios, models, regions ---------------
 # of interest for focus in this analysis and plotting
 
-scenarios_avail <- unique(data_scen$scenario); scenarios_avail
+scenarios_avail <- unique(data_scen_full$scenario); scenarios_avail
 # Select scenarios to plot (all or a subset)
 scenarios_selected <- scenarios_avail[c(1:2,7:6)]; scenarios_selected
 # scenarios_selected <- scenarios_avail[c(1:length(scenarios_avail))]; scenarios_selected
@@ -132,36 +149,40 @@ scenarios_selected <- scenarios_avail[c(1:2,7:6)]; scenarios_selected
 
 
 
-models_avail <- unique(data_scen$model); models_avail
+models_avail <- unique(data_scen_full$model); models_avail
 # Select models to plot
 
-models_selected <- models_avail[grepl("GCAM",models_avail)]; models_selected
-
+# models_selected <- models_avail[grepl("GCAM",models_avail)]; models_selected
+models_selected <- c("MESSAGEix-GLOBIOM 1.1-M-R12", "REMIND-MAgPIE 3.2-4.6", "GCAM 6.0 NGFS"); models_selected
 
 
 if (model_regions %in% c("r10", "r5")){
-  regions_avail <- unique((filter(data_hist, grepl(toupper(model_regions), region) | region == "World"))$region); regions_avail
+  regions_avail <- unique((filter(data_hist_full, grepl(toupper(model_regions), region) | region == "World"))$region); regions_avail
 } else {
-  regions_avail <- unique(data_hist$region); regions_avail
+  regions_avail <- unique(data_hist_full$region); regions_avail
 }
 
 # Select all regions or choose a subset
-regions_selected <- regions_avail[c(1:length(regions_avail))]; regions_selected
+regions_selected <- regions_avail
+#  # For China (CHN) when using model_regions <- "iso"
+# regions_selected <- regions_avail[c(44, 248)]; regions_selected
 
-# regions_overlapping <- check_match(data_scen, data_hist, "region", opt = "i")
+# regions_overlapping <- check_match(data_scen_full, data_hist_full, "region", opt = "i")
 
-regions_missing <- regions_selected[!(regions_selected %in% unique(data_scen$region))]
+regions_missing <- regions_selected[!(regions_selected %in% unique(data_scen_full$region))]
 if (length(regions_missing) != 0) {
-  print("These regions names do not appear in data_scen: ")
+  print("These regions names do not appear in data_scen_full: ")
   print(regions_missing)
 }
 
-# Filter scenario data accordingly
-data_scen <- data_scen |>
+# Filter scenario and historical data accordingly
+data_scen <- data_scen_full |>
   filter(model %in% models_selected,
          scenario %in% scenarios_selected,
          region %in% regions_selected)
 
+data_hist <- data_hist_full |>
+  filter(region %in% regions_selected)
 
 #define set of variables to plot in fig_line_comparison.R
 vars <- data.frame(

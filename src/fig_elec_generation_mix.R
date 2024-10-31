@@ -37,22 +37,24 @@ for (mod in models_selected) {
         filter(variable %in% vars_elec) %>%
         mutate(value = ej2twh*value )
       
+      reg_data_scen <- data_scen|>filter(variable %in% vars_elec,
+                                         year %in% c(2030,2035),
+                                         model == mod,
+                                         region==reg,
+                                         scenario %in% c(scenarios_selected[1],
+                                                         scenarios_selected[2],
+                                                         scenarios_selected[3])) |>
+        mutate(value=ej2twh*value,
+               year=case_when(
+                 scenario == scenarios_selected[2] ~ year-1,
+                 scenario == scenarios_selected[3] ~ year+1,
+                 .default=year))
+      
+      # Include the model name in the figure only if the model has data for this region 
+      mod_in_flnm <- ifelse(nrow(reg_data_scen) > 0, mod, "")
+      
       #add scenario data if defined for the region in question
-      reg_data <- rbind(reg_data, 
-                    data_scen|>filter(variable %in% vars_elec,
-                                      year %in% c(2030,2035),
-                                      model == mod,
-                                      region==reg,
-                                      scenario %in% c(scenarios_selected[1],
-                                                      scenarios_selected[2],
-                                                      scenarios_selected[3])) |>
-                   mutate(value=ej2twh*value,
-                          year=case_when(
-                            scenario == scenarios_selected[2] ~ year-1,
-                            scenario == scenarios_selected[3] ~ year+1,
-                            .default=year)
-                          )
-                   )
+      reg_data <- bind_rows(reg_data, reg_data_scen)
       
       # Simplify the variable column
       reg_data <- reg_data %>%
@@ -124,7 +126,9 @@ for (mod in models_selected) {
     # Print the plot
     print(plot)
     
-    ggsave(filename = file.path('figures', paste0(reg, "_", mod, "_electricity_generation.png")), plot = plot, width = 6, height = 5)
+    
+    
+    ggsave(filename = file.path('figures', paste0(reg, "_", mod_in_flnm, "_electricity_generation.png")), plot = plot, width = 6, height = 5)
     #  ggsave(filename = file.path('figures', paste0(reg, "_electricity_generation.png")), plot = plot, width = 4, height = 3.7)
     
         

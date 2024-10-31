@@ -79,7 +79,7 @@ for (i in seq(1,dim(vars)[1])){
 
   ### plot global comparisons --------------------
 
-  if (vars_global[i,]$use == 1){
+  if (vars_global[i,]$use == 1 & "World" %in% regions_selected) {
     
   plots[[i*3-2]] <- ggplot()+
     #historic data
@@ -115,7 +115,10 @@ for (i in seq(1,dim(vars)[1])){
                          region=="World", 
                          year==2100,
                          scenario %in% scens_global),
-                aes(x=year+5,y=value,label=substr(model,start=1,stop=1),color=scenario))
+                aes(x=year+5,y=value,label=substr(model,start=1,stop=1),color=scenario)) +
+      guides(linetype=guide_legend(title="Model", order = 1),
+             color=guide_legend(title="Scenario", order = 2),
+             shape=guide_legend(title="IEA Projection", order = 3))
   }
 
 print(plots[[i*3-2]])
@@ -130,9 +133,8 @@ ggsave(plots[[i*3-2]], filename=file.path("figures",paste0(vars_global[i,]$names
 
 if (vars_regional[i,]$use == 1){
 
-  if (model_regions %in% c("r10", "r5")) {
-    
-    #### for R10 or R5 regions --------------
+  if (!(model_regions %in% c("iso", "gcam32"))) {
+    #### for R10 or R5 regions or other ones with few regions --------------
     
     plots[[i*3-1]] <- ggplot() +
       #historic data
@@ -170,7 +172,10 @@ if (vars_regional[i,]$use == 1){
       ggtitle(paste0(vars_regional[i,]$vars, " - ", toupper(model_regions), " regions")) +
       ylab(paste0(unique(c(unique(data_hg[data_hg$variable == vars_regional[i,]$vars,]$unit), unique(data_hg[data_hg$variable == vars_regional[i,]$vars,]$unit))))) +
       facet_wrap(~region, scale = "free_y", nrow = 4)  +
-      scale_x_continuous(breaks = seq(2020,year_max_reg,20), minor_breaks = seq(2000,year_max_reg,5), labels = seq(2020,year_max_reg,20))
+      scale_x_continuous(breaks = seq(2020,year_max_reg,20), minor_breaks = seq(2000,year_max_reg,5), labels = seq(2020,year_max_reg,20)) + 
+      guides(linetype=guide_legend(title="Model", order = 1),
+             color=guide_legend(title="Scenario", order = 2),
+             shape=guide_legend(title="IEA Projection", order = 3))
     
     
     #add model letter to end 
@@ -202,12 +207,15 @@ if (vars_regional[i,]$use == 1){
              region != "World") |>
       arrange(desc(value))
 
-    # Large economies and heavy users of energy
+    # Larger economies and heavy users of energy
     reg_heavy <- regional_rank[1:16,]$region
     reg_light <- unique((data_scn[!(data_scn$region %in% c("World", reg_heavy)),])$region)
     
     
-#### for large economies ------------
+    
+#### for larger economies ------------
+    
+if (sum(!is.na(reg_heavy)) > 0) {
 plots[[i*3-1]] <- ggplot() +
   #historic data
   geom_line(data=data_hg|>
@@ -239,19 +247,26 @@ plots[[i*3-1]] <- ggplot() +
                 scenario %in% scens_regional, 
                 year <= year_max_reg) |>
               mutate(region = factor(region, levels = reg_heavy)),
-            aes(x=year,y=value,color=scenario))+
+            aes(x=year,y=value,color=scenario, linetype=model))+
   theme_bw() + 
-  ggtitle(paste0(vars_regional[i,]$vars, " - ", "Large economies")) +
+  ggtitle(paste0(vars_regional[i,]$vars, " - ", "Larger economies")) +
   ylab(paste0(unique(c(unique(data_hg[data_hg$variable == vars_regional[i,]$vars,]$unit), unique(data_hg[data_hg$variable == vars_regional[i,]$vars,]$unit))))) +
   facet_wrap(~region, scale = "free_y", nrow = 4)  +
-  scale_x_continuous(breaks = seq(2020,year_max_reg,20), minor_breaks = seq(2000,year_max_reg,5), labels = seq(2020,year_max_reg,20))
+  scale_x_continuous(breaks = seq(2020,year_max_reg,20), minor_breaks = seq(2000,year_max_reg,5), labels = seq(2020,year_max_reg,20)) +
+  guides(linetype=guide_legend(title="Model", order = 1),
+         color=guide_legend(title="Scenario", order = 2),
+         shape=guide_legend(title="IEA Projection", order = 3))
 
 print(plots[[i*3-1]])
 
-ggsave(plots[[i*3-1]], filename=file.path("figures",paste0(vars_regional[i,]$names,"_largeEconomies.png")), width = 13, height = 6.5)
+ggsave(plots[[i*3-1]], filename=file.path("figures",paste0(vars_regional[i,]$names,"_", model_regions, "_largerEconomies.png")), width = 13, height = 6.5)
 
+} # end of if statement for reg_heavy
 
+    
 ### for smaller economies -------------------
+    
+if (sum(!is.na(reg_light)) > 0) {
 plots[[i*3]] <- ggplot() +
   #historic data
   geom_line(data=data_hg|>
@@ -280,16 +295,21 @@ plots[[i*3]] <- ggplot() +
                 region != "World", 
                 scenario %in% scens_regional, 
                 year <= year_max_reg),
-            aes(x=year,y=value,color=scenario))+
+            aes(x=year,y=value,color=scenario, linetype=model))+
   theme_bw() + 
   ggtitle(paste0(vars_regional[i,]$vars, " - ", "Smaller economies")) +
   ylab(paste0(unique(c(unique(data_hg[data_hg$variable == vars_regional[i,]$vars,]$unit), unique(data_hg[data_hg$variable == vars_regional[i,]$vars,]$unit))))) +
   facet_wrap(~region, scale = "free_y", nrow = 5)  +
-  scale_x_continuous(breaks = seq(2020,year_max_reg,20), minor_breaks = seq(2000,year_max_reg,5), labels = seq(2020,year_max_reg,20))
+  scale_x_continuous(breaks = seq(2020,year_max_reg,20), minor_breaks = seq(2000,year_max_reg,5), labels = seq(2020,year_max_reg,20)) +
+  guides(linetype=guide_legend(title="Model", order = 1),
+         color=guide_legend(title="Scenario", order = 2),
+         shape=guide_legend(title="IEA Projection", order = 3))
 
 print(plots[[i*3]])
 
-ggsave(plots[[i*3]], filename=file.path("figures",paste0(vars_regional[i,]$names,"_smallerEconomies.png")), width = 13, height = 6.5)
+ggsave(plots[[i*3]], filename=file.path("figures",paste0(vars_regional[i,]$names,"_", model_regions, "_smallerEconomies.png")), width = 13, height = 6.5)
+
+} # end of if statement for reg_light
 
 } # end of else statement for model_regions
 
