@@ -4,7 +4,7 @@
 
 ## Folder structure:
 
-- **data**: original data sources, links are available in src/process_hist_data.R script, but we also collect all needed files in a shared drive location
+- **data**: original data sources, links are available in ```src/process_hist_data.R script```, but we also collect all needed files in a shared drive location
 
 - **figures**: folder for created comparison figures, and near-term forecast analysis
 
@@ -24,27 +24,27 @@ After cloning this repository to your local computer:
 
 1. Double-click rhistiamc.Rproj to load the project in Rstudio 
 
-### Option A - Use already processed results
+### Option A - Use already processed results:
 - to make **comparison plots** with IAMs, etc
 
 2. Download the processed historical data in IAMC format from: [PUBLIC_output_rhistiamc](https://drive.google.com/open?id=117cTkVRekeu3vHYrFkH93zstpCqGxkM8&usp=drive_fs) 
 into your local output/ folder
 
-3. Open and run the src/combine_and_plot.R script, following the comments inside 
+3. Open and run the ```src/combine_and_plot.R``` script, following the comments inside 
 
 ### Option B - Start from raw data: 
 - to **add / update a dataset**
 - to **aggregate to new regions** that match IAM / analysis 
 
-2. Open src/process_hist_data.R
+2. Open ```src/process_hist_data.R```
 
 3. Download the open access historical data files from the original sources shown in the comments throughout the script, 
 or for a quick start from this [data_rhistiamc](https://drive.google.com/open?id=1mGYipWX2EEYgQzcLunJbPD8vCxFknQfK&usp=drive_fs) shared folder. 
 
-4. Run the src/process_hist_data.R script
+4. Run the ```src/process_hist_data.R``` script
 
-5. If desired to make figures or perform analysis on the historical and IAM data (optional), then open and run the src/combine_and_plot.R script.
-Make any additional src/fig_...R scripts based on the ones provided or with a different setup.  
+5. If desired to make figures or perform analysis on the historical and IAM data (optional), then open and run the ```src/combine_and_plot.R``` script.
+Make any additional ```src/fig_...R``` scripts based on the ones provided or with a different setup.  
 
 
 ## Notes: 
@@ -55,7 +55,7 @@ Make any additional src/fig_...R scripts based on the ones provided or with a di
 - This repository also produces historical data at an aggregate region level of the user's choice, in addition to the the country level, so that it can also be used for analysis of IAM results. However, be aware that not all datasets are comprehensive by country, which means that the aggregate mapped results, for example into five global regions (R5), may not be the fully complete values. 
 
 ## How to update or add historical data:
-The script src/process_hist_data.R reads in a lot of data from publicly available sources, and converts them into a common format, in line with the IAMC variable template as used in the IPCC AR6 database (https://data.ene.iiasa.ac.at/ar6).
+The script ````process_hist_data.R``` reads data from publicly available sources, and converts them into a common format, in line with the IAMC variable template as used in the IPCC AR6 database (https://data.ene.iiasa.ac.at/ar6).
 
 See comment lines on top of this script for short explanation on structure.
 
