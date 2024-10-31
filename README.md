@@ -31,7 +31,7 @@ into your local output/ folder
 
 3. Open and run the src/combine_and_plot.R script, following the comments inside 
 
-### Option B - Start from raw data: to add / update a dataset or to aggregate to a different set of regions that match IAM / analysis 
+### Option B - Start from raw data: to add / update a dataset | to aggregate to new regions that match IAM / analysis 
 
 2. Open src/process_hist_data.R
 
