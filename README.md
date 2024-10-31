@@ -24,14 +24,17 @@ After cloning this repository to your local computer:
 
 1. Double-click rhistiamc.Rproj to load the project in Rstudio 
 
-### Option A - Use already processed results: to make comparison plots with IAMs, etc
+### Option A - Use already processed results
+### - to make comparison plots with IAMs, etc
 
 2. Download the processed historical data in IAMC format from: [PUBLIC_output_rhistiamc](https://drive.google.com/open?id=117cTkVRekeu3vHYrFkH93zstpCqGxkM8&usp=drive_fs) 
 into your local output/ folder
 
 3. Open and run the src/combine_and_plot.R script, following the comments inside 
 
-### Option B - Start from raw data: to add / update a dataset | to aggregate to new regions that match IAM / analysis 
+### Option B - Start from raw data: 
+### - to add / update a dataset
+### - to aggregate to new regions that match IAM / analysis 
 
 2. Open src/process_hist_data.R
 
