@@ -14,7 +14,7 @@
 
 - **runs**: folder for scenario data in IAMC format to compare against historic data
 
-- **src**: R scripts for primary creation of data, for comparison plots, as well as tools for near-term projections and targets compared to historic data. Check src/main.R for overview
+- **src**: R scripts for primary creation of data, for comparison plots, as well as tools for near-term projections and targets compared to historic data.
 
 
 
@@ -41,14 +41,15 @@ or for a quick start from this [data_rhistiamc](https://drive.google.com/open?id
 4. Run the src/process_hist_data.R script
 
 5. If desired to make figures or perform analysis on the historical and IAM data (optional), then open and run the src/combine_and_plot.R script.
-Make any additional fig_...R scripts based on the ones provided or with a different setup.  
+Make any additional src/fig_...R scripts based on the ones provided or with a different setup.  
 
 
 ## Notes: 
-Only the files in mappings and src are git managed, others are ignored to reduce repository size (see .gitignore).
+- Only the files in mappings and src are git managed, others are ignored to reduce repository size (see .gitignore).
 
-This repo is on purpose similar, in some aspects, to model-internal code such as gcamdata, in that it provides a harmonized platform for processing data, and directly targets comparison with GCAM data. However, this repository enables comparisons at the IAMC format output level (allowing for checks on historic calibration, and correctness of our reporting), and allows for faster updates, given its lower complexity, and focus on fewer key variables. It also produces historical data at an aggregate region level of the user's choice, in addition to the the country level, so that it can also be used for analysis of IAM results.
+- This repository is on purpose similar, in some aspects, to model-internal code such as gcamdata, in that it provides a harmonized platform for processing data, and directly targets comparison with GCAM data. However, this repository enables comparisons at the IAMC format output level (allowing for checks on historic calibration, and correctness of our reporting), and allows for faster updates, given its lower complexity, and focus on fewer key variables.
 
+- This repository also produces historical data at an aggregate region level of the user's choice, in addition to the the country level, so that it can also be used for analysis of IAM results. However, be aware that not all datasets are comprehensive by country, which means that the aggregate mapped results, for example into five global regions (R5), may not be the fully complete values. 
 
 ## How to update or add historical data:
 The script src/process_hist_data.R reads in a lot of data from publicly available sources, and converts them into a common format, in line with the IAMC variable template as used in the IPCC AR6 database (https://data.ene.iiasa.ac.at/ar6).
