@@ -58,6 +58,7 @@ data_hist_full <- data_hist_full |>
 
 #add EU27BX data
 eu27bx <- c("AUT","BEL","BGR","HRV","CYP","CZE","DNK","EST","FIN","FRA","DEU","GRC","HUN","IRL","ITA","LVA","LTU","LUX","MLT","NLD","POL","PRT","ROU","SVK","SVN","ESP","SWE")
+
 data_hist_full <- data_hist_full |> rbind(
   data_hist_full |> filter(!variable %in% unique(data_hist_full[data_hist_full$region =="EU27BX",]$variable),
                       region %in% eu27bx) |> group_by(model,scenario,unit,variable,year) |> 
@@ -105,11 +106,19 @@ if (data_scen_option == "ngfs_phase_IV") {
 
 if (model_regions == "iso") {
   
+  # Remove World region temporarily, since it won't map to an ISO using countrycode
+  data_scen_world <- filter(data_scen_full, region == "World")
+  data_scen_full <- filter(data_scen_full, region != "World")
+  
   data_scen_full$iso <- countrycode(data_scen_full$region, 'country.name', 'iso3c')
   
   data_scen_full <- data_scen_full |>
     rename(region.name = region, region = iso) |>
     filter(!is.na(region))
+  
+  data_scen_full <- bind_rows(data_scen_full, 
+                              data_scen_world |>
+                                mutate(region.name = "World"))
   
   
 } else if (model_regions == "r10") {
@@ -163,7 +172,7 @@ if (model_regions %in% c("r10", "r5")){
 }
 
 # Select all regions or choose a subset
-regions_selected <- regions_avail
+regions_selected <- regions_avail; regions_selected
 #  # For China (CHN) when using model_regions <- "iso"
 # regions_selected <- regions_avail[c(44, 248)]; regions_selected
 
