@@ -2,6 +2,8 @@
 
 *Structure for collaboratively collecting and processing up-to-date historical reference data on energy supply and demand and emissions into the IAMC format, for assessing the plausibility of near-term scenario trajectories*
 
+[Overview presentation](https://docs.google.com/presentation/d/11v2VsqhGYUi_FiGnaTh6nX_JylEhmXHu?rtpof=true&usp=drive_fs) given at the IAMC Conference in November 2024
+
 ## Folder structure:
 
 - **data**: location to put original data sources, links are available in ```src/process_hist_data.R script```
