@@ -877,7 +877,7 @@ dat_ct <- dat_ct |>
 dat_ecap <- ecap |> filter(year > starty)|> select (-variable,-region)|>
   mutate(fuel = case_when(
     fuel=="Other Fossil" ~ "Capacity|Electricity|Other Fossil",
-    fuel=="Other Renewables" ~ "Capacity|Geothermal",
+    fuel=="Other Renewables" ~ "Capacity|Electricity|Geothermal",
     fuel=="Bioenergy" ~ "Capacity|Electricity|Biomass",
     fuel=="Coal" ~ "Capacity|Electricity|Coal",
     fuel=="Gas" ~ "Capacity|Electricity|Gas",
