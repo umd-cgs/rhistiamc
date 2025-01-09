@@ -5,7 +5,7 @@
 # Andy Miller, June 2024
 
 
-# Convert to aggregated regions -------
+# convert to aggregated regions -------
 
 aggregate_regions <- function(data, region_map){
   
@@ -31,6 +31,74 @@ aggregate_regions <- function(data, region_map){
 }
 
 
+# convert year of USD units-------
+
+#' Calculate a gross domestic product (GDP) implicit price deflator between two years.
+#'
+#' The GDP deflator is a measure of price inflation with respect to a
+#' specific base year; it allows us to back out the effects of inflation when we
+#' compare prices over time.  This function calculates a deflator given a base
+#' year (the year to convert from) and a conversion year (the year to convert
+#' to).  To use the deflator, multiply prices in base-year dollars by the deflator; the
+#' result will be prices in the converted dollar year.
+#'
+#' @param year Year to convert TO.
+#' @param base_year Year to convert FROM.
+#' @return GDP Deflator.  Multiply to convert FROM \code{base_year} dollars TO
+#' \code{year} dollars.
+#' @source U.S. Bureau of Economic Analysis, Gross domestic product (implicit
+#' price deflator) [A191RD3A086NBEA], retrieved from FRED, Federal Reserve Bank
+#' of St. Louis; https://fred.stlouisfed.org/series/A191RD3A086NBEA, January 9, 
+#' 2025
+#' @author BBL
+#' @export
+#' @examples
+#' gdp_bil_1990USD <- c(4770, 4779, 4937)
+#' gdp_bil_2010USD <- gdp_bil_1990USD * gdp_deflator(2010, base_year = 1990)
+gdp_deflator <- function(year, base_year) {
+  # This time series is the BEA "A191RD3A086NBEA" product
+  # Downloaded January 9, 2025 from https://fred.stlouisfed.org/series/A191RD3A086NBEA
+  gdp_years <- 1929:2023
+  gdp <- c(8.778, 8.457, 7.587, 6.7, 6.514, 6.871, 7.012, 7.097, 7.402, 
+           7.19, 7.12, 7.205, 7.692, 8.304, 8.683, 8.89, 9.12, 10.296, 
+           11.426, 12.067, 12.046, 12.195, 13.06, 13.286, 13.447, 13.572, 
+           13.801, 14.271, 14.744, 15.08, 15.287, 15.495, 15.66, 15.85, 
+           16.032, 16.276, 16.574, 17.039, 17.533, 18.28, 19.176, 20.189, 
+           21.212, 22.13, 23.342, 25.443, 27.8, 29.33, 31.152, 33.343, 
+           36.11, 39.371, 43.097, 45.759, 47.552, 49.267, 50.826, 51.849, 
+           53.134, 55.008, 57.165, 59.305, 61.31, 62.707, 64.194, 65.564, 
+           66.939, 68.164, 69.34, 70.119, 71.111, 72.722, 74.36, 75.515, 
+           77.006, 79.077, 81.556, 84.071, 86.349, 88.013, 88.556, 89.632, 
+           91.481, 93.185, 94.771, 96.421, 97.316, 98.241, 100, 102.291, 
+           103.979, 105.361, 110.172, 118.026, 122.273)
+  names(gdp) <- gdp_years
+  
+  assert_that(all(year %in% gdp_years))
+  assert_that(all(base_year %in% gdp_years))
+  
+  as.vector(unlist(gdp[as.character(year)] / gdp[as.character(base_year)]))
+}
+
+
+# change all USD units in dataframe to different year 
+
+harmonize_usd_year <- function(df, to_year){
+  
+  df <- df |>
+    mutate(from_year = ifelse(
+      (grepl("\\$", unit) | grepl("usd", unit) | grepl("USD", unit)) & 
+        (grepl("19", unit) | grepl("20", unit)),
+      # extract the year shown in the unit
+      as.numeric(str_extract_all(unit, "\\d+", simplify = T)[, 1]), ##max(str_extract_all(unit, "\\d+")[[1]]),
+      # otherwise same as to_year so that no conversion done
+      to_year)) |>
+    mutate(conv = gdp_deflator(year = to_year, base_year = from_year)) |>
+    mutate(value = value * conv) |>
+    mutate(unit = ifelse(from_year != to_year, str_replace_all(unit, pattern = as.character(from_year), as.character(to_year)), unit)) |>
+    select(-from_year, -conv)
+    
+  return(df)
+}
 
 
 # check operating system ----------

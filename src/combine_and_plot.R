@@ -7,6 +7,8 @@ library(readxl)
 library(countrycode)
 library(openxlsx)
 library(zoo) #function na.approx to linearly interpolate
+library(assertthat) # For explanatory error messages
+
 
 #source functions and constants
 source("src/functions.R")
@@ -63,6 +65,17 @@ data_hist_full <- data_hist_full |> rbind(
   data_hist_full |> filter(!variable %in% unique(data_hist_full[data_hist_full$region =="EU27BX",]$variable),
                       region %in% eu27bx) |> group_by(model,scenario,unit,variable,year) |> 
     summarize(value=sum(value)) |> mutate(region="EU27BX"))
+
+# for GDP, keep only the OECD values
+data_hist_full <- data_hist_full |>
+  filter(!(grepl("IIASA GDP", model))) |>
+  # and only keep one of the IEA WEO scenarios, since they have the same values as each other
+  filter(!(grepl("GDP", variable) & scenario %in% c("Net Zero Emissions by 2050 Scenario", "Announced Pledges Scenario")))
+
+
+# convert all USD values to a recent year
+data_hist_full <- data_hist_full |>
+  harmonize_usd_year(2021)
 
 
 ##### 2.2 Scenario data -------------------------------
@@ -145,6 +158,9 @@ if (model_regions == "iso") {
            region = gsub("Reforming Economies \\(R5\\)", "R5_REF", region))
 }
 
+# convert all USD values to a recent year
+data_scen_full <- data_scen_full |>
+  harmonize_usd_year(2021)
 
 
 #### 3. Choose scenarios, models, regions ---------------

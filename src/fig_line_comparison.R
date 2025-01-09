@@ -55,7 +55,7 @@ year_max_reg <- 2050
 # Load historical results ---------------------
 
 
-#add PV and CSP for IEA data
+# add PV and CSP for IEA data
 data_hg <- data_hg |> bind_rows(data_hg |>
                                   filter(variable %in% c("Secondary Energy|Electricity|Solar|PV","Secondary Energy|Electricity|Solar|CSP"),
                                          model=="IEA WEO 2023")|>
