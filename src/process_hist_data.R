@@ -192,15 +192,24 @@ iea_ch4 <- iea_ch4 %>%
 
 
 ###### emissions: ch4 - CLIMATE TRACE ---------
-ct_waste <- rbind(waste1 <- read.csv("data/solid-waste-disposal_country_emissions.csv"),
-                  waste2 <-read.csv("data/wastewater-treatment-and-discharge_country_emissions.csv"),
-                  waste3 <- read.csv("data/incineration-and-open-burning-of-waste_country_emissions.csv"),
-                  waste4 <- read.csv("data/biological-treatment-of-solid-waste-and-biogenic_country_emissions.csv"))
+# there is an API (and additional GHGs) available, 
+# but currently this uses manually-downloaded data
+# https://climatetrace.org/data 
+# Select CH4 as the Emissions Type, then download the Waste section as a CSV and unzip it
+
+ct_waste <- rbind(read.csv("data/solid-waste-disposal_country_emissions.csv"),
+                  read.csv("data/industrial-wastewater-treatment-and-discharge_country_emissions.csv"),
+                  read.csv("data/domestic-wastewater-treatment-and-discharge_country_emissions.csv"),
+                  read.csv("data/incineration-and-open-burning-of-waste_country_emissions.csv"),
+                  read.csv("data/biological-treatment-of-solid-waste-and-biogenic_country_emissions.csv"))
 
 ct_waste <- ct_waste %>%
-  rename(iso=iso3_country) %>% mutate(year=parse_number(substr(start_time,0,4))) %>%
-  select(-c(sector, temporal_granularity, created_date, modified_date, start_time, end_time)) %>%
-  filter(gas == "ch4") %>% na.omit()
+  rename(iso=iso3_country) |>
+  mutate(year=parse_number(substr(start_time,0,4)),
+         emissions_quantity_units = "tonnes") |>
+  select(-c(sector, temporal_granularity, created_date, modified_date, start_time, end_time)) |>
+  filter(gas == "ch4") |>
+  na.omit()
 
 
 
@@ -516,10 +525,10 @@ dat_prim <- prim |> filter(entity %in% c("KYOTOGHG (AR4GWP100)","KYOTOGHG (AR5GW
                            year > starty,category..IPCC2006_PRIMAP. %in% c("0", "M.0.EL","M.LULUCF"),
                            scenario..PRIMAP.hist. %in% c("HISTCR","HISTTP")) |> select(-provenance,-source) |>
   mutate(unit = case_when(
-    entity=="CH4" ~ "Mt CH4",
-    entity=="N2O" ~ "kt N2O",
-    entity=="CO2" ~ "Mt CO2",
-    .default="Mt CO2eq"
+    entity=="CH4" ~ "Mt CH4/yr",
+    entity=="N2O" ~ "kt N2O/yr",
+    entity=="CO2" ~ "Mt CO2/yr",
+    .default="Mt CO2-equiv/yr"
   )) |>
   mutate(value = case_when(
     entity=="N2O" ~ value,
@@ -559,8 +568,8 @@ dat_prim <-  rbind(dat_prim,
                     ) |> pivot_longer(cols=c(-iso,-year,-model,-scenario),names_to = 'variable')|>
                     filter(variable %in% c("Emissions|CO2","Emissions|Kyoto Gases"))|>
                     mutate(unit = case_when(
-                      variable=="Emissions|Kyoto Gases" ~ "Mt CO2eq",
-                      variable=="Emissions|CO2" ~ "Mt CO2"
+                      variable=="Emissions|Kyoto Gases" ~ "Mt CO2-equiv/yr",
+                      variable=="Emissions|CO2" ~ "Mt CO2/yr"
                     )))
 
 #addition of international shipping and aviation emissions to dat_prim further below
@@ -572,19 +581,20 @@ dat_prim <-  rbind(dat_prim,
 ###### CEDS ##############
 dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
   mutate(unit = case_when(
-    entity=="CH4" ~ "Mt CH4",
-    entity=="N2O" ~ "kt N2O",
-    entity=="SO2" ~ "kt SO2",
-    entity=="BC" ~ "Kt C",
-    entity=="CO" ~ "kt CO",
-    entity=="NH3" ~ "kt NH3",
-    entity=="NMVOC" ~ "Kt NMVOC",
-    entity=="NOx" ~ "kt NOx",
-    entity=="OC" ~ "kt C",
-    .default="Mt CO2"
+    entity=="CH4" ~ "Mt CH4/yr",
+    entity=="N2O" ~ "kt N2O/yr",
+    entity=="SO2" ~ "kt SO2/yr",
+    entity=="BC" ~ "Mt BC/yr",
+    entity=="CO" ~ "Mt CO/yr",
+    entity=="NH3" ~ "Mt NH3/yr",
+    entity=="NMVOC" ~ "Mt VOC/yr",
+    entity=="NOx" ~ "Mt NO2/yr",
+    entity=="OC" ~ "Mt OC/yr",
+    .default="Mt CO2/yr"
   )) |>
   mutate(value = case_when(
     entity=="N2O" ~ value,
+    entity=="SO2" ~ value,
     .default=value/1000
   ))|>
   mutate(entity = case_when(
@@ -595,7 +605,7 @@ dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
     entity=="BC" ~ "Emissions|BC",
     entity=="CO" ~ "Emissions|CO",
     entity=="NH3" ~ "Emissions|NH3",
-    entity=="NMVOC" ~ "Emissions|NMVOC",
+    entity=="NMVOC" ~ "Emissions|VOC",
     entity=="NOx" ~ "Emissions|NOx",
     entity=="OC" ~ "Emissions|OC"
   ))|>
@@ -654,19 +664,19 @@ dat_ceds <- dat_ceds |> rbind(test <- ceds_s |> left_join(map_ceds_chn |> select
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-                                                               unit="Mt CO2",value=value/1000)|> rename(variable=var))  
+                                                               unit="Mt CO2/yr",value=value/1000)|> rename(variable=var))  
 
 dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds_chn |> select(sector,var))|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-                                                               unit="Mt CH4",value=value/1000)|> rename(variable=var)) 
+                                                               unit="Mt CH4/yr",value=value/1000)|> rename(variable=var)) 
 
 dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds_chn |> select(sector,var))|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-                                                               unit="Mt N2O",value=value/1000)|> rename(variable=var))  
+                                                               unit="Mt N2O/yr",value=value/1000)|> rename(variable=var))  
 
 
 #add sectoral data based on IAMC2 mappings
@@ -675,19 +685,19 @@ dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds_chn |> select(sector,
 #   group_by(iso,entity,year,IAMC2,units) |> summarize(value=sum(value))|>
 #   ungroup() |> mutate(IAMC2 = paste0("Emissions|",entity,"|",IAMC2))|>
 #   select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-#               unit="Mt CO2",value=value/1000)|> rename(variable=IAMC2))  
+#               unit="Mt CO2/yr",value=value/1000)|> rename(variable=IAMC2))  
 # 
 # dat_ceds <- dat_ceds |> rbind(ceds_m |> left_join(map_ceds |> select(sector,IAMC2))|> 
 #                                 group_by(iso,entity,year,IAMC2,units) |> summarize(value=sum(value))|>
 #                                 ungroup() |> mutate(IAMC2 = paste0("Emissions|",entity,"|",IAMC2))|>
 #                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-#                                                                unit="Mt CH4",value=value/1000)|> rename(variable=IAMC2)) 
+#                                                                unit="Mt CH4/yr",value=value/1000)|> rename(variable=IAMC2)) 
 # 
 # dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds |> select(sector,IAMC2))|> 
 #                                 group_by(iso,entity,year,IAMC2,units) |> summarize(value=sum(value))|>
 #                                 ungroup() |> mutate(IAMC2 = paste0("Emissions|",entity,"|",IAMC2))|>
 #                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-#                                                                unit="Mt N2O",value=value/1000)|> rename(variable=IAMC2))  
+#                                                                unit="Mt N2O/yr",value=value/1000)|> rename(variable=IAMC2))  
 
 #emissions from international aviation and shipping to add to PRIMAP-hist dataset
 dat_ceds_int <- dat_ceds|> filter(iso=="GLOBAL")
@@ -731,12 +741,12 @@ dat_prim <- rbind(dat_prim |> filter(iso !="World"),
                            gwp100[gwp100$entity=="CH4",]$gwp*`Emissions|CH4` + gwp100[gwp100$entity=="N2O",]$gwp*`Emissions|N2O`)|>
                   pivot_longer(cols=c(-model,-scenario,-year),names_to = 'variable')|>
                   mutate(unit=case_when(
-                    variable == "Emissions|CH4" ~ "Mt CH4",
-                    variable == "Emissions|N2O" ~ "kt N2O",
+                    variable == "Emissions|CH4" ~ "Mt CH4/yr",
+                    variable == "Emissions|N2O" ~ "kt N2O/yr",
                     variable %in% c("Emissions|CO2 (incl. all LULUCF)",
                                     "Emissions|CO2|Energy and Industrial Processes",
-                                    "Emissions|CO2")  ~ "Mt CO2",
-                    .default = "Mt CO2eq"
+                                    "Emissions|CO2")  ~ "Mt CO2/yr",
+                    .default = "Mt CO2-equiv/yr"
                   ))) |> group_by(variable,unit,year,scenario)|>
                   summarise(value=sum(value)) |> ungroup() |> 
                   mutate(model="PRIMAP-hist",iso="World"))
@@ -756,7 +766,7 @@ dat_owid_co2 <- dat_owid_co2 %>%
   # Change population variable to units of million individuals from individuals
   # and change 
   mutate(value = ifelse(variable_iamc == "Population", value * 10^(-6), ifelse(variable_iamc == "GDP|PPP", value * 10^(-9), value)),
-         unit = ifelse(unit == "persons", "million", ifelse(unit == "MTCO2", "Mt CO2", ifelse(unit == "$ (Year 2011)", "billion US$2011/yr", unit)))) |>
+         unit = ifelse(unit == "persons", "million", ifelse(unit == "MTCO2", "Mt CO2/yr", ifelse(unit == "$ (Year 2011)", "billion US$2011/yr", unit)))) |>
   mutate(iso_code = ifelse(country == "World", "World", iso_code)) |>
   select(country, year, iso_code,variable_iamc, value, unit) %>%
   rename(variable = variable_iamc)
@@ -841,11 +851,12 @@ dat_ch4$year <- as.numeric(dat_ch4$year)
 
 ###### CLIMATE TRACE  -------------------------------------
 dat_ct <- ct_waste %>%
-  #convert to Mt CH4
+  #convert to Mt CH4/yr
   mutate(value = emissions_quantity/1000000) %>%
   mutate(variable = case_when(
     subsector == "solid-waste-disposal" ~ "Emissions|CH4|Waste|Solid Waste",
-    subsector == "wastewater-treatment-and-discharge" ~ "Emissions|CH4|Waste|Wastewater",
+    subsector == "industrial-wastewater-treatment-and-discharge" ~ "Emissions|CH4|Waste|Wastewater|Industrial",
+    subsector == "domestic-wastewater-treatment-and-discharge" ~ "Emissions|CH4|Waste|Wastewater|Domestic",
     subsector == "incineration-and-open-burning-of-waste" ~ "Emissions|CH4|Waste|Other",
     subsector == "biological-treatment-of-solid-waste-and-biogenic" ~ "Emissions|CH4|Waste|Other"
   )) %>%
@@ -861,7 +872,7 @@ ct_totals <- dat_ct %>%
 
 dat_ct <- bind_rows(dat_ct, ct_totals) %>%
   arrange(iso, year) %>%
-  mutate(unit = "Mt CH4", model = "CT", scenario = "historical")
+  mutate(unit = "Mt CH4/yr", model = "CT", scenario = "historical")
 
 # Add in World, since this is not included in the original datasets
 dat_ct <- dat_ct |>
