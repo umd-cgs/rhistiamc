@@ -6,6 +6,9 @@
 
 
 # convert to aggregated regions -------
+# NOTE: It only applies to extensive variables which can be summed (eg. emissions,
+# and) intensive values like per-capita ones which should have a weighted 
+# average or similar when aggregating 
 
 aggregate_regions <- function(data, region_map){
   
