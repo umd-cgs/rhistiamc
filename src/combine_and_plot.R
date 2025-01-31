@@ -31,12 +31,6 @@ model_regions <- "r5"   # R5: five regions making up the world
 
 ##### 2.1 Historical data -----
 
-# PUT the IAM_data.xlsx, downloaded from the following link, and 
-# any other processed scenarios results into the runs/ folder 
-# within this local repo
-
-# https://data.ece.iiasa.ac.at/ngfs-phase-4/#/downloads
-
 # IF it's desired to use the provided historical data in the IAMC format, rather 
 # than re-create it using src/process_hist_data.R, then download the files from:
 # PUBLIC_output_rhistiamc:
@@ -80,14 +74,22 @@ data_hist_full <- data_hist_full |>
 
 ##### 2.2 Scenario data -------------------------------
 
+
+# PUT the IAM_data.xlsx, downloaded from the following link, and 
+# any other processed scenarios results into the runs/ folder 
+# within this local repo
+
+# https://data.ene.iiasa.ac.at/ngfs/#/downloads
+# Login as guest > Downloads > 1729832902777-V5.0-NGFS-Phase-5.zip (or latest) > unzip to runs/ folder 
+
 # Choose which scenario data to read in
-data_scen_option <- "ngfs_phase_IV"
+data_scen_option <- "ngfs_phase_V"
 # data_scen_option <- 
 
-if (data_scen_option == "ngfs_phase_IV") { 
+#use the publicly available 3 model scenario set from phase 5
+if (data_scen_option == "ngfs_phase_V") { 
   
-  #use the publicly available 3 model scenario set from phase 4
-  #file from download page from https://data.ene.iiasa.ac.at/ngfs/#/workspaces
+
   data_scen_full <- read_xlsx(file.path("runs/", "IAM_data.xlsx"))
   colnames(data_scen_full) <- tolower(colnames(data_scen_full))
   
@@ -102,8 +104,8 @@ if (data_scen_option == "ngfs_phase_IV") {
   
   data_scen_full <- data_scen_full |>
     mutate(region = gsub("GCAM 6.0 NGFS\\|", "", region),
-           region = gsub("MESSAGEix-GLOBIOM 1.1-R12\\|", "", region),
-           region = gsub("REMIND-MAgPIE 3.2-4.6\\|", "", region))
+           region = gsub("MESSAGEix-GLOBIOM 2.0-R12\\|", "", region),
+           region = gsub("REMIND-MAgPIE 3.3-4.8\\|", "", region))
   
 
   
@@ -178,7 +180,7 @@ models_avail <- unique(data_scen_full$model); models_avail
 # Select models to plot
 
 # models_selected <- models_avail[grepl("GCAM",models_avail)]; models_selected
-models_selected <- c("MESSAGEix-GLOBIOM 1.1-M-R12", "REMIND-MAgPIE 3.2-4.6", "GCAM 6.0 NGFS"); models_selected
+models_selected <- c("GCAM 6.0 NGFS","MESSAGEix-GLOBIOM 2.0-M-R12-NGFS","REMIND-MAgPIE 3.3-4.8"); models_selected
 
 
 if (model_regions %in% c("r10", "r5")){

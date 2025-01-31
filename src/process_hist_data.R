@@ -1139,6 +1139,13 @@ dat_iea_ev <- dat_iea_ev |> mutate(iso = case_when(region == "World" ~ "World",
                                                    .default = iso))
 dat_iea_ev <- na.omit(dat_iea_ev)
 
+# Clean up the variable notation
+dat_iea_ev <- dat_iea_ev |>
+  mutate(variable = gsub("\\|BEV$", "\\|Battery-Electric", variable),
+         variable = gsub("\\|FCEV", "\\|Fuel-Cell-Electric", variable),
+         variable = gsub("\\|PHEV", "\\|Plug-in Hybrid", variable),
+         variable = gsub("\\|EV", "\\|BEV+PHEV", variable))
+
 dat_iea_ev <- dat_iea_ev %>%
   select(region,iso, year, variable, unit, value, scenario )
 
@@ -1149,19 +1156,20 @@ dat_iea_ev <- dat_iea_ev %>%
     TRUE ~ variable  # Keep all other variables unchanged
   ))
 
+# Calculate total LDV sales
 sales_data <- dat_iea_ev %>%
   # Make sure the data is in the right format, you might need to convert data types or reshape the data
   mutate(value = as.numeric(value)) %>%
   filter(variable %in% c("Sales|Transportation|Light-Duty Vehicle|Battery-Electric", 
                          "Sales|Transportation|Light-Duty Vehicle|Plug-in Hybrid", 
                          "Sales|Transportation|Light-Duty Vehicle|Fuel-Cell-Electric", 
-                         "Sales|Transportation|Internal Combustion")) %>%
+                         "Sales|Transportation|Light-Duty Vehicle|Internal Combustion")) %>%
   group_by(region,iso, year, scenario) %>%
   summarise(
     value = sum(value, na.rm = TRUE),
     .groups = 'drop'  # This ensures the grouped dataframe is ungrouped after summarisation
   ) %>%
-  mutate(variable = "Sales|Transportation",
+  mutate(variable = "Sales|Transportation|Light-Duty Vehicle",
          unit = "million")
 
 dat_iea_ev <- bind_rows(dat_iea_ev, sales_data)
@@ -1172,7 +1180,7 @@ bev_sales_data <- dat_iea_ev %>%
   rename(bev_sales = value)
 
 total_sales_data <- dat_iea_ev %>%
-  filter(variable == "Sales|Transportation") %>%
+  filter(variable == "Sales|Transportation|Light-Duty Vehicle") %>%
   select(region, iso, year, scenario, value) %>%
   rename(total_sales = value)
 
@@ -1196,13 +1204,6 @@ dat_iea_ev <- bind_rows(dat_iea_ev, iea_ev_share)
 #   select(-(region)) %>%
 #   mutate(model = "IEA_GEVO") %>%
 #   select(iso, variable, unit, year, value, model, scenario)
-
-# Clean up the variable notation
-dat_iea_ev <- dat_iea_ev |>
-  mutate(variable = gsub("\\|BEV$", "\\|Battery-Electric", variable),
-         variable = gsub("\\|FCEV", "\\|Fuel-Cell-Electric", variable),
-         variable = gsub("\\|PHEV", "\\|Plug-in Hybrid", variable),
-         variable = gsub("\\|EV", "\\|BEV+PHEV", variable))
 
 dat_iea_ev <- dat_iea_ev %>%
   select(-(region)) %>%
@@ -1488,6 +1489,7 @@ write_this <- rbind(data_iso, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
+  mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
   # select(-c("2024")) |> #no data in this column
   unique() |>
   ungroup()
@@ -1520,6 +1522,7 @@ write_this <- rbind(data_reg, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
+  mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
   # select(-c("2024")) |> #no data in this column
   unique() |>
   ungroup()
