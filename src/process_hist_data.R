@@ -25,7 +25,7 @@ source("src/functions.R")
 
 
 # Start year for harmonized datasets
-starty <- 1990 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
+starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
 
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
@@ -404,14 +404,14 @@ ener|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(na
 # The above link corresponds to two datasets 'Region' and 'World' which will be used for our analysis
 # Region - WEO2023_AnnexA_Free_Dataset_Regions.csv
 # World - WEO2023_AnnexA_Free_Dataset_World.csv
-iea23 <- read.csv("data/WEO2023_AnnexA_Free_Dataset_Regions.csv")|>
+iea24 <- read.csv("data/WEO2024_AnnexA_Free_Dataset_Regions.csv")|>
   mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))
-iea23 <- rbind(iea23, ## add all available data on Net Zero scenarios, plus additional variables for others
-               read.csv("data/WEO2023_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
-                 mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))|>select(-X),
-               read.csv("data/WEO2023_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
+iea24 <- rbind(iea24, ## add all available data on Net Zero scenarios, plus additional variables for others
+               read.csv("data/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
+                 mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)),#|>select(-X),
+               read.csv("data/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
                  mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)) |> 
-                 filter(!var %in% unique(iea23$var))|>select(-X)
+                 filter(!var %in% unique(iea24$var))#|>select(-X)
 )|>
   select(-CATEGORY,-PRODUCT,-FLOW,-PUBLICATION)|>
   rename(unit=UNIT,region=REGION,year=YEAR,value=VALUE,scenario=SCENARIO)
@@ -1411,11 +1411,11 @@ data_reg <- data_iso |>
 ##The mapping files are created using the documentation which can be found on the following link:
 ##-- https://data.ene.iiasa.ac.at/ar6/#/docs
 
-map_iea <- read.csv("mappings/map_IEAWEO23_iamc.csv")
+map_iea <- read.csv("mappings/map_IEAWEO24_iamc.csv")
 
 
 #historic data
-datieah <- iea23 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
+datieah <- iea24 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region))|>
@@ -1437,7 +1437,7 @@ datieah <- datieah |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 
 
 #scenario data
-datieas <- iea23 |> filter(year>2021) |>
+datieas <- iea24 |> filter(year>2021) |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region
@@ -1445,7 +1445,7 @@ datieas <- iea23 |> filter(year>2021) |>
   filter(region %in% c(unique(reg_map$region), 
                        "Europe", "European Union", # Remove these regions if preferred
                        "World")) |>
-  mutate(model="IEA WEO 2023")|>
+  mutate(model="IEA WEO 2024")|>
   filter(!is.na(var))
 
 # bring to GCAM region mapping and IAMC format
