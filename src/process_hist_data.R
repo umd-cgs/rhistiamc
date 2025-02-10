@@ -399,8 +399,8 @@ ener|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(na
   mutate(exp=coalprod_ej-coalcons_ej) |> filter(year>2009)
 
 ###### energy: IEA WEO 2023 --------------------------------------------------
-# https://www.iea.org/ - World energy Outloook 2023 Dataset 
-# https://www.iea.org/data-and-statistics/data-product/world-energy-outlook-2023-free-dataset-2#data-files
+# https://www.iea.org/ - World energy Outloook 2024 Dataset 
+# https://www.iea.org/data-and-statistics/data-product/world-energy-outlook-2024-free-dataset#data-files
 # The above link corresponds to two datasets 'Region' and 'World' which will be used for our analysis
 # Region - WEO2023_AnnexA_Free_Dataset_Regions.csv
 # World - WEO2023_AnnexA_Free_Dataset_World.csv
@@ -927,18 +927,13 @@ dat_egeny <- egeny |> filter(year > starty)|> select (-variable,-region)|>
   mutate(model="EMBER",scenario="historical",value=value/ej2twh)|>
   rename(variable=fuel)|>mutate(unit="EJ/yr")
 
-total_per_country_year <- dat_egeny %>%
-  group_by(iso, year) %>%
-  summarise(total_value = sum(value, na.rm = TRUE))
-
 # Calculate the share in Total for each fuel type and create a new dataframe
-dat_egeny_shares <- dat_egeny %>%
-  inner_join(total_per_country_year, by = c("iso", "year")) %>%
-  mutate(value = (value / total_value) * 100,
+dat_egeny_shares <- dat_egeny |>
+  group_by(across(-c(variable, value))) |>
+  mutate(value = (value / value[variable == "Secondary Energy|Electricity"]) * 100,
          variable = paste(variable, "Share", sep = "|"),
-         unit = "percentage",
-         model = "EMBER",
-         scenario = "historical") %>%
+         unit = "%") |>
+  filter(variable != "Secondary Energy|Electricity|Share") |>
   select(iso, year, variable, value, unit,model,scenario)
 
 egeny_solar_wind <- dat_egeny_shares %>%
