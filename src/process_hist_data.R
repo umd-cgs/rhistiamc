@@ -29,9 +29,9 @@ starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time se
 
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
-# model_regions <- "gcam32"   # Using GCAM core regions
+model_regions <- "gcam32"   # Using GCAM core regions
 # model_regions <- "r10"
-model_regions <- "r5"
+# model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
 save_option <- T 
@@ -442,6 +442,14 @@ robbie_ev <- read.csv("data/all_carsales_monthly.csv") |>
   mutate(variable = "all_carsales_monthly",
          Value = Value * 10^(-6),
          unit = "million")
+
+###### trn: tkt (ton-kilometer traveled) and pkt (passenger-kilometer traveled) - OECD --------------------------------------------------
+#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSFREIGHT&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false
+#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSPASS&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false
+# Click on the "Download" button
+OECD_f <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSFREIGHT,1.0+all.csv")
+OECD_p <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSPASS,1.0+all.csv")
+OECD <- bind_rows(OECD_f, OECD_p)
 
 ###### climate: temp - NASA --------------------------------------------------
 #https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv 
@@ -1217,8 +1225,6 @@ dat_rb <- robbie_ev |>
          scenario = "historical",
          iso = countrycode(Country, 'country.name', 'iso3c')) |>
   rename(value = Value)
-
-
   
 # Transform into yearly sales data
 
@@ -1302,6 +1308,19 @@ dat_robbie <- bind_rows(dat_robbie_sales, dat_robbie_sales_share, dat_robbie_sto
   mutate(year = as.numeric(year))
 
 
+###### OECD trn -------------------------------------
+
+dat_oecd <- OECD %>%
+  select(c("REF_AREA", "Reference.area", "Measure", "Unit.of.measure", "Transport.mode", "TIME_PERIOD", "OBS_VALUE", "Observation.status", "Unit.multiplier")) %>%
+  rename("iso" = "REF_AREA", "region" = "Reference.area", "measure" = "Measure", "unit" = "Unit.of.measure", "transport mode" = "Transport.mode", "year" = "TIME_PERIOD", "value" = "OBS_VALUE", "Observation status" = "Observation.status", "unit multiplier" = "Unit.multiplier") %>%
+  filter(!is.na(value)) %>%
+  mutate(variable = paste(measure, `transport mode`, sep = "|")) %>%
+  mutate(unit = paste(`unit multiplier`, unit, sep = " ")) %>%
+  select(iso, variable, unit, year, value) %>%
+  mutate(model = "OECD", scenario = "historical") %>%
+  arrange(iso, variable, unit, year, value, model, scenario)
+
+
 ###### NASA  -------------------------------------
 
 dat_nasa <-nasa_temp %>%
@@ -1329,7 +1348,7 @@ dat_crut <- crut %>%
 
 #### 2.b combine iso based data sets #####
 data_iso <- rbind(dat_ener,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
-              dat_robbie, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
+              dat_robbie, dat_oecd, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
 
 data_iso <- data_iso %>%
   filter(!is.na(iso),
@@ -1484,6 +1503,7 @@ write_this <- rbind(data_iso, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
+  mutate(across(where(is.list), ~ ifelse(lengths(.) == 0, NA, unlist(.)))) |>  # Remove NULL lists
   mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
   # select(-c("2024")) |> #no data in this column
   unique() |>
