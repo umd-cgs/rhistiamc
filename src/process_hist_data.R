@@ -25,13 +25,13 @@ source("src/functions.R")
 
 
 # Start year for harmonized datasets
-starty <- 1990 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
+starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
 
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
-# model_regions <- "gcam32"   # Using GCAM core regions
+model_regions <- "gcam32"   # Using GCAM core regions
 # model_regions <- "r10"
-model_regions <- "r5"
+# model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
 save_option <- T 
@@ -399,19 +399,19 @@ ener|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(na
   mutate(exp=coalprod_ej-coalcons_ej) |> filter(year>2009)
 
 ###### energy: IEA WEO 2023 --------------------------------------------------
-# https://www.iea.org/ - World energy Outloook 2023 Dataset 
-# https://www.iea.org/data-and-statistics/data-product/world-energy-outlook-2023-free-dataset-2#data-files
+# https://www.iea.org/ - World energy Outloook 2024 Dataset 
+# https://www.iea.org/data-and-statistics/data-product/world-energy-outlook-2024-free-dataset#data-files
 # The above link corresponds to two datasets 'Region' and 'World' which will be used for our analysis
 # Region - WEO2023_AnnexA_Free_Dataset_Regions.csv
 # World - WEO2023_AnnexA_Free_Dataset_World.csv
-iea23 <- read.csv("data/WEO2023_AnnexA_Free_Dataset_Regions.csv")|>
+iea24 <- read.csv("data/WEO2024_AnnexA_Free_Dataset_Regions.csv")|>
   mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))
-iea23 <- rbind(iea23, ## add all available data on Net Zero scenarios, plus additional variables for others
-               read.csv("data/WEO2023_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
-                 mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))|>select(-X),
-               read.csv("data/WEO2023_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
+iea24 <- rbind(iea24, ## add all available data on Net Zero scenarios, plus additional variables for others
+               read.csv("data/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
+                 mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)),#|>select(-X),
+               read.csv("data/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
                  mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)) |> 
-                 filter(!var %in% unique(iea23$var))|>select(-X)
+                 filter(!var %in% unique(iea24$var))#|>select(-X)
 )|>
   select(-CATEGORY,-PRODUCT,-FLOW,-PUBLICATION)|>
   rename(unit=UNIT,region=REGION,year=YEAR,value=VALUE,scenario=SCENARIO)
@@ -442,6 +442,14 @@ robbie_ev <- read.csv("data/all_carsales_monthly.csv") |>
   mutate(variable = "all_carsales_monthly",
          Value = Value * 10^(-6),
          unit = "million")
+
+###### trn: tkt (ton-kilometer traveled) and pkt (passenger-kilometer traveled) - OECD --------------------------------------------------
+#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSFREIGHT&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false
+#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSPASS&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false
+# Click on the "Download" button
+OECD_f <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSFREIGHT,1.0+all.csv")
+OECD_p <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSPASS,1.0+all.csv")
+OECD <- bind_rows(OECD_f, OECD_p)
 
 ###### climate: temp - NASA --------------------------------------------------
 #https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv 
@@ -927,18 +935,13 @@ dat_egeny <- egeny |> filter(year > starty)|> select (-variable,-region)|>
   mutate(model="EMBER",scenario="historical",value=value/ej2twh)|>
   rename(variable=fuel)|>mutate(unit="EJ/yr")
 
-total_per_country_year <- dat_egeny %>%
-  group_by(iso, year) %>%
-  summarise(total_value = sum(value, na.rm = TRUE))
-
 # Calculate the share in Total for each fuel type and create a new dataframe
-dat_egeny_shares <- dat_egeny %>%
-  inner_join(total_per_country_year, by = c("iso", "year")) %>%
-  mutate(value = (value / total_value) * 100,
+dat_egeny_shares <- dat_egeny |>
+  group_by(across(-c(variable, value))) |>
+  mutate(value = (value / value[variable == "Secondary Energy|Electricity"]) * 100,
          variable = paste(variable, "Share", sep = "|"),
-         unit = "percentage",
-         model = "EMBER",
-         scenario = "historical") %>%
+         unit = "%") |>
+  filter(variable != "Secondary Energy|Electricity|Share") |>
   select(iso, year, variable, value, unit,model,scenario)
 
 egeny_solar_wind <- dat_egeny_shares %>%
@@ -1222,8 +1225,6 @@ dat_rb <- robbie_ev |>
          scenario = "historical",
          iso = countrycode(Country, 'country.name', 'iso3c')) |>
   rename(value = Value)
-
-
   
 # Transform into yearly sales data
 
@@ -1307,6 +1308,19 @@ dat_robbie <- bind_rows(dat_robbie_sales, dat_robbie_sales_share, dat_robbie_sto
   mutate(year = as.numeric(year))
 
 
+###### OECD trn -------------------------------------
+
+dat_oecd <- OECD %>%
+  select(c("REF_AREA", "Reference.area", "Measure", "Unit.of.measure", "Transport.mode", "TIME_PERIOD", "OBS_VALUE", "Observation.status", "Unit.multiplier")) %>%
+  rename("iso" = "REF_AREA", "region" = "Reference.area", "measure" = "Measure", "unit" = "Unit.of.measure", "transport mode" = "Transport.mode", "year" = "TIME_PERIOD", "value" = "OBS_VALUE", "Observation status" = "Observation.status", "unit multiplier" = "Unit.multiplier") %>%
+  filter(!is.na(value)) %>%
+  mutate(variable = paste(measure, `transport mode`, sep = "|")) %>%
+  mutate(unit = paste(`unit multiplier`, unit, sep = " ")) %>%
+  select(iso, variable, unit, year, value) %>%
+  mutate(model = "OECD", scenario = "historical") %>%
+  arrange(iso, variable, unit, year, value, model, scenario)
+
+
 ###### NASA  -------------------------------------
 
 dat_nasa <-nasa_temp %>%
@@ -1334,7 +1348,7 @@ dat_crut <- crut %>%
 
 #### 2.b combine iso based data sets #####
 data_iso <- rbind(dat_ener,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
-              dat_robbie, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
+              dat_robbie, dat_oecd, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
 
 data_iso <- data_iso %>%
   filter(!is.na(iso),
@@ -1411,11 +1425,11 @@ data_reg <- data_iso |>
 ##The mapping files are created using the documentation which can be found on the following link:
 ##-- https://data.ene.iiasa.ac.at/ar6/#/docs
 
-map_iea <- read.csv("mappings/map_IEAWEO23_iamc.csv")
+map_iea <- read.csv("mappings/map_IEAWEO24_iamc.csv")
 
 
 #historic data
-datieah <- iea23 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
+datieah <- iea24 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region))|>
@@ -1437,7 +1451,7 @@ datieah <- datieah |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 
 
 #scenario data
-datieas <- iea23 |> filter(year>2021) |>
+datieas <- iea24 |> filter(year>2021) |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region
@@ -1445,7 +1459,7 @@ datieas <- iea23 |> filter(year>2021) |>
   filter(region %in% c(unique(reg_map$region), 
                        "Europe", "European Union", # Remove these regions if preferred
                        "World")) |>
-  mutate(model="IEA WEO 2023")|>
+  mutate(model="IEA WEO 2024")|>
   filter(!is.na(var))
 
 # bring to GCAM region mapping and IAMC format
@@ -1489,6 +1503,7 @@ write_this <- rbind(data_iso, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
+  mutate(across(where(is.list), ~ ifelse(lengths(.) == 0, NA, unlist(.)))) |>  # Remove NULL lists
   mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
   # select(-c("2024")) |> #no data in this column
   unique() |>
