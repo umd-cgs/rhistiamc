@@ -2,7 +2,7 @@
 library(tidyverse)
 library(dplyr)
 library(readxl)
-library(quitte) # Download from https://pik-piam.r-universe.dev/quitte#
+#library(quitte) # Download from https://pik-piam.r-universe.dev/quitte#
 library(readxl)
 library(countrycode)
 library(openxlsx)
