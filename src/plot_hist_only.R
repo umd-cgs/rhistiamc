@@ -15,6 +15,7 @@ start_yr <- 1975
 #you need to download the file historical_iso.csv from https://drive.google.com/open?id=117cTkVRekeu3vHYrFkH93zstpCqGxkM8&usp=drive_fs
 #and save it in the 'output' folder, so that the following line works out
 data_hist_full <- read.csv(paste0("output/historical_iso.csv"), na.strings = "NA")
+unique(data_hist_full$variable)
 #clean up year values in columns
 colnames(data_hist_full) <- gsub("^X", "", colnames(data_hist_full))
 #make it into default 'long' dataframe format
@@ -151,31 +152,27 @@ plot$variable = factor(x = plot$variable,levels=rev(c("Bio and Geo",
   
   # script to plot wind capacity 
   #select the year and the variable to be filtered
-  selected_year <- 2020
-  selected_variable <- "Secondary Energy|Electricity|Wind"
+  selected_year <- 2022
+  selected_variable <- "Capacity|Electricity|Wind"
   
   #filter the data
   data_filtered <- data_hist_full %>%
        filter(variable == selected_variable, year == selected_year) %>%
-         select(region, value)
+         select(region, value, unit)%>%
+          rename(filtered_value = value)
+  # process the population data
+  population_data <- data_hist_full %>%
+    filter(variable == "Population", year == selected_year) %>%
+    select(region, value, unit) %>%
+    rename(population = value)
   
-  #preprocess the world population data available publicly
-  global_population <- read.csv("output/global_population.csv", skip = 3)
-  colnames(global_population) <- gsub("^X", "", colnames(global_population))
-  colnames(global_population) <- trimws(colnames(global_population))
-  global_population <- global_population[, colnames(global_population) != ""]
-  global_population_full <- global_population %>%
-       pivot_longer(
-           cols = starts_with("19") | starts_with("20"), # Select only year columns
-           names_to = "year",
-           values_to = "population"
-         ) %>%
-      mutate(year = as.numeric(year))
-  
- #merge historical data with population data
+  # Merge wind capacity with population data
   data_per_capita <- data_filtered %>%
-      left_join(global_population_full%>% filter(year == selected_year), by = c("region" = "Country.Code")) %>%
-      mutate(per_capita_value = value / population)
+    left_join(population_data, by = "region") %>%
+    mutate(
+      per_capita_value = filtered_value / population #wind capacity in gw/ population in millions= kw/person
+    )
+
   #Load world map data
   world <- ne_countries(scale = "medium", returnclass = "sf")
   map_data <- world %>%
@@ -183,10 +180,16 @@ plot$variable = factor(x = plot$variable,levels=rev(c("Bio and Geo",
   
   #plot choropleth map
     ggplot(data = map_data) +
-          geom_sf(aes(fill = per_capita_value), color = "white", size = 0.2) +
-      scale_fill_viridis_c(option = "plasma", na.value = "grey80", name = paste0(selected_variable, "\n(kW per person)")) +
+          geom_sf(aes(fill = per_capita_value), color = NA) +
+      scale_fill_gradient2(low = "darkblue",    
+                           mid = "white",    
+                           high = "red",   
+                           midpoint = 0.75,
+                           na.value = "grey80", 
+                           name = "kW per person" 
+      )  +
        theme_minimal() +
          labs(title = paste0("Per-Capita ", selected_variable, " by Country (", selected_year, ")"),
                      caption = "Data Source: IAMC Historical Data") +
-     theme(legend.position = "bottom")
+     theme(legend.position = "right")
   
