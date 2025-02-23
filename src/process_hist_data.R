@@ -25,7 +25,7 @@ source("src/functions.R")
 
 
 # Start year for harmonized datasets
-starty <- 1990 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
+starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
 
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
@@ -192,15 +192,24 @@ iea_ch4 <- iea_ch4 %>%
 
 
 ###### emissions: ch4 - CLIMATE TRACE ---------
-ct_waste <- rbind(waste1 <- read.csv("data/solid-waste-disposal_country_emissions.csv"),
-                  waste2 <-read.csv("data/wastewater-treatment-and-discharge_country_emissions.csv"),
-                  waste3 <- read.csv("data/incineration-and-open-burning-of-waste_country_emissions.csv"),
-                  waste4 <- read.csv("data/biological-treatment-of-solid-waste-and-biogenic_country_emissions.csv"))
+# there is an API (and additional GHGs) available, 
+# but currently this uses manually-downloaded data
+# https://climatetrace.org/data 
+# Select CH4 as the Emissions Type, then download the Waste section as a CSV and unzip it
+
+ct_waste <- rbind(read.csv("data/solid-waste-disposal_country_emissions.csv"),
+                  read.csv("data/industrial-wastewater-treatment-and-discharge_country_emissions.csv"),
+                  read.csv("data/domestic-wastewater-treatment-and-discharge_country_emissions.csv"),
+                  read.csv("data/incineration-and-open-burning-of-waste_country_emissions.csv"),
+                  read.csv("data/biological-treatment-of-solid-waste-and-biogenic_country_emissions.csv"))
 
 ct_waste <- ct_waste %>%
-  rename(iso=iso3_country) %>% mutate(year=parse_number(substr(start_time,0,4))) %>%
-  select(-c(sector, temporal_granularity, created_date, modified_date, start_time, end_time)) %>%
-  filter(gas == "ch4") %>% na.omit()
+  rename(iso=iso3_country) |>
+  mutate(year=parse_number(substr(start_time,0,4)),
+         emissions_quantity_units = "tonnes") |>
+  select(-c(sector, temporal_granularity, created_date, modified_date, start_time, end_time)) |>
+  filter(gas == "ch4") |>
+  na.omit()
 
 
 
@@ -390,19 +399,19 @@ ener|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(na
   mutate(exp=coalprod_ej-coalcons_ej) |> filter(year>2009)
 
 ###### energy: IEA WEO 2023 --------------------------------------------------
-# https://www.iea.org/ - World energy Outloook 2023 Dataset 
-# https://www.iea.org/data-and-statistics/data-product/world-energy-outlook-2023-free-dataset-2#data-files
+# https://www.iea.org/ - World energy Outloook 2024 Dataset 
+# https://www.iea.org/data-and-statistics/data-product/world-energy-outlook-2024-free-dataset#data-files
 # The above link corresponds to two datasets 'Region' and 'World' which will be used for our analysis
 # Region - WEO2023_AnnexA_Free_Dataset_Regions.csv
 # World - WEO2023_AnnexA_Free_Dataset_World.csv
-iea23 <- read.csv("data/WEO2023_AnnexA_Free_Dataset_Regions.csv")|>
+iea24 <- read.csv("data/WEO2024_AnnexA_Free_Dataset_Regions.csv")|>
   mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))
-iea23 <- rbind(iea23, ## add all available data on Net Zero scenarios, plus additional variables for others
-               read.csv("data/WEO2023_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
-                 mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))|>select(-X),
-               read.csv("data/WEO2023_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
+iea24 <- rbind(iea24, ## add all available data on Net Zero scenarios, plus additional variables for others
+               read.csv("data/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
+                 mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)),#|>select(-X),
+               read.csv("data/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
                  mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)) |> 
-                 filter(!var %in% unique(iea23$var))|>select(-X)
+                 filter(!var %in% unique(iea24$var))#|>select(-X)
 )|>
   select(-CATEGORY,-PRODUCT,-FLOW,-PUBLICATION)|>
   rename(unit=UNIT,region=REGION,year=YEAR,value=VALUE,scenario=SCENARIO)
@@ -411,6 +420,7 @@ iea23 <- rbind(iea23, ## add all available data on Net Zero scenarios, plus addi
 
 ###### energy: OWID ---------
 # https://github.com/owid/energy-data?tab=readme-ov-file
+# In ReadMe: Download our complete Energy dataset : CSV
 owid_energy_data <- read_csv("data/owid-energy-data.csv")
 
 # Pivot the CO2 dataset
@@ -426,6 +436,22 @@ owid_energy_data <- owid_energy_data %>%
 #https://www.iea.org/data-and-statistics/data-product/global-ev-outlook-2024
 iea_ev <- read.csv("data/IEA Global EV Data 2024.csv")
 
+###### trn: ev - Robbie --------------------------------------------------
+#https://robbieandrew.github.io/carsales/ 
+# Click on the link to "Download all monthly data in one file."
+robbie_ev <- read.csv("data/all_carsales_monthly.csv") |>
+  mutate(variable = "all_carsales_monthly",
+         Value = Value * 10^(-6),
+         unit = "million")
+
+###### trn: service - OECD --------------------------------------------------
+# tkt (ton-kilometer traveled) and pkt (passenger-kilometer traveled)
+#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSFREIGHT&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&to[TIME_PERIOD]=false&pd=%2C
+#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSPASS&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&to[TIME_PERIOD]=false&pd=%2C
+# Click on the "Download" button > "Unfiltered data in tabular dataset (CSV)
+OECD_f <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSFREIGHT,1.0+all.csv")
+OECD_p <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSPASS,1.0+all.csv")
+OECD <- bind_rows(OECD_f, OECD_p)
 
 ###### climate: temp - NASA --------------------------------------------------
 #https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv 
@@ -516,10 +542,10 @@ dat_prim <- prim |> filter(entity %in% c("KYOTOGHG (AR4GWP100)","KYOTOGHG (AR5GW
                            year > starty,category..IPCC2006_PRIMAP. %in% c("0", "M.0.EL","M.LULUCF"),
                            scenario..PRIMAP.hist. %in% c("HISTCR","HISTTP")) |> select(-provenance,-source) |>
   mutate(unit = case_when(
-    entity=="CH4" ~ "Mt CH4",
-    entity=="N2O" ~ "kt N2O",
-    entity=="CO2" ~ "Mt CO2",
-    .default="Mt CO2eq"
+    entity=="CH4" ~ "Mt CH4/yr",
+    entity=="N2O" ~ "kt N2O/yr",
+    entity=="CO2" ~ "Mt CO2/yr",
+    .default="Mt CO2-equiv/yr"
   )) |>
   mutate(value = case_when(
     entity=="N2O" ~ value,
@@ -559,8 +585,8 @@ dat_prim <-  rbind(dat_prim,
                     ) |> pivot_longer(cols=c(-iso,-year,-model,-scenario),names_to = 'variable')|>
                     filter(variable %in% c("Emissions|CO2","Emissions|Kyoto Gases"))|>
                     mutate(unit = case_when(
-                      variable=="Emissions|Kyoto Gases" ~ "Mt CO2eq",
-                      variable=="Emissions|CO2" ~ "Mt CO2"
+                      variable=="Emissions|Kyoto Gases" ~ "Mt CO2-equiv/yr",
+                      variable=="Emissions|CO2" ~ "Mt CO2/yr"
                     )))
 
 #addition of international shipping and aviation emissions to dat_prim further below
@@ -572,19 +598,20 @@ dat_prim <-  rbind(dat_prim,
 ###### CEDS ##############
 dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
   mutate(unit = case_when(
-    entity=="CH4" ~ "Mt CH4",
-    entity=="N2O" ~ "kt N2O",
-    entity=="SO2" ~ "kt SO2",
-    entity=="BC" ~ "Kt C",
-    entity=="CO" ~ "kt CO",
-    entity=="NH3" ~ "kt NH3",
-    entity=="NMVOC" ~ "Kt NMVOC",
-    entity=="NOx" ~ "kt NOx",
-    entity=="OC" ~ "kt C",
-    .default="Mt CO2"
+    entity=="CH4" ~ "Mt CH4/yr",
+    entity=="N2O" ~ "kt N2O/yr",
+    entity=="SO2" ~ "kt SO2/yr",
+    entity=="BC" ~ "Mt BC/yr",
+    entity=="CO" ~ "Mt CO/yr",
+    entity=="NH3" ~ "Mt NH3/yr",
+    entity=="NMVOC" ~ "Mt VOC/yr",
+    entity=="NOx" ~ "Mt NO2/yr",
+    entity=="OC" ~ "Mt OC/yr",
+    .default="Mt CO2/yr"
   )) |>
   mutate(value = case_when(
     entity=="N2O" ~ value,
+    entity=="SO2" ~ value,
     .default=value/1000
   ))|>
   mutate(entity = case_when(
@@ -595,7 +622,7 @@ dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
     entity=="BC" ~ "Emissions|BC",
     entity=="CO" ~ "Emissions|CO",
     entity=="NH3" ~ "Emissions|NH3",
-    entity=="NMVOC" ~ "Emissions|NMVOC",
+    entity=="NMVOC" ~ "Emissions|VOC",
     entity=="NOx" ~ "Emissions|NOx",
     entity=="OC" ~ "Emissions|OC"
   ))|>
@@ -654,19 +681,19 @@ dat_ceds <- dat_ceds |> rbind(test <- ceds_s |> left_join(map_ceds_chn |> select
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-                                                               unit="Mt CO2",value=value/1000)|> rename(variable=var))  
+                                                               unit="Mt CO2/yr",value=value/1000)|> rename(variable=var))  
 
 dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds_chn |> select(sector,var))|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-                                                               unit="Mt CH4",value=value/1000)|> rename(variable=var)) 
+                                                               unit="Mt CH4/yr",value=value/1000)|> rename(variable=var)) 
 
 dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds_chn |> select(sector,var))|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-                                                               unit="Mt N2O",value=value/1000)|> rename(variable=var))  
+                                                               unit="Mt N2O/yr",value=value/1000)|> rename(variable=var))  
 
 
 #add sectoral data based on IAMC2 mappings
@@ -675,19 +702,19 @@ dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds_chn |> select(sector,
 #   group_by(iso,entity,year,IAMC2,units) |> summarize(value=sum(value))|>
 #   ungroup() |> mutate(IAMC2 = paste0("Emissions|",entity,"|",IAMC2))|>
 #   select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-#               unit="Mt CO2",value=value/1000)|> rename(variable=IAMC2))  
+#               unit="Mt CO2/yr",value=value/1000)|> rename(variable=IAMC2))  
 # 
 # dat_ceds <- dat_ceds |> rbind(ceds_m |> left_join(map_ceds |> select(sector,IAMC2))|> 
 #                                 group_by(iso,entity,year,IAMC2,units) |> summarize(value=sum(value))|>
 #                                 ungroup() |> mutate(IAMC2 = paste0("Emissions|",entity,"|",IAMC2))|>
 #                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-#                                                                unit="Mt CH4",value=value/1000)|> rename(variable=IAMC2)) 
+#                                                                unit="Mt CH4/yr",value=value/1000)|> rename(variable=IAMC2)) 
 # 
 # dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds |> select(sector,IAMC2))|> 
 #                                 group_by(iso,entity,year,IAMC2,units) |> summarize(value=sum(value))|>
 #                                 ungroup() |> mutate(IAMC2 = paste0("Emissions|",entity,"|",IAMC2))|>
 #                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
-#                                                                unit="Mt N2O",value=value/1000)|> rename(variable=IAMC2))  
+#                                                                unit="Mt N2O/yr",value=value/1000)|> rename(variable=IAMC2))  
 
 #emissions from international aviation and shipping to add to PRIMAP-hist dataset
 dat_ceds_int <- dat_ceds|> filter(iso=="GLOBAL")
@@ -731,12 +758,12 @@ dat_prim <- rbind(dat_prim |> filter(iso !="World"),
                            gwp100[gwp100$entity=="CH4",]$gwp*`Emissions|CH4` + gwp100[gwp100$entity=="N2O",]$gwp*`Emissions|N2O`)|>
                   pivot_longer(cols=c(-model,-scenario,-year),names_to = 'variable')|>
                   mutate(unit=case_when(
-                    variable == "Emissions|CH4" ~ "Mt CH4",
-                    variable == "Emissions|N2O" ~ "kt N2O",
+                    variable == "Emissions|CH4" ~ "Mt CH4/yr",
+                    variable == "Emissions|N2O" ~ "kt N2O/yr",
                     variable %in% c("Emissions|CO2 (incl. all LULUCF)",
                                     "Emissions|CO2|Energy and Industrial Processes",
-                                    "Emissions|CO2")  ~ "Mt CO2",
-                    .default = "Mt CO2eq"
+                                    "Emissions|CO2")  ~ "Mt CO2/yr",
+                    .default = "Mt CO2-equiv/yr"
                   ))) |> group_by(variable,unit,year,scenario)|>
                   summarise(value=sum(value)) |> ungroup() |> 
                   mutate(model="PRIMAP-hist",iso="World"))
@@ -756,7 +783,7 @@ dat_owid_co2 <- dat_owid_co2 %>%
   # Change population variable to units of million individuals from individuals
   # and change 
   mutate(value = ifelse(variable_iamc == "Population", value * 10^(-6), ifelse(variable_iamc == "GDP|PPP", value * 10^(-9), value)),
-         unit = ifelse(unit == "persons", "million", ifelse(unit == "MTCO2", "Mt CO2", ifelse(unit == "$ (Year 2011)", "billion US$2011/yr", unit)))) |>
+         unit = ifelse(unit == "persons", "million", ifelse(unit == "MTCO2", "Mt CO2/yr", ifelse(unit == "$ (Year 2011)", "billion US$2011/yr", unit)))) |>
   mutate(iso_code = ifelse(country == "World", "World", iso_code)) |>
   select(country, year, iso_code,variable_iamc, value, unit) %>%
   rename(variable = variable_iamc)
@@ -841,11 +868,12 @@ dat_ch4$year <- as.numeric(dat_ch4$year)
 
 ###### CLIMATE TRACE  -------------------------------------
 dat_ct <- ct_waste %>%
-  #convert to Mt CH4
+  #convert to Mt CH4/yr
   mutate(value = emissions_quantity/1000000) %>%
   mutate(variable = case_when(
     subsector == "solid-waste-disposal" ~ "Emissions|CH4|Waste|Solid Waste",
-    subsector == "wastewater-treatment-and-discharge" ~ "Emissions|CH4|Waste|Wastewater",
+    subsector == "industrial-wastewater-treatment-and-discharge" ~ "Emissions|CH4|Waste|Wastewater|Industrial",
+    subsector == "domestic-wastewater-treatment-and-discharge" ~ "Emissions|CH4|Waste|Wastewater|Domestic",
     subsector == "incineration-and-open-burning-of-waste" ~ "Emissions|CH4|Waste|Other",
     subsector == "biological-treatment-of-solid-waste-and-biogenic" ~ "Emissions|CH4|Waste|Other"
   )) %>%
@@ -861,7 +889,7 @@ ct_totals <- dat_ct %>%
 
 dat_ct <- bind_rows(dat_ct, ct_totals) %>%
   arrange(iso, year) %>%
-  mutate(unit = "Mt CH4", model = "CT", scenario = "historical")
+  mutate(unit = "Mt CH4/yr", model = "CT", scenario = "historical")
 
 # Add in World, since this is not included in the original datasets
 dat_ct <- dat_ct |>
@@ -909,18 +937,13 @@ dat_egeny <- egeny |> filter(year > starty)|> select (-variable,-region)|>
   mutate(model="EMBER",scenario="historical",value=value/ej2twh)|>
   rename(variable=fuel)|>mutate(unit="EJ/yr")
 
-total_per_country_year <- dat_egeny %>%
-  group_by(iso, year) %>%
-  summarise(total_value = sum(value, na.rm = TRUE))
-
 # Calculate the share in Total for each fuel type and create a new dataframe
-dat_egeny_shares <- dat_egeny %>%
-  inner_join(total_per_country_year, by = c("iso", "year")) %>%
-  mutate(value = (value / total_value) * 100,
+dat_egeny_shares <- dat_egeny |>
+  group_by(across(-c(variable, value))) |>
+  mutate(value = (value / value[variable == "Secondary Energy|Electricity"]) * 100,
          variable = paste(variable, "Share", sep = "|"),
-         unit = "percentage",
-         model = "EMBER",
-         scenario = "historical") %>%
+         unit = "%") |>
+  filter(variable != "Secondary Energy|Electricity|Share") |>
   select(iso, year, variable, value, unit,model,scenario)
 
 egeny_solar_wind <- dat_egeny_shares %>%
@@ -1012,10 +1035,10 @@ dat_owid_energy <- NULL
 iea_ev_share <- iea_ev %>%
   filter(parameter == "EV sales share" & mode != "Cars")%>%
   mutate(parameter = case_when(
-    mode == "Cars" ~ paste("Sales Share|Passenger|LDV", sep=""),
-    mode == "Buses" ~ paste("Sales Share|Passenger|Bus", sep=""),
-    mode == "Trucks" ~ paste("Sales Share|Freight|>3.5t", sep=""),
-    mode == "Vans" ~ paste("Sales Share|Freight|<3.5t", sep=""),
+    mode == "Cars" ~ paste("Sales Share|Transportation|Light-Duty Vehicle", sep=""),
+    mode == "Buses" ~ paste("Sales Share|Transportation|Bus", sep=""),
+    mode == "Trucks" ~ paste("Sales Share|Transportation|Truck", sep=""),
+    mode == "Vans" ~ paste("Sales Share|Transportation|Light-Duty Vehicle|Van", sep=""),
     TRUE ~ parameter  # Keep the original parameter if no condition matches
   )) %>%
   mutate(parameter = paste(parameter, powertrain, sep="|"))%>%
@@ -1031,33 +1054,33 @@ iea_ev_share <- iea_ev %>%
   filter(!is.na(iso))
 
 
-iea_ev <- iea_ev %>%
+iea_ev_intermed <- iea_ev %>%
   filter(!(parameter == "EV sales share" & mode != "Cars"))
 
 # Filter rows where the parameter column contains specific strings
-iea_ev <- iea_ev %>%
+iea_ev_intermed <- iea_ev_intermed %>%
   filter(parameter %in% c("EV sales share", "EV sales", "EV stock", "EV stock share"))
 
 
 # Filter rows and add a new 'variable' column
-enhanced_iea_ev <- iea_ev %>%
+enhanced_iea_ev <- iea_ev_intermed %>%
   filter(parameter %in% c("EV sales share", "EV sales", "EV stock", "EV stock share")) %>%
   mutate(variable = case_when(
-    parameter == "EV stock share" ~ "Stock Share|Transportation",
+    parameter == "EV stock share" ~ "Stocks Share|Transportation",
     parameter == "EV sales share" ~ "Sales Share|Transportation",
     parameter == "EV sales" ~ "Sales|Transportation",
-    parameter == "EV stock" ~ "Stock|Transportation"
+    parameter == "EV stock" ~ "Stocks|Transportation"
   )) %>%
   mutate(variable = case_when(
-    mode == "Cars" ~ paste(variable, "|Passenger|LDV", sep=""),
-    mode == "Buses" ~ paste(variable, "|Passenger|Bus", sep=""),
-    mode == "Trucks" ~ paste(variable, "|Freight|>3.5t", sep=""),
-    mode == "Vans" ~ paste(variable, "|Freight|<3.5t", sep=""),
+    mode == "Cars" ~ paste(variable, "|Light-Duty Vehicle", sep=""),
+    mode == "Buses" ~ paste(variable, "|Bus", sep=""),
+    mode == "Trucks" ~ paste(variable, "|Truck", sep=""),
+    mode == "Vans" ~ paste(variable, "|Light-Duty Vehicle|Van", sep=""),
     TRUE ~ variable  # Default case to handle other modes or missing values
   ))%>%
   mutate(variable = paste(variable, powertrain, sep="|"))%>%
   mutate(value = if_else(unit == "Vehicles", value / 1e6, value),
-         unit = if_else(unit == "Vehicles", "Million Vehicles", unit)) %>%
+         unit = if_else(unit == "Vehicles", "million", unit)) %>%
   rename(scenario = category)
 
 
@@ -1066,7 +1089,7 @@ ice_sales_share_rows <- enhanced_iea_ev %>%
   filter(parameter == "EV sales share") %>%
   mutate(value = 100 - value,   # Step 2: Update value
          parameter = "ICE sales share",  # Step 3: Update parameter
-         variable = "Sales Share|Transportation|ICE")  # Update variable
+         variable = "Sales Share|Transportation|Light-Duty Vehicle|Internal Combustion")  # Update variable
 
 # Step 4: Append new rows to the original DataFrame
 enhanced_iea_ev <- bind_rows(enhanced_iea_ev, ice_sales_share_rows)
@@ -1074,7 +1097,7 @@ enhanced_iea_ev <- bind_rows(enhanced_iea_ev, ice_sales_share_rows)
 
 # Prepare data for EV Sales and EV Sales Share
 ev_sales_data <- enhanced_iea_ev %>%
-  filter(parameter == "EV sales" & mode == 'Cars' )%>%
+  filter(parameter == "EV sales" & mode %in% 'Cars' )%>%
   select(region, year, value, scenario) %>%
   rename(ev_sales = value)
 
@@ -1099,8 +1122,8 @@ total_ice_sales_summary <- total_ice_sales_data %>%
     .groups = 'drop'
   ) %>%
   mutate(
-    variable = "Sales|Transportation|ICE|Total",
-    unit = "Million Vehicles"
+    variable = "Sales|Transportation|Light-Duty Vehicle|Internal Combustion",
+    unit = "million"
   )
 
 # View the final data
@@ -1121,40 +1144,48 @@ dat_iea_ev <- dat_iea_ev |> mutate(iso = case_when(region == "World" ~ "World",
                                                    .default = iso))
 dat_iea_ev <- na.omit(dat_iea_ev)
 
+# Clean up the variable notation
+dat_iea_ev <- dat_iea_ev |>
+  mutate(variable = gsub("\\|BEV$", "\\|Battery-Electric", variable),
+         variable = gsub("\\|FCEV", "\\|Fuel-Cell-Electric", variable),
+         variable = gsub("\\|PHEV", "\\|Plug-in Hybrid", variable),
+         variable = gsub("\\|EV", "\\|BEV+PHEV", variable))
+
 dat_iea_ev <- dat_iea_ev %>%
   select(region,iso, year, variable, unit, value, scenario )
 
 
 dat_iea_ev <- dat_iea_ev %>%
   mutate(variable = case_when(
-    variable == "Sales Share|Transportation|Passenger|LDV|EV" ~ "Sales Share|Transportation|Passenger|LDV|BEV+PHEV",
+    variable == "Sales Share|Transportation|Light-Duty Vehicle|EV" ~ "Sales Share|Transportation|Light-Duty Vehicle|BEV+PHEV",
     TRUE ~ variable  # Keep all other variables unchanged
   ))
 
+# Calculate total LDV sales
 sales_data <- dat_iea_ev %>%
   # Make sure the data is in the right format, you might need to convert data types or reshape the data
   mutate(value = as.numeric(value)) %>%
-  filter(variable %in% c("Sales|Transportation|Passenger|LDV|BEV", 
-                         "Sales|Transportation|Passenger|LDV|PHEV", 
-                         "Sales|Transportation|Passenger|LDV|FCEV", 
-                         "Sales|Transportation|ICE|Total")) %>%
+  filter(variable %in% c("Sales|Transportation|Light-Duty Vehicle|Battery-Electric", 
+                         "Sales|Transportation|Light-Duty Vehicle|Plug-in Hybrid", 
+                         "Sales|Transportation|Light-Duty Vehicle|Fuel-Cell-Electric", 
+                         "Sales|Transportation|Light-Duty Vehicle|Internal Combustion")) %>%
   group_by(region,iso, year, scenario) %>%
   summarise(
     value = sum(value, na.rm = TRUE),
     .groups = 'drop'  # This ensures the grouped dataframe is ungrouped after summarisation
   ) %>%
-  mutate(variable = "Sales|Transportation|Total",
-         unit = "Million Vehicles")
+  mutate(variable = "Sales|Transportation|Light-Duty Vehicle",
+         unit = "million")
 
 dat_iea_ev <- bind_rows(dat_iea_ev, sales_data)
 
 bev_sales_data <- dat_iea_ev %>%
-  filter(variable == "Sales|Transportation|Passenger|LDV|BEV") %>%
+  filter(variable == "Sales|Transportation|Light-Duty Vehicle|Battery-Electric") %>%
   select(region, iso, year, scenario, value) %>%
   rename(bev_sales = value)
 
 total_sales_data <- dat_iea_ev %>%
-  filter(variable == "Sales|Transportation|Total") %>%
+  filter(variable == "Sales|Transportation|Light-Duty Vehicle") %>%
   select(region, iso, year, scenario, value) %>%
   rename(total_sales = value)
 
@@ -1166,8 +1197,8 @@ sales_data_merged <- na.omit(sales_data_merged)
 sales_data_merged <- sales_data_merged %>%
   mutate(value = (bev_sales / total_sales) * 100) %>%
   select(region, iso, year, scenario, value) %>%
-  mutate(variable = "Sales Share|Transportation|Passenger|LDV|BEV",
-         unit = "Percent")
+  mutate(variable = "Sales Share|Transportation|Light-Duty Vehicle|Battery-Electric",
+         unit = "%")
 
 # View the results
 dat_iea_ev <- bind_rows(dat_iea_ev, sales_data_merged)
@@ -1182,11 +1213,115 @@ dat_iea_ev <- bind_rows(dat_iea_ev, iea_ev_share)
 dat_iea_ev <- dat_iea_ev %>%
   select(-(region)) %>%
   mutate(model = "IEA_GEVO") %>%
-  mutate(scenario = case_when(
-    scenario == "Historical" ~ "historical",
-    .default = scenario
-  )) %>%
+  mutate(scenario = case_when(scenario == "Historical" ~ "historical",
+                              .default = scenario),
+         unit = case_when(unit == "Percent" ~ '%',
+                          unit == "percent" ~ '%',
+                          .default = unit)) %>%
   select(iso, variable, unit, year, value, model, scenario)
+
+###### Robbie  -------------------------------------
+
+dat_rb <- robbie_ev |>
+  mutate(model = "Robbie",
+         scenario = "historical",
+         iso = countrycode(Country, 'country.name', 'iso3c')) |>
+  rename(value = Value)
+  
+# Transform into yearly sales data
+
+dat_rb <- dat_rb |>
+  separate_wider_position(YYYYMM, c(year = 4, month = 2))
+  
+# Check that there is full monthly coverage for each year  
+
+check <- dat_rb |>
+  count(Country, year, Fuel)
+
+missing_months <- filter(check, n != 12)
+
+# Average both UK regions, as they are similar and shouldn't be double-counted:
+dat_rb <- dat_rb |>
+  group_by(year, month, Fuel, iso) |>
+  mutate(value = mean(value)) |>
+  ungroup() |>
+  select(-Country) |>
+  unique() |>
+  filter(!is.na(value))
+
+dat_rb <- dat_rb |>
+  group_by(iso, year, variable, Fuel, unit, model, scenario) |>
+  summarise(value = sum(value, na.rm = T)) |>
+  ungroup()
+
+# # Check to make sure that everything but "Other" is included below:
+# unique(dat_robbie$Fuel)[!(unique(dat_robbie$Fuel) %in% c("BatteryElectric", "Hydrogen", "InternalCombustion", "ICE", "Diesel", "LPG", "NonPluginHybrid", "Non_PluginHybrid", "Hybrid", "Petrol", "Ethanol_Petrol", "PetrolBlend", "Ethanol", "PluginHybrid"))]
+
+# Standardize variable names
+dat_rb <- dat_rb |>
+  mutate(variable = "Sales|Transportation|Light-Duty Vehicle") |>
+  mutate(variable = case_when(Fuel == "BatteryElectric" ~ paste0(variable, "|Battery-Electric"),
+                              Fuel == "Hydrogen" ~ paste0(variable, "|Fuel-Cell-Electric"),
+                              Fuel %in% c("InternalCombustion", "ICE", "Diesel", "LPG", "NonPluginHybrid", "Non_PluginHybrid", "Hybrid", "Petrol", "Ethanol_Petrol", "PetrolBlend", "Ethanol") ~ paste0(variable, "|Internal Combustion"),
+                              Fuel == "PluginHybrid" ~ paste0(variable, "|Plug-in Hybrid"),
+                              .default = paste0(variable, "|Other")))  |>
+  select(-Fuel)
+
+# Combine with the total sales
+dat_robbie_sales <- dat_rb |>
+  bind_rows(dat_rb |>
+              mutate(variable = "Sales|Transportation|Light-Duty Vehicle")) |>
+  group_by(across(c(-value))) |>
+  summarise(value = sum(value, na.rm = T))
+
+# Combine BEV sales with half of PHEV sales for estimate of "full electric" sales
+dat_robbie_sales <- dat_robbie_sales |>
+  bind_rows(dat_rb |>
+              filter(grepl("Battery-Electric", variable) | grepl("Plug-in Hybrid", variable)) |>
+              mutate(value = ifelse(grepl("Plug-in Hybrid", variable), value / 2, value)) |>
+              mutate(variable = "Sales|Transportation|Light-Duty Vehicle|BEV + 1/2*PHEV")) |>
+  group_by(across(c(-value))) |>
+  summarise(value = sum(value, na.rm = T))
+
+
+# Sales Share
+dat_robbie_sales_share <- dat_robbie_sales |>
+  group_by(across(c(-variable, -value))) |>
+  mutate(value = 100 * value / value[variable == "Sales|Transportation|Light-Duty Vehicle"]) |>
+  ungroup() |>
+  filter(variable != "Sales|Transportation|Light-Duty Vehicle") |>
+  mutate(variable = gsub("Sales", "Sales Share", variable),
+         unit = "%")
+
+
+# Stocks for EVs only (assuming negligible retirement up to today)
+dat_robbie_stocks_ev <- dat_robbie_sales |>
+  filter(grepl("Electric", variable) | grepl("EV", variable) |grepl("Plug", variable)) |>
+  group_by(across(c(-year, -value))) |>
+  arrange(year) |>
+  # Yearly sales summed cumulatively
+  mutate(stocks = cumsum(value)) |>
+  ungroup() |>
+  mutate(variable = gsub("Sales", "Stocks", variable)) |>
+  select(-value) |>
+  rename(value = stocks)
+
+dat_robbie <- bind_rows(dat_robbie_sales, dat_robbie_sales_share, dat_robbie_stocks_ev) |>
+  mutate(year = as.numeric(year))
+
+
+###### OECD trn -------------------------------------
+
+dat_oecd <- OECD %>%
+  select(c("REF_AREA", "Reference.area", "Measure", "Unit.of.measure", "Transport.mode", "TIME_PERIOD", "OBS_VALUE", "Observation.status", "Unit.multiplier")) %>%
+  rename("iso" = "REF_AREA", "region" = "Reference.area", "measure" = "Measure", "unit" = "Unit.of.measure", "transport mode" = "Transport.mode", "year" = "TIME_PERIOD", "value" = "OBS_VALUE", "Observation status" = "Observation.status", "unit multiplier" = "Unit.multiplier") %>%
+  filter(!is.na(value)) %>%
+  mutate(variable = paste(measure, `transport mode`, sep = "|")) %>%
+  mutate(unit = paste(`unit multiplier`, unit, sep = " ")) %>%
+  select(iso, variable, unit, year, value) %>%
+  mutate(model = "OECD", scenario = "historical") %>%
+  arrange(iso, variable, unit, year, value, model, scenario)
+
 
 ###### NASA  -------------------------------------
 
@@ -1215,7 +1350,7 @@ dat_crut <- crut %>%
 
 #### 2.b combine iso based data sets #####
 data_iso <- rbind(dat_ener,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
-              dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
+              dat_robbie, dat_oecd, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
 
 data_iso <- data_iso %>%
   filter(!is.na(iso),
@@ -1261,7 +1396,27 @@ if (model_regions == "gcam32"){
   
 }
 
-data_reg <- aggregate_regions(data_iso, reg_map)
+
+# Find single-country regions, if there are any:
+
+ctry_list <- tibble("country" = unique(data_iso$region), "single" = NA)
+
+for (ctry in ctry_list$country){
+  reg_name_match <- reg_map[reg_map$region == reg_map[reg_map$iso == ctry,]$region, ]
+  tst_single <- (nrow(reg_name_match) == 1)
+  ctry_list$single[ctry_list$country == ctry] = tst_single
+}
+
+single_ctry_reg <- unique(ctry_list[ctry_list$single == T,]$country)
+
+# Separate out intensive data that isn't from a single-country region,
+# since not suitable to summing aggregation
+
+data_reg <- data_iso |> 
+  filter(!(grepl("share|Share", variable) & !(region %in% single_ctry_reg))) |>
+  aggregate_regions(reg_map) 
+         
+
   
 #adjust global values for statistical review data with O-AFR
 
@@ -1272,11 +1427,11 @@ data_reg <- aggregate_regions(data_iso, reg_map)
 ##The mapping files are created using the documentation which can be found on the following link:
 ##-- https://data.ene.iiasa.ac.at/ar6/#/docs
 
-map_iea <- read.csv("mappings/map_IEAWEO23_iamc.csv")
+map_iea <- read.csv("mappings/map_IEAWEO24_iamc.csv")
 
 
 #historic data
-datieah <- iea23 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
+datieah <- iea24 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region))|>
@@ -1298,7 +1453,7 @@ datieah <- datieah |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 
 
 #scenario data
-datieas <- iea23 |> filter(year>2021) |>
+datieas <- iea24 |> filter(year>2021) |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region
@@ -1306,7 +1461,7 @@ datieas <- iea23 |> filter(year>2021) |>
   filter(region %in% c(unique(reg_map$region), 
                        "Europe", "European Union", # Remove these regions if preferred
                        "World")) |>
-  mutate(model="IEA WEO 2023")|>
+  mutate(model="IEA WEO 2024")|>
   filter(!is.na(var))
 
 # bring to GCAM region mapping and IAMC format
@@ -1343,13 +1498,16 @@ datieas <- datieas |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 # write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 
 
-### ISO with World (with all IEA scenarios):
+##### with ISO and World: -----
+# (and with all IEA scenarios)
 
 write_this <- rbind(data_iso, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
-  select(-c("2024")) |> #no data in this column
+  mutate(across(where(is.list), ~ ifelse(lengths(.) == 0, NA, unlist(.)))) |>  # Remove NULL lists
+  mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
+  # select(-c("2024")) |> #no data in this column
   unique() |>
   ungroup()
 
@@ -1374,13 +1532,15 @@ write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 #           row.names = F,quote = F)
 
 
-### Aggregate regions and World (with all IEA scenarios):
+##### with aggregate regions and World: -----
+# (and with all IEA scenarios)
 
 write_this <- rbind(data_reg, datieah, datieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
-  select(-c("2024")) |> #no data in this column
+  mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
+  # select(-c("2024")) |> #no data in this column
   unique() |>
   ungroup()
 
@@ -1397,6 +1557,6 @@ if(save_option == T){
   save(prim,ceds,eemi,eemi_eu,file = "output/emissions.Rds")
   save(ember,emberm,ecap,egeny,egenm,ener,iea_ev, file = "output/energy.Rds")
 }
-rm(ecap,eemi,egeny,egenm,prim,ceds,ener,iea_ev)
+rm(ecap,eemi,egeny,egenm,prim,ceds,ener,iea_ev, iea_ev_intermed)
 
 

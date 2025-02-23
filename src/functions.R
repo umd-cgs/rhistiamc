@@ -6,6 +6,9 @@
 
 
 # convert to aggregated regions -------
+# NOTE: It only applies to extensive variables which can be summed (eg. emissions,
+# and) intensive values like per-capita ones which should have a weighted 
+# average or similar when aggregating 
 
 aggregate_regions <- function(data, region_map){
   
@@ -386,6 +389,7 @@ standard_tech_group <- function(data, technology) {
 
 ## color by tech
 tech.color <- c( "Biomass w/o CCS" = "#88CEB9", "Biomass w/ CCS" = "white",
+                 "Biomass" = "#88CEB9",
                  "Solar" = "#FEE12B",
                  "Wind" = "#6BCAF1",
                  "Geothermal" = "#335f7a",
@@ -449,6 +453,8 @@ pe_fuel.list <- c(  "Other", "Geothermal", "Solar", "Wind",
                     "Hydro", "Nuclear", "Gas", "Oil", "Coal") 
 
 pe_fuel.color <- c("Biomass Modern" = "#88CEB9", 
+                   "Bio and Geo" = "#88CEB9", 
+                   "Biomass" = "#88CEB9", 
                    "Biomass Traditional" = "#AA9ECC",  ##added
                  "Solar" = "#FEE12B",
                  "Wind" = "#6BCAF1",

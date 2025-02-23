@@ -1,6 +1,7 @@
 ##### Load Libraries and constants -----
 library(tidyverse)
 library(ggplot2)
+
 library(countrycode)
 library(rnaturalearth)
 library(rnaturalearthdata)
@@ -15,7 +16,9 @@ start_yr <- 1975
 #you need to download the file historical_iso.csv from https://drive.google.com/open?id=117cTkVRekeu3vHYrFkH93zstpCqGxkM8&usp=drive_fs
 #and save it in the 'output' folder, so that the following line works out
 data_hist_full <- read.csv(paste0("output/historical_iso.csv"), na.strings = "NA")
+
 unique(data_hist_full$variable)
+
 #clean up year values in columns
 colnames(data_hist_full) <- gsub("^X", "", colnames(data_hist_full))
 #make it into default 'long' dataframe format
@@ -146,6 +149,7 @@ plot$variable = factor(x = plot$variable,levels=rev(c("Bio and Geo",
   data_hist_full|>filter(region=="World",year==2023,model=="EMBER",variable %in% grep("Secondary Energy\\|Electricity",unique(data_hist_full$variable),value=T)) |>
     filter(!variable %in% c("Secondary Energy|Electricity",grep("Share",unique(data_hist_full$variable),value=T))) |> 
     mutate(value=100*value/106.1)
+
   
   
   
@@ -192,4 +196,5 @@ plot$variable = factor(x = plot$variable,levels=rev(c("Bio and Geo",
          labs(title = paste0("Per-Capita ", selected_variable, " by Country (", selected_year, ")"),
                      caption = "Data Source: IAMC Historical Data") +
      theme(legend.position = "right")
+
   
