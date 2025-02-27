@@ -10,15 +10,27 @@
 # add more emissions detail? SO2, subsectors? (from CEDS, PRIMAP-hist)
 # add 2023 estimates for capacity additions from BNEF, etc.
 # add forecast projections for solar capacity additions from BNEF
+# R.version.string
 
+# install.packages("languageserver")
+# install.packages("jsonlite", type = "source")
 
+# 
+# writeLines('PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"', con = "~/.Renviron")
+
+# install.packages("quitte", repos = c("https://pik-piam.r-universe.dev", "https://cloud.r-project.org"))
+sessionInfo()
+# .libPaths()
+# install.packages(c("pacman"))
 ### Load Libraries and constants -----
-library(tidyverse)
-library(dplyr)
-library(readxl)
+library(pacman)
+p_load(tidyverse,dplyr,readxl,readxl,countrycode,remotes,stringr)
+
+
+
 library(quitte) # Download from https://pik-piam.r-universe.dev/quitte#
-library(readxl)
-library(countrycode)
+
+
 
 #source functions and constants
 source("src/functions.R")
@@ -443,7 +455,7 @@ robbie_ev <- read.csv("data/all_carsales_monthly.csv") |>
          Value = Value * 10^(-6),
          unit = "million")
 
-###### trn: tkt (ton-kilometer traveled) and pkt (passenger-kilometer traveled) - OECD --------------------------------------------------
+###### trn: tkt OECD (ton-kilometer traveled) and pkt (passenger-kilometer traveled) - OECD --------------------------------------------------
 #https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSFREIGHT&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false
 #https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSPASS&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false
 # Click on the "Download" button
@@ -1311,15 +1323,17 @@ dat_robbie <- bind_rows(dat_robbie_sales, dat_robbie_sales_share, dat_robbie_sto
 ###### OECD trn -------------------------------------
 
 dat_oecd <- OECD %>%
-  select(c("REF_AREA", "Reference.area", "Measure", "Unit.of.measure", "Transport.mode", "TIME_PERIOD", "OBS_VALUE", "Observation.status", "Unit.multiplier")) %>%
-  rename("iso" = "REF_AREA", "region" = "Reference.area", "measure" = "Measure", "unit" = "Unit.of.measure", "transport mode" = "Transport.mode", "year" = "TIME_PERIOD", "value" = "OBS_VALUE", "Observation status" = "Observation.status", "unit multiplier" = "Unit.multiplier") %>%
+  select(c("REF_AREA", "Reference.area", "Measure", "Unit.of.measure", "Transport.mode", "TIME_PERIOD", "OBS_VALUE", "Observation.status", "Unit.multiplier","Vehicle.type","MEASURE")) %>%
+  rename("iso" = "REF_AREA", "region" = "Reference.area", "measure" = "Measure","MEASURE"="MEASURE", "unit" = "Unit.of.measure", "transport mode" = "Transport.mode", "year" = "TIME_PERIOD", "value" = "OBS_VALUE", "Observation status" = "Observation.status", "unit multiplier" = "Unit.multiplier","Vehicle type"="Vehicle.type") %>%
   filter(!is.na(value)) %>%
-  mutate(variable = paste(measure, `transport mode`, sep = "|")) %>%
+  mutate(MEASURE = str_to_sentence(tolower(MEASURE)),
+         variable = paste("Energy Service|Transportation", MEASURE, `transport mode`,`Vehicle type`, sep = "|")) %>%
   mutate(unit = paste(`unit multiplier`, unit, sep = " ")) %>%
   select(iso, variable, unit, year, value) %>%
   mutate(model = "OECD", scenario = "historical") %>%
   arrange(iso, variable, unit, year, value, model, scenario)
 
+write.csv(dat_oecd, "output/dat_oecd.csv",row.names = FALSE)
 
 ###### NASA  -------------------------------------
 
@@ -1349,6 +1363,8 @@ dat_crut <- crut %>%
 #### 2.b combine iso based data sets #####
 data_iso <- rbind(dat_ener,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
               dat_robbie, dat_oecd, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
+
+data_iso <- rbind(dat_oecd)
 
 data_iso <- data_iso %>%
   filter(!is.na(iso),
@@ -1500,6 +1516,17 @@ datieas <- datieas |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 # (and with all IEA scenarios)
 
 write_this <- rbind(data_iso, datieah, datieas, data_World) |>
+  group_by(model, scenario, region, variable, value, unit) |>
+  arrange(year) |>
+  pivot_wider(names_from = year, values_from = value) |>
+  mutate(across(where(is.list), ~ ifelse(lengths(.) == 0, NA, unlist(.)))) |>  # Remove NULL lists
+  mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
+  # select(-c("2024")) |> #no data in this column
+  unique() |>
+  ungroup()
+
+# when you only have data_iso: 
+write_this <- rbind(data_iso, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
