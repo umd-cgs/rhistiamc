@@ -1,9 +1,9 @@
 #this package is needed for the following command to install package from github,
 #lines 3 and 6 only need to be executed the first time you use this script, or in case you need to update the gcamreport package
-library(devtools)
+# library(devtools)
 #install from github, but use different branch "dev_commdef" that includes some bugfixes for GCAM 7.1 not yet in gcam-core
 #you will be asked about updating other packages, which you probably can skip (just hit 'enter' without entering any number)
-install_github('bc3LC/gcamreport', ref = "dev_commdef")
+# install_github('bc3LC/gcamreport', ref = "dev_commdef")
 
 # load libraries needed for analysis (this has to be done every time)
 library(gcamreport) #convert the gcam database into R readible format
@@ -22,7 +22,7 @@ available_variables()
 ##### 1. create reports for both databases --------
 generate_report(db_path = "C:/Users/bertram/Documents/Projects/gcam7p1/output/", 
                 #this needs to point to correct database name, the prj_name can be defined by you (saving data for later use)
-                db_name = "database_basexdb", prj_name = "4scen_project_250225.dat", 
+                db_name = "database_basexdb", prj_name = "4scen_project_250226.dat", 
                 #you can define which scenarios you want to extract, and whether to cut the time series before 2100
                 GCAM_version = "v7.1", scenarios = c("Reference","Tax25","TaxDiff","Cap_CO2"), final_year = 2050,
                 # you can outcomment the following line, to create the full reporting, or define a subset, e.g. "Agricultural *" will give you all variables starting with 'Agricultural'
@@ -32,7 +32,7 @@ generate_report(db_path = "C:/Users/bertram/Documents/Projects/gcam7p1/output/",
 #
 generate_report(db_path = "C:/Users/bertram/Documents/Projects/gcam7p1/output/", 
                 #this needs to point to correct database name, the prj_name can be defined by you (saving data for later use)
-                db_name = "database_basexdb3", prj_name = "4scen_project_250225_3.dat", 
+                db_name = "database_basexdb3", prj_name = "4scen_project_250226_3.dat", 
                 #you can define which scenarios you want to extract, and whether to cut the time series before 2100
                 GCAM_version = "v7.1", scenarios = c("Cap_CO2_advS","Cap_CO2_advRen","Ref_PakCon","Cap_CO2_uct","Cap_CO2_ffict","Cap_CO2_uct_in"), final_year = 2050,
                 # you can outcomment the following line, to create the full reporting, or define a subset, e.g. "Agricultural *" will give you all variables starting with 'Agricultural'
@@ -96,8 +96,13 @@ source("src/fig_elec_generation_mix.R")
 
 
 #select variable, scenarios and region to plot
-var <- "Secondary Energy|Electricity|Biomass|w/ CCS" 
+var <- "Emissions|CO2" 
+var <- "Emissions|CO2|Energy|Supply|Electricity"
+var <- "Emissions|CO2|Energy and Industrial Processes" 
 regions_selected <- "China"
+regions_selected <- "USA"
+regions_selected <- "World"
+
 
 #do line plot with selected variable and region, for specified variable
 ggplot()+
@@ -108,9 +113,10 @@ ggplot()+
   #plot scenario data in colors, can be defined below
   geom_line(data=data_scen_full|>filter(variable==var,region==regions_selected,scenario %in% scenarios_selected),
             aes(x=year,y=value,color=scenario))+
+  geom_point(aes(x=2021,y=0.01),color="white")+
   #costumized colors if desired, else comment out
   scale_color_manual(values=c("red","blue","#009900"))+
   #nice general plot layout
   theme_bw()+
   #y-axis label and title
-  ylab("EJ/yr") + ggtitle(paste0(var," in ",regions_selected))
+  ylab("Mt CO2/yr") + ggtitle(paste0(var," in ",regions_selected))
