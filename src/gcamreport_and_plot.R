@@ -96,6 +96,7 @@ source("src/fig_elec_generation_mix.R")
 
 
 #select variable, scenarios and region to plot
+var <- "Emissions|CH4" 
 var <- "Emissions|CO2" 
 var <- "Emissions|CO2|Energy|Supply|Electricity"
 var <- "Emissions|CO2|Energy and Industrial Processes" 
@@ -108,7 +109,7 @@ regions_selected <- "World"
 ggplot()+
   #plot historic data in black (default if color is not set), 
   #with different historic sources ('model' variable) differentiated by linetype
-  geom_line(data=data_hist|>filter(variable==var,region==regions_selected,scenario=="historical"),
+  geom_line(data=data_hist|>filter(variable==var,region==regions_selected,scenario=="historical",model!="OWID"),
             aes(x=year,y=value,linetype=model))+
   #plot scenario data in colors, can be defined below
   geom_line(data=data_scen_full|>filter(variable==var,region==regions_selected,scenario %in% scenarios_selected),
@@ -120,3 +121,39 @@ ggplot()+
   theme_bw()+
   #y-axis label and title
   ylab("Mt CO2/yr") + ggtitle(paste0(var," in ",regions_selected))
+
+#plot using ModelInterface output
+#read in data
+sec_emi <- read.csv("runs/emi_bysector_2scen.csv",skip=1) 
+sec_emi <- sec_emi|> mutate(sector=paste0(sector,sector2,sector3)) |>
+  select(-sector2,-sector3) |> pivot_longer(cols = c(-scenario,-region,-sector,-Units),names_to = "year") |> 
+  mutate(year=as.numeric(substr(year,2,5)))
+
+# clean up residential and commercial data: aggregate deciles
+sec_emi <- sec_emi |>filter(!sector %in% grep("_d",unique(sec_emi$sector),value=T)) |> 
+  rbind(
+  #add cooling
+  sec_emi |> filter(sector %in% grep("residcooling",unique(sec_emi$sector),value=T)) |>
+    group_by(scenario,region,year,Units) |> summarize(value=sum(value)) |> ungroup() |>
+    mutate(sector="residcoolingmodern")) |>
+  rbind(
+  #add heating
+    sec_emi |> filter(sector %in% grep("residheating",unique(sec_emi$sector),value=T)) |>
+      group_by(scenario,region,year,Units) |> summarize(value=sum(value)) |> ungroup() |>
+      mutate(sector="residheatingmodern")) |>
+  rbind(
+    #add others
+    sec_emi |> filter(sector %in% grep("residothers",unique(sec_emi$sector),value=T)) |>
+      group_by(scenario,region,year,Units) |> summarize(value=sum(value)) |> ungroup() |>
+      mutate(sector="residothersmodern"))
+
+# shorten scenario name
+sec_emi$scenario <- unlist(strsplit(sec_emi$scenario,split = ","))[seq(1,dim(sec_emi)[[1]]*2-1,2)]
+
+#plot
+
+ggplot()+
+  geom_line(data=sec_emi,aes(x=year,y=value,color=sector),stat = "identity")+
+  facet_grid(scenario~region)+theme_bw()
+
+
