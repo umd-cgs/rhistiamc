@@ -22,22 +22,26 @@ available_variables()
 ##### 1. create reports for both databases --------
 generate_report(db_path = "C:/Users/bertram/Documents/Projects/gcam7p1/output/", 
                 #this needs to point to correct database name, the prj_name can be defined by you (saving data for later use)
-                db_name = "database_basexdb", prj_name = "4scen_project_250226.dat", 
+                db_name = "database_basexdb", prj_name = "4scen_project_250311.dat", 
                 #you can define which scenarios you want to extract, and whether to cut the time series before 2100
                 GCAM_version = "v7.1", scenarios = c("Reference","Tax25","TaxDiff","Cap_CO2"), final_year = 2050,
                 # you can outcomment the following line, to create the full reporting, or define a subset, e.g. "Agricultural *" will give you all variables starting with 'Agricultural'
                 desired_variables =c("Emissions*","Secondary*","Primary*","Final*"),
+                # to speed up processing, select only a subset of regions.
+                desired_regions = c("USA","India"),
+                #if your add-on files include new market names, you have to tell gcamreport to ignore those
                 # ignore = c("Coal-Generation-Ceiling","Solar-Generation-Floor","Wind-Generation-Floor"),
                 launch_ui = FALSE)
 #
 generate_report(db_path = "C:/Users/bertram/Documents/Projects/gcam7p1/output/", 
                 #this needs to point to correct database name, the prj_name can be defined by you (saving data for later use)
-                db_name = "database_basexdb3", prj_name = "4scen_project_250226_3.dat", 
+                db_name = "database_basexdb3", prj_name = "4scen_project_250311_3.dat", 
                 #you can define which scenarios you want to extract, and whether to cut the time series before 2100
                 GCAM_version = "v7.1", scenarios = c("Cap_CO2_advS","Cap_CO2_advRen","Ref_PakCon","Cap_CO2_uct","Cap_CO2_ffict","Cap_CO2_uct_in"), final_year = 2050,
                 # you can outcomment the following line, to create the full reporting, or define a subset, e.g. "Agricultural *" will give you all variables starting with 'Agricultural'
                 desired_variables =c("Emissions*","Secondary*","Primary*","Final*"),
-                # ignore = c("Coal-Generation-Ceiling","Solar-Generation-Floor","Wind-Generation-Floor"),
+                #if your add-on files include new market names, you have to tell gcamreport to ignore those
+                ignore = c("Coal-Generation-Ceiling","Solar-Generation-Floor","Wind-Generation-Floor"),
                 launch_ui = FALSE)
 
 
@@ -122,8 +126,10 @@ ggplot()+
   #y-axis label and title
   ylab("Mt CO2/yr") + ggtitle(paste0(var," in ",regions_selected))
 
-#plot using ModelInterface output
-#read in data
+#### Option B: R plots for data extracted manually from modelinterface -----------
+
+#plot using ModelInterface output - with example of aggregation across dimension
+#read in data that you saved in a csv file via excel (pulling the data from ModelInterface queries)
 sec_emi <- read.csv("runs/emi_bysector_2scen.csv",skip=1) 
 sec_emi <- sec_emi|> mutate(sector=paste0(sector,sector2,sector3)) |>
   select(-sector2,-sector3) |> pivot_longer(cols = c(-scenario,-region,-sector,-Units),names_to = "year") |> 
