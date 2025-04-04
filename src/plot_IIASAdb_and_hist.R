@@ -1,4 +1,12 @@
-#Script to explore data in publicly accessible IIASA scenario databases, and do plots together with historical data
+#Script to explore data in publicly accessible IIASA scenario databases via API, and do plots together with historical data
+
+# documentation on how to set up using this link between R, python, and the IIASA API is here:
+# https://pyam-iamc.readthedocs.io/en/stable/R_tutorials/pyam_R_tutorial.html
+
+# more detailed documentation on how to use the API in general is here, 
+# though this documentation is for python, so most commands are replacing the "." with a "$" in R:
+# https://pyam-iamc.readthedocs.io/en/stable/tutorials/iiasa.html
+
 
 
 library(conflicted)
@@ -31,74 +39,59 @@ pyam <- import("pyam")
 iiasa_creds <- 'C:/Users/bertram/Documents/iiasa_credentials.yml' # two lines with 'username: name' and 'password: pwd'
 
 conn <- pyam$iiasa$Connection(creds = iiasa_creds)
-print(conn$valid_connections)
+#see which database names exist (some of which you however might not have access to with your account)
+conn$valid_connections
+
 ##### 1. explore database content ------
-##### AR6 ------
+###### AR6 ------
 
-#read in all data for Emissions|CO2
-df = pyam$read_iiasa(
+#make connection to desired database
+conn = pyam$iiasa$Connection("ar6-public")
+#see which models exist
+conn$models()
+#see which scenarios exist
+conn$scenarios()
+#see subset of scenarios with specific name component
+grep("SusDev",conn$scenarios(),value=T)
+#see variables
+conn$variables()
+#see subset of variables with specific name component
+grep("Livestock",conn$variables(),value=T)
+#see regions
+conn$regions()
+#see subset of regions with specific name component
+grep("America",conn$regions(),value=T)
+#pretty bad that the database has included the "(R6)" in all region names of that disaggregation,
+#but "(R5)" and "(R10)" only for the "Rest of the World" region, so using those regions is not straightforward...
+#some indication (though some names are still different) here: https://github.com/IAMconsortium/common-definitions/blob/main/mappings/GCAM_7.1.yaml
+grep("R",conn$regions(),value=T)
+
+# for more detailed exploration, e.g. knowing all variables existing for GCAM scenarios in any version (wildcard *):
+# takes longer the more data you query, thus try to always subset at least two dimensions across region, scenario, model, variable...
+unique(pyam$read_iiasa(
   name = 'ar6-public',
-  variable=c(
-    'Emissions|CO2'
-  ),
-  # region=c('World'),
-  # model=c('GCAM 5.3'),
+  region=c('World'),
+  model=c('GCAM*'),
   creds = iiasa_creds
-)
-df <- df$data
-#look at full set of models available
-unique(df$model)
-#look at full set of scenarios available (most will be only available for one or a handful of models)x
-unique(df$scenario)
-#look at full set of regions available: World, R5, R6, R10, and 66 single countries, but not native model regions
-unique(df$region)
+)$data$variable)
 
-#read in all global data
-df = pyam$read_iiasa(
-  name = 'ar6-public',
-  region=c(
-    'World'
-  ),
-  creds = iiasa_creds
-)
-df <- df$data
-#look at full set of regions available: World, R5, R6, R10, and 66 single countries, but not native model regions
-vars_ar6 <- unique(df$variable)
 
-##### NGFS ------
+###### NGFS ------
 
-#read in all data for Emissions|CO2
-df = pyam$read_iiasa(
-  name = 'ngfs_phase_5',
-  variable=c(
-    'Emissions|CO2'
-  ),
-  # region=c('World'),
-  # model=c('GCAM 5.3'),
-  creds = iiasa_creds
-)
-df <- df$data
-#look at full set of models available
-unique(df$model)
-#look at full set of scenarios available (most will be only available for one or a handful of models)x
-unique(df$scenario)
-#look at full set of regions available: World, R5, R6, R10, and 66 single countries, but not native model regions
-unique(df$region)
-
-#read in all global and one country data
-df = pyam$read_iiasa(
-  name = 'ngfs_phase_5',
-  region=c(
-    'CZE',
-    'World'
-  ),
-  creds = iiasa_creds
-)
-df <- df$data
-#look at full set of variables available
-vars_ngfs <- unique(df[df$region=="World",]$variable)
-vars_ngfs_dc <- unique(df[df$region=="CZE",]$variable)
-
+#make connection to desired database
+conn = pyam$iiasa$Connection("ngfs_phase_5")
+#see which models exist
+conn$models()
+#see which scenarios exist
+conn$scenarios()
+#see variables
+conn$variables()
+#see subset of variables with specific name component
+grep("Carbon",conn$variables(),value=T)
+#see regions
+conn$regions()
+#see subset of regions with specific name component
+grep("GCAM",conn$regions(),value=T)
 
 ##### 2.1 Load scenario data to plot -----
 # select variables to download
@@ -134,9 +127,7 @@ data_scen_full <- data_scen_full |> mutate(region = case_when(
 
 ##### 2.2 Historical data -----
 
-# IF it's desired to use the provided historical data in the IAMC format, rather 
-# than re-create it using src/process_hist_data.R, then download the files from:
-# PUBLIC_output_rhistiamc:
+# Load historical data, after downloading the csv files (either gcam32, or ISO) from
 # https://drive.google.com/open?id=117cTkVRekeu3vHYrFkH93zstpCqGxkM8&usp=drive_fs
 # into your local output/ folder
 
