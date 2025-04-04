@@ -248,7 +248,7 @@ vars <- data.frame(
   ##### Electricity generation mix -------
   # NOTE: These figures can only accommodate up to three scenarios at once, so 
   # it disregards the later ones if more than three supplied 
-
+  endyear <- 2035
   source("src/fig_elec_generation_mix.R")
   
 
