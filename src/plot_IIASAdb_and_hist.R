@@ -17,6 +17,9 @@ library(arrow)
 library(tidyverse)
 library(reticulate)
 
+#source functions and constants
+source("src/functions.R")
+
 # Change to the location of your local anaconda / miniconda installation, which includes python 
 # (necessary in case you have multiple python instances on your system, else you can keep this outcommented)
 # use_python(python = "C:/Users/andym/miniconda3/python.exe")
