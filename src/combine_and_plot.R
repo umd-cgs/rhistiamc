@@ -2,7 +2,7 @@
 library(tidyverse)
 library(dplyr)
 library(readxl)
-library(quitte) # Download from https://pik-piam.r-universe.dev/quitte#
+#library(quitte) # Download from https://pik-piam.r-universe.dev/quitte#
 library(readxl)
 library(countrycode)
 library(openxlsx)
@@ -248,7 +248,7 @@ vars <- data.frame(
   ##### Electricity generation mix -------
   # NOTE: These figures can only accommodate up to three scenarios at once, so 
   # it disregards the later ones if more than three supplied 
-
+  
   source("src/fig_elec_generation_mix.R")
   
 

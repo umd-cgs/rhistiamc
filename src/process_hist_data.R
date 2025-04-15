@@ -41,9 +41,9 @@ starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time se
 
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
-model_regions <- "gcam32"   # Using GCAM core regions
+# model_regions <- "gcam32"   # Using GCAM core regions
 # model_regions <- "r10"
-# model_regions <- "r5"
+model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
 save_option <- T 
@@ -432,6 +432,7 @@ iea24 <- rbind(iea24, ## add all available data on Net Zero scenarios, plus addi
 
 ###### energy: OWID ---------
 # https://github.com/owid/energy-data?tab=readme-ov-file
+# In ReadMe: Download our complete Energy dataset : CSV
 owid_energy_data <- read_csv("data/owid-energy-data.csv")
 
 # Pivot the CO2 dataset
@@ -455,10 +456,11 @@ robbie_ev <- read.csv("data/all_carsales_monthly.csv") |>
          Value = Value * 10^(-6),
          unit = "million")
 
-###### trn: tkt OECD (ton-kilometer traveled) and pkt (passenger-kilometer traveled) - OECD --------------------------------------------------
-#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSFREIGHT&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false
-#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSPASS&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false
-# Click on the "Download" button
+###### trn: service - OECD --------------------------------------------------
+# tkt (ton-kilometer traveled) and pkt (passenger-kilometer traveled)
+#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSFREIGHT&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&to[TIME_PERIOD]=false&pd=%2C
+#https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSPASS&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&to[TIME_PERIOD]=false&pd=%2C
+# Click on the "Download" button > "Unfiltered data in tabular dataset (CSV)
 OECD_f <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSFREIGHT,1.0+all.csv")
 OECD_p <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSPASS,1.0+all.csv")
 OECD <- bind_rows(OECD_f, OECD_p)

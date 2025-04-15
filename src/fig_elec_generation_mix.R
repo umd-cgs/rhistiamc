@@ -38,7 +38,7 @@ for (mod in models_selected) {
         mutate(value = ej2twh*value )
       
       reg_data_scen <- data_scen|>filter(variable %in% vars_elec,
-                                         year %in% c(2030,2035),
+                                         year %in% seq(2030,endyear,5),
                                          model == mod,
                                          region==reg,
                                          scenario %in% c(scenarios_selected[1],
@@ -116,7 +116,7 @@ for (mod in models_selected) {
                  aes(x=year,y=value,fill=Fuel),alpha=0.7) +
         geom_text(data=reg_data|>filter(year < 2032, scenario!="historical")|>group_by(year,scenario)|>summarize(value=sum(value)),
                   aes(x=2030+(year-2030)*2,y=value,label=scenario),angle=90,hjust="right") +
-        scale_x_continuous(breaks = c(seq(2000,2030,10),2035),minor_breaks=seq(2005,2015,10))
+        scale_x_continuous(breaks = c(seq(2000,2030,10),seq(2035,endyear,5)),minor_breaks=seq(2005,2015,10))
       
       reg_data |> filter(year %in% c(2023,2030)) |> group_by(year) |>
         summarize(value=sum(value))
