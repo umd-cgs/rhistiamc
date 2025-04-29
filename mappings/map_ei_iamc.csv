@@ -10,7 +10,7 @@ biofuels_cons_pj,,,
 biofuels_prod_kbd,,,
 biofuels_prod_kboed,,,
 biofuels_prod_pj,,,
-biogeo_ej,,,
+biogeo_ej,Primary Energy|Bio and Geo (input-equivalent),EJ,1
 biogeo_twh,,,
 biogeo_twh_net,,,
 co2_combust_mtco2,Emissions|CO2|Energy,Mt CO2,1
@@ -44,7 +44,7 @@ gasoline_cons_kbd,,,
 gasprod_bcfd,,,
 gasprod_bcm,,,
 gasprod_ej,Production|Gas,EJ,1
-hydro_ej,,,
+hydro_ej,Primary Energy|Hydro (input-equivalent),EJ,1
 hydro_twh,,,
 hydro_twh_net,,,
 kerosene_cons_kbd,,,
@@ -56,7 +56,7 @@ lpg_cons_kbd,,,
 methane_process_mtco2,,,
 middle_dist_cons_kbd,,,
 naphtha_cons_kbd,,,
-nuclear_ej,,,
+nuclear_ej,Primary Energy|Nuclear (input-equivalent),EJ,1
 nuclear_twh,,,
 nuclear_twh_net,,,
 oilcons_ej,Primary Energy|Oil,EJ,1
@@ -80,9 +80,9 @@ ren_power_ej,,,
 ren_power_twh,,,
 ren_power_twh_net,,,
 renewables_ej,,,
-solar_ej,,,
+solar_ej,Primary Energy|Solar (input-equivalent),EJ,1
 solar_twh,Secondary Energy|Electricity|Solar,EJ,0.0036
 solar_twh_net,,,
-wind_ej,,,
+wind_ej,Primary Energy|Wind (input-equivalent),EJ,1
 wind_twh,Secondary Energy|Electricity|Wind,EJ,0.0036
 wind_twh_net,,,
