@@ -10,15 +10,27 @@
 # add more emissions detail? SO2, subsectors? (from CEDS, PRIMAP-hist)
 # add 2023 estimates for capacity additions from BNEF, etc.
 # add forecast projections for solar capacity additions from BNEF
+# R.version.string
 
+# install.packages("languageserver")
+# install.packages("jsonlite", type = "source")
 
+# 
+# writeLines('PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"', con = "~/.Renviron")
+
+# install.packages("quitte", repos = c("https://pik-piam.r-universe.dev", "https://cloud.r-project.org"))
+sessionInfo()
+# .libPaths()
+# install.packages(c("pacman"))
 ### Load Libraries and constants -----
-library(tidyverse)
-library(dplyr)
-library(readxl)
+library(pacman)
+p_load(tidyverse,dplyr,readxl,readxl,countrycode,remotes,stringr)
+
+
+
 library(quitte) # Download from https://pik-piam.r-universe.dev/quitte#
-library(readxl)
-library(countrycode)
+
+
 
 #source functions and constants
 source("src/functions.R")
@@ -1313,15 +1325,15 @@ dat_robbie <- bind_rows(dat_robbie_sales, dat_robbie_sales_share, dat_robbie_sto
 ###### OECD trn -------------------------------------
 
 dat_oecd <- OECD %>%
-  select(c("REF_AREA", "Reference.area", "Measure", "Unit.of.measure", "Transport.mode", "TIME_PERIOD", "OBS_VALUE", "Observation.status", "Unit.multiplier")) %>%
-  rename("iso" = "REF_AREA", "region" = "Reference.area", "measure" = "Measure", "unit" = "Unit.of.measure", "transport mode" = "Transport.mode", "year" = "TIME_PERIOD", "value" = "OBS_VALUE", "Observation status" = "Observation.status", "unit multiplier" = "Unit.multiplier") %>%
+  select(c("REF_AREA", "Reference.area", "Measure", "Unit.of.measure", "Transport.mode", "TIME_PERIOD", "OBS_VALUE", "Observation.status", "Unit.multiplier","Vehicle.type","MEASURE")) %>%
+  rename("iso" = "REF_AREA", "region" = "Reference.area", "measure" = "Measure","MEASURE"="MEASURE", "unit" = "Unit.of.measure", "transport mode" = "Transport.mode", "year" = "TIME_PERIOD", "value" = "OBS_VALUE", "Observation status" = "Observation.status", "unit multiplier" = "Unit.multiplier","Vehicle type"="Vehicle.type") %>%
   filter(!is.na(value)) %>%
-  mutate(variable = paste(measure, `transport mode`, sep = "|")) %>%
+  mutate(MEASURE = str_to_sentence(tolower(MEASURE)),
+         variable = paste("Energy Service|Transportation", MEASURE, `transport mode`,`Vehicle type`, sep = "|")) %>%
   mutate(unit = paste(`unit multiplier`, unit, sep = " ")) %>%
   select(iso, variable, unit, year, value) %>%
   mutate(model = "OECD", scenario = "historical") %>%
   arrange(iso, variable, unit, year, value, model, scenario)
-
 
 ###### NASA  -------------------------------------
 
@@ -1510,6 +1522,7 @@ write_this <- rbind(data_iso, datieah, datieas, data_World) |>
   # select(-c("2024")) |> #no data in this column
   unique() |>
   ungroup()
+
 
 #write out iso and World IAMC file
 write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
