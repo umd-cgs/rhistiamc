@@ -1335,8 +1335,6 @@ dat_oecd <- OECD %>%
   mutate(model = "OECD", scenario = "historical") %>%
   arrange(iso, variable, unit, year, value, model, scenario)
 
-write.csv(dat_oecd, "output/dat_oecd.csv",row.names = FALSE)
-
 ###### NASA  -------------------------------------
 
 dat_nasa <-nasa_temp %>%
@@ -1365,8 +1363,6 @@ dat_crut <- crut %>%
 #### 2.b combine iso based data sets #####
 data_iso <- rbind(dat_ener,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
               dat_robbie, dat_oecd, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
-
-data_iso <- rbind(dat_oecd)
 
 data_iso <- data_iso %>%
   filter(!is.na(iso),
@@ -1527,16 +1523,6 @@ write_this <- rbind(data_iso, datieah, datieas, data_World) |>
   unique() |>
   ungroup()
 
-# when you only have data_iso: 
-write_this <- rbind(data_iso, data_World) |>
-  group_by(model, scenario, region, variable, value, unit) |>
-  arrange(year) |>
-  pivot_wider(names_from = year, values_from = value) |>
-  mutate(across(where(is.list), ~ ifelse(lengths(.) == 0, NA, unlist(.)))) |>  # Remove NULL lists
-  mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
-  # select(-c("2024")) |> #no data in this column
-  unique() |>
-  ungroup()
 
 #write out iso and World IAMC file
 write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)

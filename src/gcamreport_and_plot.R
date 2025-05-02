@@ -1,9 +1,11 @@
 #this package is needed for the following command to install package from github,
-#lines 3 and 6 only need to be executed the first time you use this script, or in case you need to update the gcamreport package
+#lines 4 and 8 only need to be executed the first time you use this script, or in case you need to update the gcamreport package
+#line 7 and 8 are in principle identical, but line 7 might change which could introduce errors, so 8 is saver
 # library(devtools)
 #install from github, but use different branch "dev_commdef" that includes some bugfixes for GCAM 7.1 not yet in gcam-core
 #you will be asked about updating other packages, which you probably can skip (just hit 'enter' without entering any number)
 # install_github('bc3LC/gcamreport', ref = "dev_commdef")
+# install_github('christophbertram/gcamreport')
 
 # load libraries needed for analysis (this has to be done every time)
 library(gcamreport) #convert the gcam database into R readible format
@@ -13,25 +15,28 @@ library(ggplot2)    #package for plots
 #source functions and constants
 source("src/functions.R")
 
-#you can check for all available variables in gcamreport, but the more you select, 
+#you can check for all available variables in gcamreport (in the example here searching for all variables that include "Food"), but the more you select, 
 #the longer it takes, and some might also produce errors
-#the ones selected below mostly worked (some unfortunately did not work for all scenarios for me)
-available_variables()
-
+#the ones selected below  worked
+vars <- available_variables()
+grep("Food",vars,value=T)
 
 ##### 1. create reports for both databases --------
 generate_report(db_path = "C:/Users/bertram/Documents/Projects/gcam7p1/output/", 
                 #this needs to point to correct database name, the prj_name can be defined by you (saving data for later use)
-                db_name = "database_basexdb", prj_name = "4scen_project_250311.dat", 
+                db_name = "database_basexdb", prj_name = "3scen_project_250428.dat", 
                 #you can define which scenarios you want to extract, and whether to cut the time series before 2100
-                GCAM_version = "v7.1", scenarios = c("Reference","Tax25","TaxDiff","Cap_CO2"), final_year = 2050,
+                GCAM_version = "v7.1", scenarios = c("Reference","Tax25","Cap_CO2"), final_year = 2050,
                 # you can outcomment the following line, to create the full reporting, or define a subset, e.g. "Agricultural *" will give you all variables starting with 'Agricultural'
-                desired_variables =c("Emissions*","Secondary*","Primary*","Final*"),
-                # to speed up processing, select only a subset of regions.
-                desired_regions = c("USA","India"),
+                # as the full reporting with all variables most often requires changes to the mapping (more difficult) we recommend only specifying a couple variables with wildcards*
+                desired_variables =c("Agricultural*","Emissions*","Secondary*","Primary*","Final*"),
+                # to speed up processing, select only a subset of regions, 
+                # but always include USA and China!!!!
+                desired_regions = c("USA","China","India"),
                 #if your add-on files include new market names, you have to tell gcamreport to ignore those
                 # ignore = c("Coal-Generation-Ceiling","Solar-Generation-Floor","Wind-Generation-Floor"),
                 launch_ui = FALSE)
+
 #
 generate_report(db_path = "C:/Users/bertram/Documents/Projects/gcam7p1/output/", 
                 #this needs to point to correct database name, the prj_name can be defined by you (saving data for later use)
@@ -47,7 +52,6 @@ generate_report(db_path = "C:/Users/bertram/Documents/Projects/gcam7p1/output/",
 
 
 ##### 2.0 read in combined scenario data --------
-
 data_scen_full1 <- rbind(read.csv("C:/Users/bertram/Documents/Projects/gcam7p1/output/4scen_project_250225_standardized.csv"),
                    read.csv("C:/Users/bertram/Documents/Projects/gcam7p1/output/4scen_project_250225_3_standardized.csv"))|>
   pivot_longer(cols=c(-Model,-Scenario,-Region,-Variable,-Unit),names_to = "year")|>rename_with(tolower) |>
