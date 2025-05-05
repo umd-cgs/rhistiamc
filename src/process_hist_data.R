@@ -22,6 +22,7 @@
 sessionInfo()
 # .libPaths()
 # install.packages(c("pacman"))
+
 ### Load Libraries and constants -----
 library(pacman)
 p_load(tidyverse,dplyr,readxl,readxl,countrycode,remotes,stringr)
@@ -641,8 +642,13 @@ dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
   mutate(model="ceds",scenario="historical")|>
   rename(variable=entity)
 
-map_ceds <- read.csv("mappings/ceds_sector_mapping.csv") %>% gather_map()
-map_ceds_chn <- read.csv("mappings/ceds_sector_mapping_China.csv") %>% gather_map() ##used for China memo to map heat to electricity, not other energy supply. may want to use for other countries
+## Decide whether to map heat production to electricity, rather than report as own category, which may be appropriate for eg. China figures
+switch_count_heat_as_elec <- F
+if (switch_count_heat_as_elec == T) {
+  map_ceds_chn <- read.csv("mappings/ceds_sector_mapping_China.csv") %>% gather_map() 
+} else {
+  map_ceds <- read.csv("mappings/ceds_sector_mapping.csv") %>% gather_map()
+}
 
 #add iamc2 mappings
 # ceds_iamc2 <- read.csv("mappings/aggregated_sector.csv")
@@ -689,19 +695,19 @@ map_ceds_chn <- read.csv("mappings/ceds_sector_mapping_China.csv") %>% gather_ma
 
 #add sectoral data based on IAMC mappings
 
-dat_ceds <- dat_ceds |> rbind(test <- ceds_s |> left_join(map_ceds_chn |> select(sector,var))|> 
+dat_ceds <- dat_ceds |> rbind(test <- ceds_s |> left_join(map_ceds |> select(sector,var))|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt CO2/yr",value=value/1000)|> rename(variable=var))  
 
-dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds_chn |> select(sector,var))|> 
+dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds |> select(sector,var))|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt CH4/yr",value=value/1000)|> rename(variable=var)) 
 
-dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds_chn |> select(sector,var))|> 
+dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds |> select(sector,var))|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
@@ -1488,9 +1494,27 @@ datieas <- datieas |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
 
 
 
-### 3 write and remove data #### 
+### 3 Verify variable names ####
+### to make sure that outputted variable names match IAMC Common Definitions format
 
-#### 3.a combine and write multiple datasets --------------
+template <- read_csv("template/common-definitions-template.csv", comment = "#", col_select = c(1:4))
+
+switch_variable_check <- F 
+if (switch_variable_check == T) {
+  
+  # See the variables in our results that aren't in the template
+  check_match(data_iso, template, "variable")
+  check_match(datieah, template, "variable")
+  
+  # See the variables that match
+  check_match(data_iso, template, "variable", opt = "i")
+  check_match(datieah, template, "variable", opt = "i")
+  
+}
+
+### 4 write and remove data #### 
+
+#### 4.a combine and write multiple datasets --------------
 # for use in main.R, etc
 
 # Convert to wide formats before writing
@@ -1565,7 +1589,7 @@ write.csv(write_this,
 
 
 
-#### 3.b save and remove original source R objects ####
+#### 4.b save and remove original source R objects ####
 if(save_option == T){
   save(prim,ceds,eemi,eemi_eu,file = "output/emissions.Rds")
   save(ember,emberm,ecap,egeny,egenm,ener,iea_ev, file = "output/energy.Rds")
