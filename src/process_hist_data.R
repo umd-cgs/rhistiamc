@@ -411,7 +411,7 @@ ener|>filter(iso=="USA",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(na
 ener|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
   mutate(exp=coalprod_ej-coalcons_ej) |> filter(year>2009)
 
-###### energy: IEA WEO 2023 --------------------------------------------------
+###### energy: IEA WEO 2024 --------------------------------------------------
 # https://www.iea.org/ - World energy Outloook 2024 Dataset 
 # https://www.iea.org/data-and-statistics/data-product/world-energy-outlook-2024-free-dataset#data-files
 # The above link corresponds to two datasets 'Region' and 'World' which will be used for our analysis
@@ -1447,9 +1447,7 @@ data_reg <- data_iso |>
 
 map_iea <- read.csv("mappings/map_IEAWEO24_iamc.csv")
 
-
-#historic data
-datieah <- iea24 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
+dat_iea24 <- iea24 |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region))|>
@@ -1460,7 +1458,9 @@ datieah <- iea24 |> filter(year<2030,scenario=="Stated Policies Scenario") |>
   filter(!is.na(var))
 
 # bring to GCAM region mapping and IAMC format
-datieah <- datieah |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |>
+dat_iea24 <- dat_iea24 |>
+  select(-unit) |> 
+  left_join(map_iea,by=join_by(var==WEO)) |>
   filter(IAMC!="")|>
   rename(unit = Unit_IAMC) |>
   mutate(Conversion = as.numeric(Conversion)) |>
@@ -1469,29 +1469,38 @@ datieah <- datieah |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |
   na.omit(IAMC) |> 
   rename(variable=IAMC)
 
+# Sum across detailed variables
+dat_iea24 <- dat_iea24 |>
+  bind_rows(dat_iea24 |>
+              filter(variable %in% c("Secondary Energy|Electricity|Solar|PV", 
+                                     "Secondary Energy|Electricity|Solar|CSP")) |>
+              mutate(variable = "Secondary Energy|Electricity|Solar")) |>
+  bind_rows(dat_iea24 |>
+              filter(variable %in% c("Capacity|Electricity|Solar|PV", 
+                                     "Capacity|Electricity|Solar|CSP")) |>
+              mutate(variable = "Capacity|Electricity|Solar")) |>
+  bind_rows(dat_iea24 |>
+              filter(variable %in% c("Capacity|Electricity|Coal|w/ CCS", 
+                                     "Capacity|Electricity|Coal|w/o CCS")) |>
+              mutate(variable = "Capacity|Electricity|Coal")) |>
+  bind_rows(dat_iea24 |>
+              filter(variable %in% c("Capacity|Electricity|Gas|w/ CCS", 
+                                     "Capacity|Electricity|Gas|w/o CCS")) |>
+              mutate(variable = "Capacity|Electricity|Gas")) |>
+  bind_rows(dat_iea24 |>
+              filter(variable %in% c("Capacity|Electricity|Fossil|w/ CCS", 
+                                     "Capacity|Electricity|Fossil|w/o CCS")) |>
+              mutate(variable = "Capacity|Electricity|Fossil")) |>
+  group_by(across(-value)) |>
+  summarise(value = sum(value, na.rm = T)) |>
+  ungroup()
+
+#historic data
+dat_ieah <- dat_iea24 |> filter(year<2030,scenario=="Stated Policies Scenario") 
 
 #scenario data
-datieas <- iea24 |> filter(year>2021) |>
-  mutate(region=case_when(
-    region=="United States" ~ "USA",
-    .default=region
-    ))|>
-  filter(region %in% c(unique(reg_map$region), 
-                       "Europe", "European Union", # Remove these regions if preferred
-                       "World")) |>
-  mutate(model="IEA WEO 2024")|>
-  filter(!is.na(var))
-
-# bring to GCAM region mapping and IAMC format
-datieas <- datieas |> select(-unit) |> left_join(map_iea,by=join_by(var==WEO)) |>
-  filter(IAMC!="")|>
-  rename(unit = Unit_IAMC) |>
-  mutate(Conversion = as.numeric(Conversion)) |>
-  mutate(value = value*Conversion) |>
-  select(year,IAMC,unit,value,region,model,scenario) |>
-  na.omit(IAMC) |> 
-  rename(variable=IAMC)
-
+dat_ieas <- dat_iea24 |> filter(year>2021) 
+ 
 
 
 ### 3 Verify variable names ####
@@ -1504,11 +1513,11 @@ if (switch_variable_check == T) {
   
   # See the variables in our results that aren't in the template
   check_match(data_iso, template, "variable")
-  check_match(datieah, template, "variable")
+  check_match(dat_ieah, template, "variable")
   
   # See the variables that match
   check_match(data_iso, template, "variable", opt = "i")
-  check_match(datieah, template, "variable", opt = "i")
+  check_match(dat_ieah, template, "variable", opt = "i")
   
 }
 
@@ -1537,7 +1546,7 @@ if (switch_variable_check == T) {
 ##### with ISO and World: -----
 # (and with all IEA scenarios)
 
-write_this <- rbind(data_iso, datieah, datieas, data_World) |>
+write_this <- rbind(data_iso, dat_ieah, dat_ieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
@@ -1555,7 +1564,7 @@ write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 
 # ### Aggregate regions and World (only with historical IEA / without IEA future scenarios):
 # 
-# write_this <- rbind(data_reg, datieah, data_World) |>
+# write_this <- rbind(data_reg, dat_ieah, data_World) |>
 #   group_by(model, scenario, region, variable, value, unit) |>
 #   arrange(year) |>
 #   pivot_wider(names_from = year, values_from = value) |>
@@ -1572,7 +1581,7 @@ write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 ##### with aggregate regions and World: -----
 # (and with all IEA scenarios)
 
-write_this <- rbind(data_reg, datieah, datieas, data_World) |>
+write_this <- rbind(data_reg, dat_ieah, dat_ieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
