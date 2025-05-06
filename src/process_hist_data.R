@@ -231,8 +231,8 @@ ct_waste <- ct_waste %>%
 # - monthly_full_release_long_format-4.csv
 # - yearly_full_release_long_format.csv
 
-ember = read.csv("data/yearly_full_release_long_format_05_2024.csv")
-emberm = read.csv("data/monthly_full_release_long_format.csv")
+ember = read.csv("data/yearly_full_release_long_format_05_2025.csv")
+emberm = read.csv("data/monthly_full_release_long_format_05_2025.csv")
 
 #create output in convenient cap (capacity), geny and genm (generation) formats (to be used in VRE-Eff script)
 ecap <- ember |> mutate(Country.code=case_when(
