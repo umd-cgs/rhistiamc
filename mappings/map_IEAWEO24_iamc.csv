@@ -55,7 +55,7 @@ CO2 combustion and process emissions-Total-Iron and steel,Emissions|CO2|Energy a
 CO2 combustion and process-Total-Non-ferrous metals: aluminium,Emissions|CO2|Energy and Industrial Processes|Demand|Industry|Non-Ferrous metals,Mt CO2,Mt CO2/yr,1,
 CO2 combustion and process emissions-Total-Other energy sector,Emissions|CO2|Energy and Industrial Processes|Demand|Industry|Other,Mt CO2,Mt CO2/yr,1,
 CO2 combustion and process emissions-Total-Total final consumption,Emissions|CO2|Energy and Industrial Processes,Mt CO2,Mt CO2/yr,1,
-CO2 DAC stored-Total-Direct air capture: offsite,Carbon Removal|Geological Storage|Direct Air Capture,Mt CO2,Mt CO2/yr,-1,
+CO2 DAC stored-Total-Direct air capture: offsite,Carbon Removal|Geological Storage|Direct Air Capture,Mt CO2,Mt CO2/yr,1,
 CO2 process stored-Modern bioenergy: liquid-Biofuels production,Carbon Removal|Geological Storage|Biomass,Mt CO2,Mt CO2/yr,1,
 CO2 total-Total-Total energy supply,,,,,
 CO2 total captured-Total-Total energy supply,,,,,

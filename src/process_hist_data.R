@@ -415,8 +415,8 @@ ener|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(na
 # https://www.iea.org/ - World energy Outloook 2024 Dataset 
 # https://www.iea.org/data-and-statistics/data-product/world-energy-outlook-2024-free-dataset#data-files
 # The above link corresponds to two datasets 'Region' and 'World' which will be used for our analysis
-# Region - WEO2023_AnnexA_Free_Dataset_Regions.csv
-# World - WEO2023_AnnexA_Free_Dataset_World.csv
+# Region - WEO2024_AnnexA_Free_Dataset_Regions.csv
+# World - WEO2024_AnnexA_Free_Dataset_World.csv
 iea24 <- read.csv("data/WEO2024_AnnexA_Free_Dataset_Regions.csv")|>
   mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))
 iea24 <- rbind(iea24, ## add all available data on Net Zero scenarios, plus additional variables for others
@@ -1454,7 +1454,7 @@ dat_iea24 <- iea24 |>
   filter(region %in% c(unique(reg_map$region), 
                        "Europe", "European Union", # Remove these regions if preferred
                        "World")) |>
-  mutate(model="IEA WEO 2023",scenario="historical")|>
+  mutate(model="IEA WEO 2024")|>
   filter(!is.na(var))
 
 # bring to GCAM region mapping and IAMC format
@@ -1496,10 +1496,12 @@ dat_iea24 <- dat_iea24 |>
   ungroup()
 
 #historic data
-dat_ieah <- dat_iea24 |> filter(year<2030,scenario=="Stated Policies Scenario") 
+dat_ieah <- dat_iea24 |> 
+  filter(year<2030, scenario=="Stated Policies Scenario") |>
+  mutate(scenario = "historical")
 
 #scenario data
-dat_ieas <- dat_iea24 |> filter(year>2021) 
+dat_ieas <- dat_iea24 |> filter(year>2022) 
  
 
 
@@ -1508,7 +1510,7 @@ dat_ieas <- dat_iea24 |> filter(year>2021)
 
 template <- read_csv("template/common-definitions-template.csv", comment = "#", col_select = c(1:4))
 
-switch_variable_check <- F 
+switch_variable_check <- F
 if (switch_variable_check == T) {
   
   # See the variables in our results that aren't in the template
