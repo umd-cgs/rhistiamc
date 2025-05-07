@@ -958,7 +958,9 @@ dat_egeny <- egeny |> filter(year > starty)|> select (-variable,-region)|>
 # Calculate the share in Total for each fuel type and create a new dataframe
 dat_egeny_shares <- dat_egeny |>
   group_by(across(-c(variable, value))) |>
-  mutate(value = (value / value[variable == "Secondary Energy|Electricity"]) * 100,
+  mutate(value = ifelse(!is.na(value),
+                        (value / value[variable == "Secondary Energy|Electricity"]) * 100,
+                        NA),
          variable = paste(variable, "Share", sep = "|"),
          unit = "%") |>
   filter(variable != "Secondary Energy|Electricity|Share") |>
@@ -967,11 +969,13 @@ dat_egeny_shares <- dat_egeny |>
 egeny_solar_wind <- dat_egeny_shares %>%
   filter(variable %in% c("Secondary Energy|Electricity|Wind|Share", "Secondary Energy|Electricity|Solar|Share")) %>%
   group_by(iso, year, unit, model, scenario) %>%
-  summarise(value = sum(value)) %>%
+  summarise(value = sum(value, na.rm = T)) %>%
   mutate(variable = "Secondary Energy|Electricity|Solar+Wind|Share") %>%
   ungroup()
 
-dat_egeny_shares <-  rbind(dat_egeny_shares,egeny_solar_wind)
+dat_egeny_shares <-  dat_egeny_shares |>
+  bind_rows(egeny_solar_wind) |>
+  filter(!is.na(value))
 
 #add data on captive generation for Indonesia, data from Maria Borrero
 dat_egeny <- rbind(dat_egeny,data.frame(year=seq(1993,2023),value=c(0.21,0.87,0.87,1.29,1.29,3.10,4.23,
