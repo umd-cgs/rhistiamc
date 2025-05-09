@@ -210,11 +210,11 @@ iea_ch4 <- iea_ch4 %>%
 # https://climatetrace.org/data 
 # Select CH4 as the Emissions Type, then download the Waste section as a CSV and unzip it
 
-ct_waste <- rbind(read.csv("data/solid-waste-disposal_country_emissions.csv"),
-                  read.csv("data/industrial-wastewater-treatment-and-discharge_country_emissions.csv"),
-                  read.csv("data/domestic-wastewater-treatment-and-discharge_country_emissions.csv"),
-                  read.csv("data/incineration-and-open-burning-of-waste_country_emissions.csv"),
-                  read.csv("data/biological-treatment-of-solid-waste-and-biogenic_country_emissions.csv"))
+ct_waste <- rbind(read.csv("data/solid-waste-disposal_country_emissions_v4_2_0_05_25.csv"),
+                  read.csv("data/industrial-wastewater-treatment-and-discharge_country_emissions_v4_2_0_05_2025.csv"),
+                  read.csv("data/domestic-wastewater-treatment-and-discharge_country_emissions_v4_2_0_05_2025.csv"),
+                  read.csv("data/incineration-and-open-burning-of-waste_country_emissions_v4_2_0_05_2025.csv"),
+                  read.csv("data/biological-treatment-of-solid-waste-and-biogenic_country_emissions_v4_2_0_05_2025.csv"))
 
 ct_waste <- ct_waste %>%
   rename(iso=iso3_country) |>
