@@ -13,9 +13,9 @@ source("src/functions.R")
 start_yr <- 1975
 # ----- USER INPUTS -----
 #select the year and the variable to be filtered
-selected_year <- 2020
+selected_year <- 2022
 selected_variable <- "Capacity|Electricity|Wind"
-denominator_variable <- "Population"
+denominator_variable <- "Population" #or NULL
 model_region <- "R5" # Options: "ISO", "R5", "R10", "GCAM32"
 model_type <- "historical" #options: historical or scenario
 
@@ -29,20 +29,27 @@ numerator_data <- data_model %>%
   distinct(region, .keep_all = TRUE) %>%
   rename(numerator = value, numerator_unit = unit)
 
-# Filter denominator data
-denominator_data <- data_model %>%
-  filter(variable == denominator_variable, year == selected_year) %>%
-  select(region, value, unit) %>%
-  distinct(region, .keep_all = TRUE) %>%
-  rename(denominator = value, denominator_unit = unit)
+if (!is.null(denominator_variable) && denominator_variable != "none") {
+  denominator_data <- data_model %>%
+    filter(variable == denominator_variable, year == selected_year) %>%
+    select(region, value, unit) %>%
+    distinct(region, .keep_all = TRUE) %>%
+    rename(denominator = value, denominator_unit = unit)
+  
+  data_ratio <- numerator_data %>%
+    left_join(denominator_data, by = "region") %>%
+    mutate(
+      ratio_value = numerator / denominator,
+      ratio_unit = paste0(numerator_unit, " / ", denominator_unit)
+    )
+} else {
+  data_ratio <- numerator_data %>%
+    mutate(
+      ratio_value = numerator,
+      ratio_unit = numerator_unit
+    )
+}
 
-
-data_ratio <- numerator_data %>%
-  left_join(denominator_data, by = "region") %>%
-  mutate(
-    ratio_value = numerator / denominator,
-    ratio_unit = paste0(numerator_unit, " / ", denominator_unit)
-  )
 
 
 # ----- Load Region Mappings -----
