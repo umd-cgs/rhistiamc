@@ -1106,6 +1106,7 @@ enhanced_iea_ev <- iea_ev_intermed %>%
   rename(scenario = category)
 
 
+
 # Step 1: Filter rows for "EV sales share"
 ice_sales_share_rows <- enhanced_iea_ev %>%
   filter(parameter == "EV sales share") %>%
@@ -1157,6 +1158,8 @@ enhanced_iea_ev <- enhanced_iea_ev %>%
 total_ice_sales_summary <- total_ice_sales_summary %>%
   select(region, scenario, year, variable, unit, value)
 
+
+
 # Combine with selected_enhanced_iea_ev
 dat_iea_ev <- bind_rows(enhanced_iea_ev, total_ice_sales_summary)
 dat_iea_ev <- distinct(dat_iea_ev)
@@ -1182,6 +1185,24 @@ dat_iea_ev <- dat_iea_ev %>%
     variable == "Sales Share|Transportation|Light-Duty Vehicle|EV" ~ "Sales Share|Transportation|Light-Duty Vehicle|BEV+PHEV",
     TRUE ~ variable  # Keep all other variables unchanged
   ))
+
+#Calculate total LDV Stocks
+
+# Calculate total LDV stocks by summing across all powertrains
+ldv_stock_data <- dat_iea_ev %>%
+  filter(variable %in% c("Stocks|Transportation|Light-Duty Vehicle|Battery-Electric", 
+                         "Stocks|Transportation|Light-Duty Vehicle|Plug-in Hybrid", 
+                         "Stocks|Transportation|Light-Duty Vehicle|Fuel-Cell-Electric", 
+                         "Stocks|Transportation|Light-Duty Vehicle|Internal Combustion")) %>%
+  group_by(iso, year, scenario) %>%
+  summarise(value = sum(value, na.rm = TRUE), .groups = "drop") %>%
+  mutate(variable = "Stocks|Transportation|Light-Duty Vehicle",
+         unit = "million",
+         model = "IEA_GEVO")
+
+# Add total LDV stocks to main dataset
+dat_iea_ev <- bind_rows(dat_iea_ev, ldv_stock_data)
+dat_iea_ev <- distinct(dat_iea_ev)
 
 # Calculate total LDV sales
 sales_data <- dat_iea_ev %>%
