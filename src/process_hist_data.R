@@ -43,8 +43,8 @@ starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time se
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
 #model_regions <- "gcam32"   # Using GCAM core regions
-#model_regions <- "r10"
-model_regions <- "r5"
+model_regions <- "r10"
+#model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
 save_option <- T 
@@ -447,8 +447,11 @@ owid_energy_data <- owid_energy_data %>%
 
 ###### trn: ev - IEA GEVO --------------------------------------------------
 #https://www.iea.org/data-and-statistics/data-product/global-ev-outlook-2024
-iea_ev <- read.csv("data/IEA Global EV Data 2024.csv")
-
+iea_ev <- readxl::read_excel("data/GlobalEVDataExplorer2025.xlsx")
+# Rename and drop columns to match expected structure
+iea_ev <- iea_ev %>%
+  rename(region = region_country) %>%
+  select(-`Aggregate group`)
 ###### trn: ev - Robbie --------------------------------------------------
 #https://robbieandrew.github.io/carsales/ 
 # Click on the link to "Download all monthly data in one file."
