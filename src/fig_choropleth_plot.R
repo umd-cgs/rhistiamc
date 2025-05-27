@@ -14,10 +14,12 @@ start_yr <- 1975
 # ----- USER INPUTS -----
 #select the year and the variable to be filtered
 selected_year <- 2022
-selected_variable <- "Capacity|Electricity|Wind"
-denominator_variable <- "Population" #or NULL
+selected_variable <- "Stocks|Transportation|Light-Duty Vehicle|Battery-Electric"
+denominator_variable <- "Stocks|Transportation|Light-Duty Vehicle" #or NULL
 model_region <- "R5" # Options: "ISO", "R5", "R10", "GCAM32"
 model_type <- "historical" #options: historical or scenario
+custom_unit_label <- NULL  # e.g., "GW per million people"
+factor <- 1e3  # default is 1, 
 
 # ----- DATA SELECTION -----
 #filter the data
@@ -39,9 +41,12 @@ if (!is.null(denominator_variable) && denominator_variable != "none") {
   data_ratio <- numerator_data %>%
     left_join(denominator_data, by = "region") %>%
     mutate(
-      ratio_value = numerator / denominator,
-      ratio_unit = paste0(numerator_unit, " / ", denominator_unit)
+      ratio_value = ifelse(!is.na(denominator), (numerator / denominator) * factor, numerator * factor),  #add factor
+      ratio_unit = ifelse(!is.na(denominator),
+                          paste0(numerator_unit, " / ", denominator_unit),
+                          numerator_unit)
     )
+  
 } else {
   data_ratio <- numerator_data %>%
     mutate(
@@ -92,21 +97,47 @@ region_col <- get_region_column(model_region)
 # ----- LOAD WORLD MAP -----
 
 # Load world map and add region mapping to it
-world <- ne_countries(scale = "medium", returnclass = "sf") %>%
-  mutate(adm0_a3 = toupper(adm0_a3)) %>%
-  mutate(adm0_a3 = ifelse(adm0_a3 == "SDS", "SSD", adm0_a3)) %>%   #FIX SOUTH SUDAN CODE
-  left_join(region_map, by = "adm0_a3")
+world <- ne_countries(scale = "medium", returnclass = "sf") %>%  
+  mutate(
+    iso_a3 = case_when(
+      name == "France" ~ "FRA",
+      name == "Norway" ~ "NOR",
+      name == "Kosovo" ~ "XKX",
+      name == "Indian Ocean Ter." ~ "IOT",
+      TRUE ~ iso_a3
+    ), #fix iso codes
+    iso_a3 = toupper(trimws(iso_a3))  # clean up any whitespace
+  ) %>%
+  left_join(region_map, by = c("iso_a3" = "adm0_a3"))
+
 
 # Join per capita data based on selected region type (R5/R10/GCAM32/ISO)
-map_data <- world %>%
-  left_join(data_ratio, by = setNames("region", region_col))
+if (region_col == "region") {
+  # For ISO: join on patched iso_a3
+  data_ratio <- data_ratio %>%
+    mutate(region = toupper(trimws(region))) 
+  
+  map_data <- world %>%
+    left_join(data_ratio, by = c("iso_a3" = "region"))
+}else {
+  # For R5, R10, GCAM32: join on appropriate region mapping column
+  map_data <- world %>%
+    left_join(data_ratio, by = setNames("region", region_col))
+}
 
 
 # Now inspect:
-map_data %>%
-  select(adm0_a3, name, R5, !!sym(region_col), ratio_value)%>%
-  filter(!is.na(R5)) %>%
-  head(10)
+if (region_col == "region") {
+  map_data %>%
+    select(adm0_a3, name, ratio_value) %>%
+    filter(!is.na(ratio_value)) %>%
+    head(10)
+} else {
+  map_data %>%
+    select(adm0_a3, name, !!sym(region_col), ratio_value) %>%
+    filter(!is.na(!!sym(region_col))) %>%
+    head(10)
+}
 
 # ----- PLOT CHOROPLETH MAP -----
 
@@ -128,6 +159,8 @@ get_region_outline <- function(map_data, region_col) {
 # Run the function to get the outline
 region_outline <- get_region_outline(map_data, region_col)
 
+# Allow manual override of unit label
+final_unit_label <- if (!is.null(custom_unit_label)) custom_unit_label else unique(data_ratio$ratio_unit)
 
 # ----- PLOT CHOROPLETH MAP -----
 ggplot() +
@@ -147,7 +180,7 @@ ggplot() +
   
   scale_fill_gradientn(
     colors = c("#ffffb2", "#fd8d3c", "#e34a33"),
-    name = unique(data_ratio$ratio_unit),
+    name = final_unit_label,
     limits = c(0, NA),
     na.value = "grey80"
   ) +
