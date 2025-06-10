@@ -48,6 +48,38 @@ or for a quick start from this [data_rhistiamc](https://drive.google.com/open?id
 5. If desired to make figures or perform analysis on the historical and IAM data (optional), then open and run the ```src/combine_and_plot.R``` script.
 Make any additional ```src/fig_...R``` scripts based on the ones provided or with a different setup.  
 
+## Dataset Tracker
+
+We maintain a live dataset tracker spreadsheet to record:
+
+- Data source and access link  
+- Update frequency  
+- Last update date  
+
+### Access the Tracker
+
+👉 **[View the Dataset Tracker](https://docs.google.com/spreadsheets/d/1ZcuLWFAPcPumLa3p5A3jvaRGcuUG5gHVOVDiupuJ36U/edit?usp=sharing)**  
+*View-only Google Sheet — request edit access if needed for updates.*
+
+---
+
+## For Contributors Updating Data
+
+When updating or adding a dataset:
+
+1. Edit `src/process_hist_data.R` to include or update the dataset.
+
+2. Update the mapping files — add a timestamp and verify the structure of the data.
+
+3. Run the script to regenerate outputs and check results.
+
+4. Update the dataset tracker:
+   - Change the “Last Updated” date
+   - Add any notes on variable or format changes
+   - Add a new row if it’s a new dataset
+
+5. Commit your changes and open a pull request with a short summary.
+
 
 ## Notes: 
 - Only the files in mappings and src are git managed, others are ignored to reduce repository size (see .gitignore).
