@@ -478,6 +478,10 @@ nasa_temp <- read.csv("data/GLB.Ts+dSST_05_2025.csv",skip = 1)
 # Read the data from the file
 file_path <- "data/HadCRUT5.0Analysis_gl.txt"
 
+##### trn: service - OWID ---------------------------------------------------
+##### Source: https://ourworldindata.org/grapher/air-passenger-kilometers.csv?v=1&csvType=full&useColumnShortNames=true
+owid_air <- read.csv("data/air-passenger-kilometers.csv")
+
 # Read the data from the file
 data <- read_lines(file_path)
 
@@ -1370,9 +1374,7 @@ dat_oecd <- OECD %>%
   arrange(iso, variable, unit, year, value, model, scenario)
 
 
-####trn: air service - OWID
-#### Source: https://ourworldindata.org/grapher/air-passenger-kilometers.csv?v=1&csvType=full&useColumnShortNames=true
-owid_air <- read.csv("data/air-passenger-kilometers.csv")
+###### OWID trn - aviation --------------------------------
 
 dat_owid_air <- owid_air %>%
   rename("region" = "Entity", "iso" = "Code", "year" = "Year", "value" = "X9.1.2...Passenger.volume..passenger.kilometres...by.mode.of.transport...IS_RDP_PFVOL...Air.transport") %>%
