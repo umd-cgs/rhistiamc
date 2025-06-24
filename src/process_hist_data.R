@@ -1369,6 +1369,24 @@ dat_oecd <- OECD %>%
   mutate(model = "OECD", scenario = "historical") %>%
   arrange(iso, variable, unit, year, value, model, scenario)
 
+
+####trn: air service - OWID
+#### Source: https://ourworldindata.org/grapher/air-passenger-kilometers.csv?v=1&csvType=full&useColumnShortNames=true
+owid_air <- read.csv("data/air-passenger-kilometers.csv")
+
+dat_owid_air <- owid_air %>%
+  rename("region" = "Entity", "iso" = "Code", "year" = "Year", "value" = "X9.1.2...Passenger.volume..passenger.kilometres...by.mode.of.transport...IS_RDP_PFVOL...Air.transport") %>%
+  mutate(iso = ifelse(iso == "" | is.na(iso), NA, iso)) %>%
+  filter(!is.na(value)) %>%
+  mutate(variable = "Energy Service|Transportation|Passenger|Aviation",
+         unit = "Millions Passenger-kilometres",
+         value = value / 1e6) %>%
+  filter(!is.na(iso)) %>%
+  select(iso, variable, unit, year, value) %>%
+  mutate(model = "OWID", scenario = "historical") %>%
+  arrange(iso, variable, unit, year, value, model, scenario)
+
+
 ###### NASA  -------------------------------------
 
 dat_nasa <-nasa_temp %>%
