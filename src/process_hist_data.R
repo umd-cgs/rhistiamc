@@ -469,6 +469,10 @@ OECD_f <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSFREIGHT,1.0+all.csv")
 OECD_p <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSPASS,1.0+all.csv")
 OECD <- bind_rows(OECD_f, OECD_p)
 
+##### trn: service - OWID ---------------------------------------------------
+##### Source: https://ourworldindata.org/grapher/air-passenger-kilometers.csv?v=1&csvType=full&useColumnShortNames=true
+owid_air <- read.csv("data/air-passenger-kilometers.csv")
+
 ###### climate: temp - NASA --------------------------------------------------
 #https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv 
 nasa_temp <- read.csv("data/GLB.Ts+dSST_05_2025.csv",skip = 1)
@@ -477,10 +481,6 @@ nasa_temp <- read.csv("data/GLB.Ts+dSST_05_2025.csv",skip = 1)
 #https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT5.0Analysis_gl.txt
 # Read the data from the file
 file_path <- "data/HadCRUT5.0Analysis_gl.txt"
-
-##### trn: service - OWID ---------------------------------------------------
-##### Source: https://ourworldindata.org/grapher/air-passenger-kilometers.csv?v=1&csvType=full&useColumnShortNames=true
-owid_air <- read.csv("data/air-passenger-kilometers.csv")
 
 # Read the data from the file
 data <- read_lines(file_path)
