@@ -448,6 +448,7 @@ owid_energy_data <- owid_energy_data %>%
 ###### trn: ev - IEA GEVO --------------------------------------------------
 #https://www.iea.org/data-and-statistics/data-product/global-ev-outlook-2024
 iea_ev <- readxl::read_excel("data/GlobalEVDataExplorer2025.xlsx")
+
 # Rename and drop columns to match expected structure
 iea_ev <- iea_ev %>%
   rename(region = region_country) %>%
@@ -1000,7 +1001,8 @@ dat_eemi <- eemi |> filter(year > starty)|> select (-variable,-region)|>
     .default="NA"
   ))|> filter(fuel!="NA")|>
   mutate(model="EMBER",scenario="historical")|>
-  rename(variable=fuel)
+  rename(variable=fuel)|>
+  mutate(unit = "Mt CO2/yr") 
 
 
 
@@ -1189,23 +1191,6 @@ dat_iea_ev <- dat_iea_ev %>%
     TRUE ~ variable  # Keep all other variables unchanged
   ))
 
-#Calculate total LDV Stocks
-
-# Calculate total LDV stocks by summing across all powertrains
-ldv_stock_data <- dat_iea_ev %>%
-  filter(variable %in% c("Stocks|Transportation|Light-Duty Vehicle|Battery-Electric", 
-                         "Stocks|Transportation|Light-Duty Vehicle|Plug-in Hybrid", 
-                         "Stocks|Transportation|Light-Duty Vehicle|Fuel-Cell-Electric", 
-                         "Stocks|Transportation|Light-Duty Vehicle|Internal Combustion")) %>%
-  group_by(iso, year, scenario) %>%
-  summarise(value = sum(value, na.rm = TRUE), .groups = "drop") %>%
-  mutate(variable = "Stocks|Transportation|Light-Duty Vehicle",
-         unit = "million",
-         model = "IEA_GEVO")
-
-# Add total LDV stocks to main dataset
-dat_iea_ev <- bind_rows(dat_iea_ev, ldv_stock_data)
-dat_iea_ev <- distinct(dat_iea_ev)
 
 # Calculate total LDV sales
 sales_data <- dat_iea_ev %>%
@@ -1234,10 +1219,36 @@ total_sales_data <- dat_iea_ev %>%
   filter(variable == "Sales|Transportation|Light-Duty Vehicle") %>%
   select(region, iso, year, scenario, value) %>%
   rename(total_sales = value)
-
 # Merge the data frames on region, iso, year, and scenario
 sales_data_merged <- left_join(bev_sales_data, total_sales_data, by = c("region", "iso", "year", "scenario"))
 sales_data_merged <- na.omit(sales_data_merged)
+
+# Calculating total LDV stock using EV stock and stock share
+
+ldv_ev_stock <- dat_iea_ev %>%
+  filter(variable %in% c("Stocks|Transportation|Light-Duty Vehicle|Battery-Electric", 
+                         "Stocks|Transportation|Light-Duty Vehicle|Plug-in Hybrid")) %>%
+  group_by(iso, year, scenario) %>%
+  summarise(ev_stock = sum(value, na.rm = TRUE), .groups = "drop")
+
+ldv_ev_stock_share <- dat_iea_ev %>%
+  filter(variable == "Stocks Share|Transportation|Light-Duty Vehicle|BEV+PHEV") %>%
+  select(iso, year, scenario, value) %>%
+  rename(ev_share_percent = value)
+
+ldv_total_stock_calc <- left_join(ldv_ev_stock, ldv_ev_stock_share,
+                                  by = c("iso", "year", "scenario")) %>%
+  filter(ev_share_percent > 0) %>%
+  mutate(
+    value = ev_stock / (ev_share_percent / 100),
+    variable = "Stocks|Transportation|Light-Duty Vehicle",
+    unit = "million",
+    model = "IEA_GEVO"
+  ) %>%
+  select(iso, variable, unit, year, value, model, scenario)
+
+dat_iea_ev <- bind_rows(dat_iea_ev, ldv_total_stock_calc)
+
 
 # Calculate the BEV sales share
 sales_data_merged <- sales_data_merged %>%
