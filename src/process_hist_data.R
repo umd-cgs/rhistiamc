@@ -577,18 +577,26 @@ dat_prim <- prim |> filter(entity %in% c("KYOTOGHG (AR4GWP100)","KYOTOGHG (AR5GW
     entity=="KYOTOGHG (AR4GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|Kyoto Gases (excl. LUC)",
     entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
     entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR" ~ "Emissions|Kyoto Gases|AR5 (excl. LUC)",
+    entity=="KYOTOGHG (AR4GWP100)" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTTP" ~ "Emissions|Kyoto Gases (incl. all LULUCF)",
+    entity=="KYOTOGHG (AR4GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|Kyoto Gases (excl. LUC)",
+    entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
+    entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTTP" ~ "Emissions|Kyoto Gases|AR5 (excl. LUC)",
     entity=="CO2" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2 (incl. all LULUCF)",
     entity=="CO2" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2|Energy and Industrial Processes",
-    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2|AFOLU (incl. all LULUCF)",
-    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|CO2|AFOLU",
+    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2|AFOLU|LULUCF",
+    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|CO2|AFOLU|LULUCF",
     entity=="CH4" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CH4",
     entity=="N2O" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|N2O",
     entity=="FGASES (AR4GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|F-Gases",
     entity=="FGASES (AR5GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR" ~ "Emissions|F-Gases|AR5"
   ))|> filter(!is.na(entity))|>
-  select(-category..IPCC2006_PRIMAP.,-scenario..PRIMAP.hist.)|>
-  mutate(model="PRIMAP-hist",scenario="historical")|>
-  rename(variable=entity,iso=region) |>
+  mutate(scenario..PRIMAP.hist. = case_when(
+    scenario..PRIMAP.hist. =="HISTCR" ~ "PRIMAP-hist",
+    scenario..PRIMAP.hist. =="HISTTP" ~ "PRIMAP-hist [TP]"
+  )) |>
+  select(-category..IPCC2006_PRIMAP.)|>
+  mutate(scenario="historical")|>
+  rename(variable=entity,iso=region, model =scenario..PRIMAP.hist.) |>
   #rename EARTH to World
   mutate(iso = ifelse(iso == "EARTH", "World", iso)) |>
   #filter out country groups (only keep EU27BX and World)
