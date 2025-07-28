@@ -880,8 +880,11 @@ dat_ch4 <- dat_ch4 %>%
   filter(!is.na(iso))
 
 # Add unit column as "KtCH4"
+# Convert from kt to Mt and update unit
 dat_ch4 <- dat_ch4 %>%
-  mutate(unit = "KtCH4")
+  mutate(value = value / 1000,
+         unit = "Mt CH4/yr")
+
 
 # Rename columns as specified
 dat_ch4 <- dat_ch4 %>%
