@@ -15,7 +15,7 @@ co2_including_luc_per_unit_energy,,Kg/Kwh
 co2_per_capita,,tonnes per person
 co2_per_gdp,,Kg/$
 co2_per_unit_energy,,Kg/Kwh
-coal_co2,Emission|CO2|Coal,MTCO2
+coal_co2,Emissions|CO2|Coal,MTCO2
 coal_co2_per_capita,,tonnes per person
 consumption_co2,,MTCO2
 consumption_co2_per_capita,,tonnes per person
@@ -39,7 +39,6 @@ ghg_excluding_lucf_per_capita,,tonnes per person
 ghg_per_capita,,tonnes per person
 land_use_change_co2,,MTCO2
 land_use_change_co2_per_capita,,tonnes per person
-methane,Emissions|CH4,MTCO2
 methane_per_capita,,tonnes per person
 nitrous_oxide,Emissions|NO2,MTCO2
 nitrous_oxide_per_capita,,tonnes per person
@@ -67,10 +66,10 @@ share_global_luc_co2,,%
 share_global_oil_co2,,%
 share_global_other_co2,,%
 share_of_temperature_change_from_ghg,,%
-temperature_change_from_ch4,,°C
-temperature_change_from_co2,,°C
-temperature_change_from_ghg,,°C
-temperature_change_from_n2o,,°C
+temperature_change_from_ch4,,?C
+temperature_change_from_co2,,?C
+temperature_change_from_ghg,,?C
+temperature_change_from_n2o,,?C
 total_ghg,,MTCO2
 total_ghg_excluding_lucf,,MTCO2
 trade_co2,,MTCO2
