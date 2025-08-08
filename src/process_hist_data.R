@@ -569,7 +569,9 @@ dat_prim <- prim |> filter(entity %in% c("KYOTOGHG (AR4GWP100)","KYOTOGHG (AR5GW
   mutate(value = case_when(
     entity=="N2O" ~ value,
     .default=value/1000
-  ))|>
+  ))
+
+dat_prim <- dat_prim |>
   mutate(entity = case_when(
     #define emission categories: most from HISTCR, but for AFOLu, also use IAM default version without indirect LULUCF (HISTTP)
     #afterwards (see rbind below), total CO2 and total Kyoto also get calculated with the HISTTP LULUCF to get to a consistent set with / without indirect LULUCF (Grassi effect)
@@ -583,13 +585,19 @@ dat_prim <- prim |> filter(entity %in% c("KYOTOGHG (AR4GWP100)","KYOTOGHG (AR5GW
     entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTTP" ~ "Emissions|Kyoto Gases|AR5 (excl. LUC)",
     entity=="CO2" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2 (incl. all LULUCF)",
     entity=="CO2" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2|Energy and Industrial Processes",
-    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2|AFOLU|LULUCF",
-    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|CO2|AFOLU|LULUCF",
+    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2|AFOLU",
+    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|CO2|AFOLU",
     entity=="CH4" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CH4",
     entity=="N2O" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|N2O",
     entity=="FGASES (AR4GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|F-Gases",
     entity=="FGASES (AR5GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR" ~ "Emissions|F-Gases|AR5"
-  ))|> filter(!is.na(entity))|>
+  ))|> 
+  # Show that AFOLU value in Primap-Hist are actually just the LULUCF (Land) values (missing some agriculture emissions)
+  bind_rows(dat_prim |>
+              filter(entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF") |>
+              mutate(entity = "Emissions|CO2|AFOLU|Land")
+  ) |>
+  filter(!is.na(entity))|>
   mutate(scenario..PRIMAP.hist. = case_when(
     scenario..PRIMAP.hist. =="HISTCR" ~ "PRIMAP-hist",
     scenario..PRIMAP.hist. =="HISTTP" ~ "PRIMAP-hist [TP]"
@@ -709,19 +717,19 @@ if (switch_count_heat_as_elec == T) {
 
 #add sectoral data based on IAMC mappings
 
-dat_ceds <- dat_ceds |> rbind(test <- ceds_s |> left_join(map_ceds |> select(sector,var))|> 
+dat_ceds <- dat_ceds |> rbind(test <- ceds_s |> left_join(map_ceds |> select(sector,var), relationship = "many-to-many")|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt CO2/yr",value=value/1000)|> rename(variable=var))  
 
-dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds |> select(sector,var))|> 
+dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds |> select(sector,var), relationship = "many-to-many")|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt CH4/yr",value=value/1000)|> rename(variable=var)) 
 
-dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds |> select(sector,var))|> 
+dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds |> select(sector,var), relationship = "many-to-many")|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
@@ -1618,7 +1626,6 @@ write_this <- rbind(data_iso, dat_ieah, dat_ieas, data_World) |>
   pivot_wider(names_from = year, values_from = value) |>
   mutate(across(where(is.list), ~ ifelse(lengths(.) == 0, NA, unlist(.)))) |>  # Remove NULL lists
   mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
-  # select(-c("2024")) |> #no data in this column
   unique() |>
   ungroup()
 
@@ -1652,7 +1659,6 @@ write_this <- rbind(data_reg, dat_ieah, dat_ieas, data_World) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
   mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
-  # select(-c("2024")) |> #no data in this column
   unique() |>
   ungroup()
 
