@@ -598,10 +598,10 @@ dat_prim <- dat_prim |>
 
 
 dat_prim <-  rbind(dat_prim,
-                  dat_prim|>select(-unit) |> filter(variable %in% c("Emissions|CO2|AFOLU|LULUCF","Emissions|CO2|Energy and Industrial Processes","Emissions|Kyoto Gases (excl. LUC)"))|>
+                  dat_prim|>select(-unit) |> filter(variable %in% c("Emissions|CO2|AFOLU|Land","Emissions|CO2|Energy and Industrial Processes","Emissions|Kyoto Gases (excl. LUC)"))|>
                     pivot_wider(names_from=variable,values_fill = 0)|>mutate(
-                      `Emissions|CO2`=`Emissions|CO2|AFOLU|LULUCF`+`Emissions|CO2|Energy and Industrial Processes`,
-                      `Emissions|Kyoto Gases`=`Emissions|CO2|AFOLU|LULUCF`+`Emissions|Kyoto Gases (excl. LUC)`
+                      `Emissions|CO2`=`Emissions|CO2|AFOLU|Land`+`Emissions|CO2|Energy and Industrial Processes`,
+                      `Emissions|Kyoto Gases`=`Emissions|CO2|AFOLU|Land`+`Emissions|Kyoto Gases (excl. LUC)`
                     ) |> pivot_longer(cols=c(-iso,-year,-model,-scenario),names_to = 'variable')|>
                     filter(variable %in% c("Emissions|CO2","Emissions|Kyoto Gases"))|>
                     mutate(unit = case_when(
@@ -759,11 +759,11 @@ dat_prim <- rbind(dat_prim |> filter(iso !="World"),
                   #World data in variables that do not get adjusted 
                   dat_prim |> filter(iso=="World",
                                      variable %in% c("Emissions|F-Gases","Emissions|F-Gases|AR5",
-                                                     "Emissions|CO2|AFOLU|LULUCF","Emissions|CO2|AFOLU|LULUCF")),
+                                                     "Emissions|CO2|AFOLU","Emissions|CO2|AFOLU|Land")),
                   #World data that needs adjustment to include int. aviation and shipping 
                   rbind(dat_prim |> filter(iso=="World",
                                      !variable %in% c("Emissions|F-Gases","Emissions|F-Gases|AR5",
-                                                                        "Emissions|CO2|AFOLU|LULUCF","Emissions|CO2|AFOLU|LULUCF"))|>
+                                                                        "Emissions|CO2|AFOLU","Emissions|CO2|AFOLU|Land"))|>
                           select(-iso),
                   #add int. emissions from CEDS, use 2022 for 2023
                   dat_ceds_int |> rbind(dat_ceds_int |> filter(year==2022) |> mutate(year=2023)) |> 
