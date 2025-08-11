@@ -12,6 +12,8 @@
 # add forecast projections for solar capacity additions from BNEF
 # R.version.string
 
+### Load Libraries and constants -----
+
 # install.packages("languageserver")
 # install.packages("jsonlite", type = "source")
 
@@ -23,7 +25,6 @@ sessionInfo()
 # .libPaths()
 # install.packages(c("pacman"))
 
-### Load Libraries and constants -----
 library(pacman)
 p_load(tidyverse,dplyr,readxl,readxl,countrycode,remotes,stringr)
 
@@ -91,8 +92,8 @@ ceds <- rbind(read.csv("data/CEDS_v_2025_03_18_aggregate/CH4_CEDS_estimates_by_c
                 pivot_longer(cols = seq(4,277)))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5)))
 
-#sectoral ceds data (so far only for CO2, but could be expanded to more gases, at least for CH4 could be interesting):
-ceds_s <-read.csv("data/CEDS_v_2025_03_18_aggregate/CO2_CEDS_estimates_by_country_sector_v_2025_03_18.csv") |>
+#sectoral ceds data (so far only for CO2, CH4, and N2O, but could be expanded to more gases):
+ceds_c <-read.csv("data/CEDS_v_2025_03_18_aggregate/CO2_CEDS_estimates_by_country_sector_v_2025_03_18.csv") |>
   pivot_longer(cols=seq(5,278))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5))) %>%
   filter(year > starty)
@@ -542,9 +543,13 @@ head(iiasa_data)
 
 
 ###### PRIMAP hist -------------------------------------
-dat_prim <- prim |> filter(entity %in% c("KYOTOGHG (AR4GWP100)","KYOTOGHG (AR5GWP100)","CO2","CH4","N2O","FGASES (AR4GWP100)","FGASES (AR5GWP100)"),
-                           year > starty,category..IPCC2006_PRIMAP. %in% c("0", "M.0.EL","M.LULUCF"),
-                           scenario..PRIMAP.hist. %in% c("HISTCR","HISTTP")) |> select(-provenance,-source) |>
+dat_prim <- prim |>
+  rename(category = category..IPCC2006_PRIMAP.,
+         scen_prim = scenario..PRIMAP.hist.)
+
+dat_prim <- dat_prim |> filter(entity %in% c("KYOTOGHG (AR4GWP100)","KYOTOGHG (AR5GWP100)","CO2","CH4","N2O","FGASES (AR4GWP100)","FGASES (AR5GWP100)"),
+                           year > starty,category %in% c("0", "M.0.EL","M.LULUCF"),
+                           scen_prim %in% c("HISTCR","HISTTP")) |> select(-provenance,-source) |>
   mutate(unit = case_when(
     entity=="CH4" ~ "Mt CH4/yr",
     entity=="N2O" ~ "kt N2O/yr",
@@ -558,45 +563,48 @@ dat_prim <- prim |> filter(entity %in% c("KYOTOGHG (AR4GWP100)","KYOTOGHG (AR5GW
 
 dat_prim <- dat_prim |>
   mutate(entity = case_when(
-    #define emission categories: most from HISTCR, but for AFOLu, also use IAM default version without indirect LULUCF (HISTTP)
-    #afterwards (see rbind below), total CO2 and total Kyoto also get calculated with the HISTTP LULUCF to get to a consistent set with / without indirect LULUCF (Grassi effect)
-    entity=="KYOTOGHG (AR4GWP100)" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTCR" ~ "Emissions|Kyoto Gases (incl. all LULUCF)",
-    entity=="KYOTOGHG (AR4GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|Kyoto Gases (excl. LUC)",
-    entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
-    entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR" ~ "Emissions|Kyoto Gases|AR5 (excl. LUC)",
-    entity=="KYOTOGHG (AR4GWP100)" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTTP" ~ "Emissions|Kyoto Gases (incl. all LULUCF)",
-    entity=="KYOTOGHG (AR4GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|Kyoto Gases (excl. LUC)",
-    entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
-    entity=="KYOTOGHG (AR5GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTTP" ~ "Emissions|Kyoto Gases|AR5 (excl. LUC)",
-    entity=="CO2" & category..IPCC2006_PRIMAP.=="0" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2 (incl. all LULUCF)",
-    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2|Energy and Industrial Processes",
-    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CO2|AFOLU",
-    entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF" & scenario..PRIMAP.hist. =="HISTTP"~ "Emissions|CO2|AFOLU",
-    entity=="CH4" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|CH4",
-    entity=="N2O" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|N2O",
-    entity=="FGASES (AR4GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR"~ "Emissions|F-Gases",
-    entity=="FGASES (AR5GWP100)" & category..IPCC2006_PRIMAP.=="M.0.EL" & scenario..PRIMAP.hist. =="HISTCR" ~ "Emissions|F-Gases|AR5"
+    #define emission categories: 
+    #country-reporting (HISTCR)
+    entity=="KYOTOGHG (AR4GWP100)" & category=="0" & scen_prim =="HISTCR" ~ "Emissions|Kyoto Gases (incl. all LULUCF)",
+    entity=="KYOTOGHG (AR4GWP100)" & category=="M.0.EL" & scen_prim =="HISTCR"~ "Emissions|Kyoto Gases (excl. LUC)",
+    entity=="KYOTOGHG (AR5GWP100)" & category=="0" & scen_prim =="HISTCR"~ "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
+    entity=="KYOTOGHG (AR5GWP100)" & category=="M.0.EL" & scen_prim =="HISTCR" ~ "Emissions|Kyoto Gases|AR5 (excl. LUC)",
+    entity=="CO2" & category=="0" & scen_prim =="HISTCR"~ "Emissions|CO2 (incl. all LULUCF)",
+    entity=="CO2" & category=="M.0.EL" & scen_prim =="HISTCR"~ "Emissions|CO2|Energy and Industrial Processes",
+    entity=="CO2" & category=="M.LULUCF" & scen_prim =="HISTCR"~ "Emissions|CO2|AFOLU",
+    entity=="CH4" & category=="M.0.EL" & scen_prim =="HISTCR"~ "Emissions|CH4",
+    entity=="N2O" & category=="M.0.EL" & scen_prim =="HISTCR"~ "Emissions|N2O",
+    entity=="FGASES (AR4GWP100)" & category=="M.0.EL" & scen_prim =="HISTCR"~ "Emissions|F-Gases",
+    entity=="FGASES (AR5GWP100)" & category=="M.0.EL" & scen_prim =="HISTCR" ~ "Emissions|F-Gases|AR5",
+    # Add in some Third-Party reported results as well
+    entity=="KYOTOGHG (AR4GWP100)" & category=="0" & scen_prim =="HISTTP" ~ "Emissions|Kyoto Gases (incl. all LULUCF)",
+    entity=="KYOTOGHG (AR4GWP100)" & category=="M.0.EL" & scen_prim =="HISTTP"~ "Emissions|Kyoto Gases (excl. LUC)",
+    entity=="KYOTOGHG (AR5GWP100)" & category=="0" & scen_prim =="HISTTP"~ "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
+    entity=="KYOTOGHG (AR5GWP100)" & category=="M.0.EL" & scen_prim =="HISTTP" ~ "Emissions|Kyoto Gases|AR5 (excl. LUC)",
+    entity=="CO2" & category=="0" & scen_prim =="HISTTP"~ "Emissions|CO2 (incl. all LULUCF)",
+    entity=="CO2" & category=="M.0.EL" & scen_prim =="HISTTP"~ "Emissions|CO2|Energy and Industrial Processes",
+    entity=="CO2" & category=="M.LULUCF" & scen_prim =="HISTTP"~ "Emissions|CO2|AFOLU"
   ))|> 
   # Show that AFOLU value in Primap-Hist are actually just the LULUCF (Land) values (missing some agriculture emissions)
   bind_rows(dat_prim |>
-              filter(entity=="CO2" & category..IPCC2006_PRIMAP.=="M.LULUCF") |>
+              filter(entity=="CO2" & category=="M.LULUCF") |>
               mutate(entity = "Emissions|CO2|AFOLU|Land")
   ) |>
   filter(!is.na(entity))|>
-  mutate(scenario..PRIMAP.hist. = case_when(
-    scenario..PRIMAP.hist. =="HISTCR" ~ "PRIMAP-hist",
-    scenario..PRIMAP.hist. =="HISTTP" ~ "PRIMAP-hist [TP]"
+  mutate(scen_prim = case_when(
+    scen_prim =="HISTCR" ~ "PRIMAP-hist",
+    scen_prim =="HISTTP" ~ "PRIMAP-hist [TP]"
   )) |>
-  select(-category..IPCC2006_PRIMAP.)|>
+  select(-category)|>
   mutate(scenario="historical")|>
-  rename(variable=entity,iso=region, model =scenario..PRIMAP.hist.) |>
+  rename(variable=entity,iso=region, model =scen_prim) |>
   #rename EARTH to World
   mutate(iso = ifelse(iso == "EARTH", "World", iso)) |>
   #filter out country groups (only keep EU27BX and World)
   filter(!iso %in% c("LDC","AOSIS","ANNEXI","BASIC","NONANNEXI","UMBRELLA"))
 
 
-
+#total CO2 and total Kyoto also get calculated with the LULUCF to get to a consistent set with / without indirect LULUCF (Grassi effect)
 dat_prim <-  rbind(dat_prim,
                   dat_prim|>select(-unit) |> filter(variable %in% c("Emissions|CO2|AFOLU|Land","Emissions|CO2|Energy and Industrial Processes","Emissions|Kyoto Gases (excl. LUC)"))|>
                     pivot_wider(names_from=variable,values_fill = 0)|>mutate(
@@ -616,6 +624,8 @@ dat_prim <-  rbind(dat_prim,
 
 
 ###### CEDS ##############
+
+# Process the CEDS total emission values 
 dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
   mutate(unit = case_when(
     entity=="CH4" ~ "Mt CH4/yr",
@@ -652,7 +662,7 @@ dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
 ## Decide whether to map heat production to electricity, rather than report as own category, which may be appropriate for eg. China figures
 switch_count_heat_as_elec <- F
 if (switch_count_heat_as_elec == T) {
-  map_ceds_chn <- read.csv("mappings/ceds_sector_mapping_China.csv") %>% gather_map() 
+  map_ceds <- read.csv("mappings/ceds_sector_mapping_China.csv") %>% gather_map() 
 } else {
   map_ceds <- read.csv("mappings/ceds_sector_mapping.csv") %>% gather_map()
 }
@@ -702,19 +712,19 @@ if (switch_count_heat_as_elec == T) {
 
 #add sectoral data based on IAMC mappings
 
-dat_ceds <- dat_ceds |> rbind(test <- ceds_s |> left_join(map_ceds |> select(sector,var), relationship = "many-to-many")|> 
+dat_ceds <- dat_ceds |> rbind(test <- ceds_c |> left_join(map_ceds, by = c("sector"), relationship = "many-to-many")|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt CO2/yr",value=value/1000)|> rename(variable=var))  
 
-dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds |> select(sector,var), relationship = "many-to-many")|> 
+dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds, by = c("sector"), relationship = "many-to-many")|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt CH4/yr",value=value/1000)|> rename(variable=var)) 
 
-dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds |> select(sector,var), relationship = "many-to-many")|> 
+dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds, by = c("sector"), relationship = "many-to-many")|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
@@ -723,7 +733,7 @@ dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds |> select(sector,var)
 
 #add sectoral data based on IAMC2 mappings
 
-# dat_ceds <- dat_ceds |> rbind(ceds_s |> left_join(map_ceds |> select(sector,IAMC2))|> 
+# dat_ceds <- dat_ceds |> rbind(ceds_c |> left_join(map_ceds |> select(sector,IAMC2))|> 
 #   group_by(iso,entity,year,IAMC2,units) |> summarize(value=sum(value))|>
 #   ungroup() |> mutate(IAMC2 = paste0("Emissions|",entity,"|",IAMC2))|>
 #   select(-entity,-units)|>mutate(model="ceds",scenario="historical",
