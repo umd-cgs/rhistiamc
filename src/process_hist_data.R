@@ -42,8 +42,8 @@ starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time se
 
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
-#model_regions <- "gcam32"   # Using GCAM core regions
-model_regions <- "r10"
+model_regions <- "gcam32"   # Using GCAM core regions
+#model_regions <- "r10"
 #model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
@@ -130,60 +130,40 @@ owid_co2_data <- owid_co2_data %>%
 
 ###### emissions: co2 luc - GCB ---------
 # Global Carbon Budget - National Land Use Change Carbon Emissions
-
-#get header info
-header_data <- read.csv("data/National_LandUseChange_Carbon_Emissions_2023v1.0_BLUE.csv", skip = 7, nrows = 1, header = FALSE)
-header_data <- header_data[, 1:202]
-column_names <- as.character(header_data[1, ])
-#change country names with special characters
+file_path <- "data/National_LandUseChange_Carbon_Emissions_2024v1.01.xlsx"
+#get header info and change column names
+header_data <- read_excel(file_path, sheet = "BLUE", skip = 7, n_max = 1, col_names = FALSE)
+column_names <- as.character(unlist(header_data[1, 1:202]))
 column_names[1] <- "year"
 column_names[85] <- "Cote d'Ivoire"
 column_names[181] <- "Turkiye"
 
-#reading in data from three different models
-blue <- read.csv("data/National_LandUseChange_Carbon_Emissions_2023v1.0_BLUE.csv", skip = 9, header = FALSE)
-names(blue) <- column_names
-blue <- blue[, 1:202]
-
-oscar <-read.csv("data/National_LandUseChange_Carbon_Emissions_2023v1.0_H&C.csv", skip = 9, header = FALSE)
-names(oscar) <- column_names
-oscar <- oscar[, 1:202]
-
-hc <- read.csv("data/National_LandUseChange_Carbon_Emissions_2023v1.0_OSCAR.csv", skip = 9, header = FALSE)
-names(hc) <- column_names
-hc <- hc[, 1:202]
-
+#Function to process each sheet with different models
 #filter out unwanted years and columns
-blue<- blue %>%
-  filter(year > starty) %>% select(-c(DISPUTED, OTHER))
+process_sheet <- function(sheet_name, model_name) {
+  df <- read_excel(file_path, sheet = sheet_name, skip = 8, col_names = FALSE)[, 1:202]
+  names(df) <- column_names
+  df %>%
+    filter(year > starty) %>%
+    select(-any_of(c("DISPUTED", "OTHER"))) %>%
+    pivot_longer(cols = -year, names_to = "Country", values_to = "value") %>%
+    mutate(value = value * 3.664, model = model_name)
+}
+# Process each model sheet 
+blue  <- process_sheet("BLUE", "BLUE")
+hc    <- process_sheet("H&C2023", "H&C")
+oscar <- process_sheet("OSCAR", "OSCAR")
+luce  <- process_sheet("LUCE", "LUCE")
 
-oscar<- oscar %>%
-  filter(year > starty) %>% select(-c(DISPUTED, OTHER))
-
-hc<- hc %>%
-  filter(year > starty) %>% select(-c(DISPUTED, OTHER))
-
-blue <- blue %>%
-  pivot_longer(cols = -year, names_to = "Country", values_to = "value") %>% 
-  mutate(value = value * 3.664, model = "BLUE") #convert to million tonnes of CO2
-
-hc <- hc %>%
-  pivot_longer(cols = -year, names_to = "Country", values_to = "value") %>% 
-  mutate(value = value * 3.664, model = "H&C") #convert to million tonnes of CO2
-
-oscar <- oscar %>%
-  pivot_longer(cols = -year, names_to = "Country", values_to = "value") %>% 
-  mutate(value = value * 3.664, model = "OSCAR") #convert to million tonnes of CO2
-
-#combine all df into one
-land <- rbind(blue, oscar, hc)
+#Combine and arrange 
+land <- bind_rows(blue, oscar, hc, luce)
 land<- arrange(land, year, Country)
 
 
 
 ###### emissions: ch4 - IEA ---------
 
-file_path <- "data/IEA-MethaneEmissionsComparison-World.csv"
+file_path <- "data/IEA Methane Emissions 2024.csv"
 iea_ch4 <- read.csv(file_path)
 
 iea_ch4 <- iea_ch4 %>%
@@ -194,8 +174,13 @@ iea_ch4 <- iea_ch4 %>%
   rename(value = "emissions..kt.")
 
 iea_ch4 <- iea_ch4 %>%
-  mutate(baseYear = ifelse(baseYear == "2019-2021", "2021", baseYear)) %>%
+  mutate(baseYear = case_when(
+    baseYear == "2019-2021" ~ "2021",
+    baseYear == "2022-2024" ~ "2024",
+    TRUE ~ baseYear
+  )) %>%
   rename(year = baseYear)
+
 
 
 ###### emissions: ch4 - CLIMATE TRACE ---------
@@ -613,10 +598,10 @@ dat_prim <- dat_prim |>
 
 
 dat_prim <-  rbind(dat_prim,
-                  dat_prim|>select(-unit) |> filter(variable %in% c("Emissions|CO2|AFOLU","Emissions|CO2|Energy and Industrial Processes","Emissions|Kyoto Gases (excl. LUC)"))|>
+                  dat_prim|>select(-unit) |> filter(variable %in% c("Emissions|CO2|AFOLU|LULUCF","Emissions|CO2|Energy and Industrial Processes","Emissions|Kyoto Gases (excl. LUC)"))|>
                     pivot_wider(names_from=variable,values_fill = 0)|>mutate(
-                      `Emissions|CO2`=`Emissions|CO2|AFOLU`+`Emissions|CO2|Energy and Industrial Processes`,
-                      `Emissions|Kyoto Gases`=`Emissions|CO2|AFOLU`+`Emissions|Kyoto Gases (excl. LUC)`
+                      `Emissions|CO2`=`Emissions|CO2|AFOLU|LULUCF`+`Emissions|CO2|Energy and Industrial Processes`,
+                      `Emissions|Kyoto Gases`=`Emissions|CO2|AFOLU|LULUCF`+`Emissions|Kyoto Gases (excl. LUC)`
                     ) |> pivot_longer(cols=c(-iso,-year,-model,-scenario),names_to = 'variable')|>
                     filter(variable %in% c("Emissions|CO2","Emissions|Kyoto Gases"))|>
                     mutate(unit = case_when(
@@ -774,11 +759,11 @@ dat_prim <- rbind(dat_prim |> filter(iso !="World"),
                   #World data in variables that do not get adjusted 
                   dat_prim |> filter(iso=="World",
                                      variable %in% c("Emissions|F-Gases","Emissions|F-Gases|AR5",
-                                                     "Emissions|CO2|AFOLU","Emissions|CO2|AFOLU (incl. all LULUCF)")),
+                                                     "Emissions|CO2|AFOLU|LULUCF","Emissions|CO2|AFOLU|LULUCF")),
                   #World data that needs adjustment to include int. aviation and shipping 
                   rbind(dat_prim |> filter(iso=="World",
                                      !variable %in% c("Emissions|F-Gases","Emissions|F-Gases|AR5",
-                                                                        "Emissions|CO2|AFOLU","Emissions|CO2|AFOLU (incl. all LULUCF)"))|>
+                                                                        "Emissions|CO2|AFOLU|LULUCF","Emissions|CO2|AFOLU|LULUCF"))|>
                           select(-iso),
                   #add int. emissions from CEDS, use 2022 for 2023
                   dat_ceds_int |> rbind(dat_ceds_int |> filter(year==2022) |> mutate(year=2023)) |> 
@@ -1087,23 +1072,30 @@ dat_owid_energy <- NULL
 
 
 ###### IEA GEVO -------------------------------------
-#  Prepare data
-iea_ev_clean <- iea_ev %>%
+iea_ev <- read_excel("data/GlobalEVDataExplorer2025.xlsx") %>%
+  rename(region = region_country) %>%
+  select(-`Aggregate group`) %>%
   mutate(
     iso = countrycode(region, "country.name", "iso3c"),
     iso = case_when(region == "World" ~ "World",
                     region == "EU27" ~ "EU27BX",
                     TRUE ~ iso),
     mode_group = case_when(
-      mode %in% c("Cars", "Vans") ~ "Light-Duty Vehicle",
+      mode %in% c("Cars", "Vans", "2 and 3 wheelers") ~ "Light-Duty Vehicle",
       mode == "Buses" ~ "Bus",
       mode == "Trucks" ~ "Truck",
       TRUE ~ NA_character_
     ),
+    sub_mode = case_when(
+      mode == "Cars" ~ "Car",
+      mode == "Vans" ~ "Van",
+      mode == "2 and 3 wheelers" ~ "Two-Wheeler",
+      TRUE ~ "" 
+    ),
     scenario = if_else(category == "Historical", "historical", category),
     value = case_when(
       unit == "Vehicles" ~ value / 1e6,
-      unit == "percent" ~ value,            
+      unit == "percent" ~ value,
       TRUE ~ value
     ),
     unit = case_when(
@@ -1114,184 +1106,194 @@ iea_ev_clean <- iea_ev %>%
   ) %>%
   filter(!is.na(iso), !is.na(mode_group))
 
-#  EV stocks
-ev_stock <- iea_ev_clean %>%
+# === EV STOCKS ===
+ev_stock <- iea_ev %>%
   filter(parameter == "EV stock", powertrain %in% c("BEV", "PHEV", "FCEV")) %>%
-  mutate(variable = case_when(
-    powertrain == "BEV" ~ paste0("Stocks|Transportation|", mode_group, "|Battery-Electric"),
-    powertrain == "PHEV" ~ paste0("Stocks|Transportation|", mode_group, "|Plug-in Hybrid"),
-    powertrain == "FCEV" ~ paste0("Stocks|Transportation|", mode_group, "|Fuel-Cell-Electric")
+  mutate(variable = paste0(
+    "Stocks|Transportation|", mode_group,
+    ifelse(sub_mode != "", paste0("|", sub_mode), ""),
+    "|", case_when(
+      powertrain == "BEV" ~ "Battery-Electric",
+      powertrain == "PHEV" ~ "Plug-in Hybrid",
+      powertrain == "FCEV" ~ "Fuel-Cell-Electric"
+    )
   )) %>%
-  group_by(iso, variable, unit, year, model, scenario, mode_group) %>%
-  summarise(value = sum(value), .groups = "drop")%>%
-  select(iso, variable, unit, year, value, model, scenario, mode_group)
+  group_by(iso, variable, unit, year, model, scenario, mode_group, sub_mode) %>%
+  summarise(value = sum(value), .groups = "drop")
 
-#  EV sales
-ev_sales <- iea_ev_clean %>%
+# === EV SALES ===
+ev_sales <- iea_ev %>%
   filter(parameter == "EV sales", powertrain %in% c("BEV", "PHEV", "FCEV")) %>%
-  mutate(variable = case_when(
-    powertrain == "BEV" ~ paste0("Sales|Transportation|", mode_group, "|Battery-Electric"),
-    powertrain == "PHEV" ~ paste0("Sales|Transportation|", mode_group, "|Plug-in Hybrid"),
-    powertrain == "FCEV" ~ paste0("Sales|Transportation|", mode_group, "|Fuel-Cell-Electric")
+  mutate(variable = paste0(
+    "Sales|Transportation|", mode_group,
+    ifelse(sub_mode != "", paste0("|", sub_mode), ""),
+    "|", case_when(
+      powertrain == "BEV" ~ "Battery-Electric",
+      powertrain == "PHEV" ~ "Plug-in Hybrid",
+      powertrain == "FCEV" ~ "Fuel-Cell-Electric"
+    )
   )) %>%
-  group_by(iso, variable, unit, year, model, scenario, mode_group) %>%
-  summarise(value = sum(value), .groups = "drop")%>%
-  select(iso, variable, unit, year, value, model, scenario, mode_group)
-#  Sales share (for ICE calculation)
-ev_sales_share <- iea_ev_clean %>%
+  group_by(iso, variable, unit, year, model, scenario, mode_group, sub_mode) %>%
+  summarise(value = sum(value), .groups = "drop")
+
+
+# === EV SALES SHARE (used for total calc) ===
+ev_sales_share <- iea_ev %>%
   filter(parameter == "EV sales share") %>%
-  group_by(iso, year, scenario, mode_group) %>%
+  group_by(iso, year, scenario, mode_group, sub_mode) %>%
   summarise(ev_share = mean(value, na.rm = TRUE), .groups = "drop")
-#  Stock share (for ICE calculation)
 
-ev_stock_share <- iea_ev_clean %>%
+# === EV STOCK SHARE (used for total calc) ===
+ev_stock_share <- iea_ev %>%
   filter(parameter == "EV stock share") %>%
-  group_by(iso, year, scenario, mode_group) %>%
+  group_by(iso, year, scenario, mode_group, sub_mode) %>%
   summarise(ev_share = mean(value, na.rm = TRUE), .groups = "drop")
 
-#  Total EV stock by mode
+# === TOTAL STOCK ===
 ev_stock_total <- ev_stock %>%
-  group_by(iso, year, scenario, mode_group) %>%
+  group_by(iso, year, scenario, mode_group, sub_mode) %>%
   summarise(ev_stock = sum(value), .groups = "drop")
 
-#  Calculate total stock from share
 stock_total <- left_join(ev_stock_total, ev_stock_share,
-                         by = c("iso", "year", "scenario", "mode_group")) %>%
+                         by = c("iso", "year", "scenario", "mode_group", "sub_mode")) %>%
   filter(!is.na(ev_share), ev_share > 0) %>%
   mutate(
     value = ev_stock / (ev_share / 100),
+    variable = paste0("Stocks|Transportation|", mode_group, "|", sub_mode),
+    unit = "million",
+    model = "IEA_GEVO"
+  ) %>%
+  select(iso, variable, unit, year, value, model, scenario, mode_group, sub_mode)
+
+# === AGGREGATE TOTAL STOCK BY MODE GROUP (LDV, Bus, Truck) ===
+stock_total_agg <- stock_total %>%
+  group_by(iso, year, scenario, mode_group) %>%
+  summarise(value = sum(value, na.rm = TRUE), .groups = "drop") %>%
+  mutate(
     variable = paste0("Stocks|Transportation|", mode_group),
     unit = "million",
     model = "IEA_GEVO"
   ) %>%
-  select(iso, variable, unit, year, value, model, scenario, mode_group)
+  select(iso, variable, unit, year, value, model, scenario)
 
-
-
-#  Total EV sales by mode
+# === TOTAL SALES ===
 ev_sales_total <- ev_sales %>%
-  group_by(iso, year, scenario, mode_group) %>%
+  group_by(iso, year, scenario, mode_group, sub_mode) %>%
   summarise(ev_sales = sum(value), .groups = "drop")
 
-
-#  Calculate total sales of all node groups from share
 sales_total <- left_join(ev_sales_total, ev_sales_share,
-                         by = c("iso", "year", "scenario", "mode_group")) %>%
+                         by = c("iso", "year", "scenario", "mode_group", "sub_mode")) %>%
   filter(!is.na(ev_share), ev_share > 0) %>%
   mutate(
     value = ev_sales / (ev_share / 100),
+    variable = paste0("Sales|Transportation|", mode_group, "|", sub_mode),
+    unit = "million",
+    model = "IEA_GEVO"
+  ) %>%
+  select(iso, variable, unit, year, value, model, scenario, mode_group, sub_mode)
+# === AGGREGATE TOTAL SALES BY MODE GROUP (LDV, Bus, Truck) ===
+sales_total_agg <- sales_total %>%
+  group_by(iso, year, scenario, mode_group) %>%
+  summarise(value = sum(value, na.rm = TRUE), .groups = "drop") %>%
+  mutate(
     variable = paste0("Sales|Transportation|", mode_group),
     unit = "million",
     model = "IEA_GEVO"
   ) %>%
-  select(iso, variable, unit, year, value, model, scenario, mode_group)
+  select(iso, variable, unit, year, value, model, scenario)
 
-
-
-#  Calculate ICE stock
+# === ICE STOCK & SALES ===
 ice_stock <- left_join(stock_total, ev_stock_total,
-                       by = c("iso", "year", "scenario", "mode_group")) %>%
+                       by = c("iso", "year", "scenario", "mode_group", "sub_mode")) %>%
   mutate(
     value = value - ev_stock,
-    variable = paste0("Stocks|Transportation|", mode_group, "|Internal Combustion"),
+    variable = paste0(
+      "Stocks|Transportation|", mode_group,
+      ifelse(sub_mode != "", paste0("|", sub_mode), ""),
+      "|Internal Combustion"
+    ),
     unit = "million",
     model = "IEA_GEVO"
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
-#  Calculate ICE sales
 ice_sales <- left_join(sales_total, ev_sales_total,
-                       by = c("iso", "year", "scenario", "mode_group")) %>%
+                       by = c("iso", "year", "scenario", "mode_group", "sub_mode")) %>%
   mutate(
     value = value - ev_sales,
-    variable = paste0("Sales|Transportation|", mode_group, "|Internal Combustion"),
+    variable = paste0(
+      "Sales|Transportation|", mode_group,
+      ifelse(sub_mode != "", paste0("|", sub_mode), ""),
+      "|Internal Combustion"
+    ),
     unit = "million",
     model = "IEA_GEVO"
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
-# Code for the extra share variables
-
-# Compute BEV sales share
+# === BEV SHARES ===
 bev_sales_share <- ev_sales %>%
   filter(grepl("Battery-Electric", variable)) %>%
-  group_by(iso, year, scenario, model, mode_group) %>%
+  group_by(iso, year, scenario, model, mode_group, sub_mode) %>%
   summarise(bev_sales = sum(value), .groups = "drop") %>%
   left_join(
-    sales_total %>%
-      rename(total_sales = value) %>%
-      select(iso, year, scenario, mode_group, total_sales),
-    by = c("iso", "year", "scenario", "mode_group")
+    sales_total %>% rename(total_sales = value) %>%
+      select(iso, year, scenario, mode_group, sub_mode, total_sales),
+    by = c("iso", "year", "scenario", "mode_group", "sub_mode")
   ) %>%
   mutate(
     value = 100 * bev_sales / total_sales,
-    variable = paste0("Sales Share|Transportation|", mode_group, "|Battery-Electric"),
+    variable = paste0(
+      "Sales Share|Transportation|", mode_group,
+      ifelse(sub_mode != "", paste0("|", sub_mode), ""),
+      "|Battery-Electric"
+    ),
     unit = "%",
-    model = "IEA_GEVO"  
+    model = "IEA_GEVO"
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
 
-
-# compute BEV stock share
 bev_stock_share <- ev_stock %>%
   filter(grepl("Battery-Electric", variable)) %>%
-  group_by(iso, year, scenario, model, mode_group) %>%
+  group_by(iso, year, scenario, model, mode_group, sub_mode) %>%
   summarise(bev_stock = sum(value), .groups = "drop") %>%
   left_join(
-    stock_total %>%
-      rename(total_stock = value) %>%
-      select(iso, year, scenario, mode_group, total_stock),
-    by = c("iso", "year", "scenario", "mode_group")
+    stock_total %>% rename(total_stock = value) %>%
+      select(iso, year, scenario, mode_group, sub_mode, total_stock),
+    by = c("iso", "year", "scenario", "mode_group", "sub_mode")
   ) %>%
   mutate(
     value = 100 * bev_stock / total_stock,
-    variable = paste0("Stock Share|Transportation|", mode_group, "|Battery-Electric"),
+    variable = paste0(
+      "Stock Share|Transportation|", mode_group,
+      ifelse(sub_mode != "", paste0("|", sub_mode), ""),
+      "|Battery-Electric"
+    ),
     unit = "%",
-    model = "IEA_GEVO"  
+    model = "IEA_GEVO"
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
-# Calculate sales share for BEV+PHEV
-bevphev_sales_share <- iea_ev_clean %>%
-  filter(parameter == "EV sales share", mode %in% c("Cars", "Vans")) %>%
-  group_by(iso, year, scenario, model) %>%
-  summarise(value = mean(value, na.rm = TRUE), .groups = "drop") %>%
-  mutate(
-    variable = "Sales Share|Transportation|Light-Duty Vehicle|BEV+PHEV",
-    unit = "%"
-  ) %>%
-  select(iso, variable, unit, year, value, model, scenario)
-
-#Calculate stock share for BEV+PHEV
-bevphev_stock_share <- iea_ev_clean %>%
-  filter(parameter == "EV stock share", mode %in% c("Cars", "Vans")) %>%
-  group_by(iso, year, scenario, model) %>%
-  summarise(value = mean(value, na.rm = TRUE), .groups = "drop") %>%
-  mutate(
-    variable = "Stock Share|Transportation|Light-Duty Vehicle|BEV+PHEV",
-    unit = "%"
-  ) %>%
-  select(iso, variable, unit, year, value, model, scenario)
-
-
+# === Combine all outputs ===
 ev_stock_clean <- ev_stock %>%
-  filter(!grepl("^Stocks\\|Transportation\\|[^|]+$", variable)) # Only rows with powertrain
+  filter(!grepl("^Stocks\\|Transportation\\|[^|]+$", variable))  # only with powertrain
 
-#  Combine final output
 dat_iea_ev <- bind_rows(
-  ev_sales %>% select(-mode_group),
-  ev_stock_clean %>% select(-mode_group), 
-  sales_total %>% select(-mode_group),                       
-  stock_total %>% select(-mode_group),
+  ev_sales %>% select(-mode_group, -sub_mode),
+  ev_stock_clean %>% select(-mode_group, -sub_mode),
+  sales_total %>% select(-mode_group, -sub_mode),
+  stock_total %>% select(-mode_group, -sub_mode),
+  sales_total_agg,
+  stock_total_agg,
   ice_sales,
   ice_stock,
   bev_sales_share,
-  bev_stock_share,
-  bevphev_sales_share,
-  bevphev_stock_share
+  bev_stock_share
 ) %>%
   distinct()
+
+
 
 
 ###### Robbie  -------------------------------------
