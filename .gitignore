@@ -18,3 +18,7 @@ runs/*
 ## large files
 *.Rds
 *.xlsx
+
+# personalized folders
+.vscode
+renv
