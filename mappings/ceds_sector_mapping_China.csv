@@ -1,63 +1,63 @@
-sector,var1,var2,var3,var4,var5,var6
-1A1a_Electricity-autoproducer,Energy,Energy|Supply,Energy|Supply|Electricity and Heat,Energy|Supply|Electricity and Heat|Electricity,,
-1A1a_Electricity-public,Energy,Energy|Supply,Energy|Supply|Electricity and Heat,Energy|Supply|Electricity and Heat|Electricity,,
-1A1a_Heat-production,Energy,Energy|Supply,Energy|Supply|Electricity and Heat,Energy|Supply|Electricity and Heat|Heat,,
-1A1bc_Other-transformation,Energy,Energy|Supply,Energy|Supply|Other Supply,Energy|Supply|Other Supply|Other,,
-1A2a_Ind-Comb-Iron-steel,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Iron and Steel,,
-1A2b_Ind-Comb-Non-ferrous-metals,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Non-Ferrous Metals,,
-1A2c_Ind-Comb-Chemicals,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals,,
-1A2d_Ind-Comb-Pulp-paper,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A2e_Ind-Comb-Food-tobacco,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A2f_Ind-Comb-Non-metalic-minerals,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Non-Metallic Minerals,,
-1A2g_Ind-Comb-Construction,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A2g_Ind-Comb-machinery,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A2g_Ind-Comb-mining-quarying,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Mining,,
-1A2g_Ind-Comb-other,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A2g_Ind-Comb-textile-leather,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A2g_Ind-Comb-transpequip,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A2g_Ind-Comb-wood-products,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A3b_Road,Energy,Energy|Demand,Energy|Demand|Transportation,,,
-1A3c_Rail,Energy,Energy|Demand,Energy|Demand|Transportation,,,
-1A3di_Oil_Tanker_Loading,Energy,Energy|Demand,Energy|Demand|Transportation,,,
-1A3dii_Domestic-navigation,Energy,Energy|Demand,Energy|Demand|Transportation,,,
-1A3eii_Other-transp,Energy,Energy|Demand,Energy|Demand|Transportation,,,
-1A4a_Commercial-institutional,Energy,Energy|Demand,Energy|Demand|Residential and Commercial,Energy|Demand|Commercial,,
-1A4b_Residential,Energy,Energy|Demand,Energy|Demand|Residential and Commercial,Energy|Demand|Residential,,
-1A4c_Agriculture-forestry-fishing,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1A5_Other-unspecified,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-1B1_Fugitive-solid-fuels,Energy,Energy|Supply,Energy|Supply|Other Supply,Energy|Supply|Fugitive,Energy|Supply|Other Supply|Coal,
-1B2_Fugitive-petr,Energy,Energy|Supply,Energy|Supply|Other Supply,Energy|Supply|Fugitive,Energy|Supply|Other Supply|Oil and Gas,Energy|Supply|Other Supply|Oil and Gas|Oil
-1B2b_Fugitive-NG-distr,Energy,Energy|Supply,Energy|Supply|Other Supply,Energy|Supply|Fugitive,Energy|Supply|Other Supply|Oil and Gas,Energy|Supply|Other Supply|Oil and Gas|Gas
-1B2b_Fugitive-NG-prod,Energy,Energy|Supply,Energy|Supply|Other Supply,Energy|Supply|Fugitive,Energy|Supply|Other Supply|Oil and Gas,Energy|Supply|Other Supply|Oil and Gas|Gas
-1B2d_Fugitive-other-energy,Energy,Energy|Supply,Energy|Supply|Other Supply,Energy|Supply|Fugitive,Energy|Supply|Other Supply|Other,
-2A1_Cement-production,Industrial Processes,,Industrial Processes|Cement,,,
-2A2_Lime-production,Industrial Processes,,Industrial Processes|Cement,,,
-2Ax_Other-minerals,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Non-Metallic Minerals,,
-2B_Chemical-industry,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals,,
-2B2_Chemicals-Nitric-acid,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals,,
-2B3_Chemicals-Adipic-acid,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals,,
-2C1_Iron-steel-alloy-prod,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Iron and Steel,,
-2C3_Aluminum-production,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Non-Ferrous Metals,Energy|Demand|Industry|Non-Ferrous Metals|Aluminum,
-2C4_Non-Ferrous-other-metals,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Non-Ferrous Metals,,
-2D_Chemical-products-manufacture-processing,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals,,
-2D_Degreasing-Cleaning,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals,,
-2D_Other-product-use,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals,,
-2D_Paint-application,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals,,
-2H_Pulp-and-paper-food-beverage-wood,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-2L_Other-process-emissions,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other,,
-3B_Manure-management,AFOLU|Agriculture,AFOLU|Agriculture|Livestock|Manure Management,,,,
-3D_Rice-Cultivation,AFOLU|Agriculture,AFOLU|Agriculture|Rice,,,,
-3D_Soil-emissions,AFOLU|Agriculture,AFOLU|Agriculture|Managed Soils,,,,
-3E_Enteric-fermentation,AFOLU|Agriculture,AFOLU|Agriculture|Livestock|Enteric Fermentation,,,,
-3I_Agriculture-other,AFOLU|Agriculture,AFOLU|Agriculture|Other,,,,
-5A_Solid-waste-disposal,Waste,Waste|Solid Waste,,,,
-5C_Waste-combustion,Waste,Waste|Other,,,,
-5D_Wastewater-handling,Waste,Waste|Wastewater,,,,
-5E_Other-waste-handling,Waste,Waste|Other,,,,
-6A_Other-in-total,Other,,,,,
-6B_Other-not-in-total,Other,,,,,
-7A_Fossil-fuel-fires,AFOLU,AFOLU|Land,,,,
-7BC_Indirect-N2O-non-agricultural-N,AFOLU,AFOLU|Land,,,,
-1A3ai_International-aviation,Energy,Energy|Demand,Energy|Demand|Transportation,,,
-1A3aii_Domestic-aviation,Energy,Energy|Demand,Energy|Demand|Transportation,,,
-1A3di_International-shipping,Energy,Energy|Demand,Energy|Demand|Transportation,,,
+sector,var1,var2,var3,var4
+1A1a_Electricity-autoproducer,Energy,Energy|Supply,Energy|Supply|Electricity and Heat,Energy|Supply|Electricity and Heat|Electricity
+1A1a_Electricity-public,Energy,Energy|Supply,Energy|Supply|Electricity and Heat,Energy|Supply|Electricity and Heat|Electricity
+1A1a_Heat-production,Energy,Energy|Supply,Energy|Supply|Electricity and Heat,Energy|Supply|Electricity and Heat|Heat
+1A1bc_Other-transformation,Energy,Energy|Supply,Energy|Supply|Other,
+1A2a_Ind-Comb-Iron-steel,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Iron and Steel
+1A2b_Ind-Comb-Non-ferrous-metals,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Non-Ferrous Metals
+1A2c_Ind-Comb-Chemicals,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Chemicals
+1A2d_Ind-Comb-Pulp-paper,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A2e_Ind-Comb-Food-tobacco,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A2f_Ind-Comb-Non-metalic-minerals,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Non-Metallic Minerals
+1A2g_Ind-Comb-Construction,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A2g_Ind-Comb-machinery,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A2g_Ind-Comb-mining-quarying,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Mining
+1A2g_Ind-Comb-other,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A2g_Ind-Comb-textile-leather,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A2g_Ind-Comb-transpequip,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A2g_Ind-Comb-wood-products,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A3b_Road,Energy,Energy|Demand,Energy|Demand|Transportation,
+1A3c_Rail,Energy,Energy|Demand,Energy|Demand|Transportation,
+1A3di_Oil_Tanker_Loading,Energy,Energy|Demand,Energy|Demand|Bunkers,
+1A3dii_Domestic-navigation,Energy,Energy|Demand,Energy|Demand|Transportation,
+1A3eii_Other-transp,Energy,Energy|Demand,Energy|Demand|Transportation,
+1A4a_Commercial-institutional,Energy,Energy|Demand,Energy|Demand|Residential and Commercial,Energy|Demand|Commercial
+1A4b_Residential,Energy,Energy|Demand,Energy|Demand|Residential and Commercial,Energy|Demand|Residential
+1A4c_Agriculture-forestry-fishing,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1A5_Other-unspecified,Energy,Energy|Demand,Energy|Demand|Industry,Energy|Demand|Industry|Other Sector
+1B1_Fugitive-solid-fuels,Energy,Energy|Supply,Energy|Supply|Fugitive,Energy|Supply|Solids|Fugitive
+1B2_Fugitive-petr,Energy,Energy|Supply,Energy|Supply|Fugitive,Energy|Supply|Liquids|Fugitive
+1B2b_Fugitive-NG-distr,Energy,Energy|Supply,Energy|Supply|Fugitive,Energy|Supply|Gases|Fugitive
+1B2b_Fugitive-NG-prod,Energy,Energy|Supply,Energy|Supply|Fugitive,Energy|Supply|Gases|Fugitive
+1B2d_Fugitive-other-energy,Energy,Energy|Supply,Energy|Supply|Fugitive,Energy|Supply|Other|Fugitive
+2A1_Cement-production,Industrial Processes,,Industrial Processes|Cement,
+2A2_Lime-production,Industrial Processes,,Industrial Processes|Cement,
+2Ax_Other-minerals,Industrial Processes,,Industrial Processes|Non-Metallic Minerals,
+2B_Chemical-industry,Industrial Processes,,Industrial Processes|Chemicals,
+2B2_Chemicals-Nitric-acid,Industrial Processes,,Industrial Processes|Chemicals,
+2B3_Chemicals-Adipic-acid,Industrial Processes,,Industrial Processes|Chemicals,
+2C1_Iron-steel-alloy-prod,Industrial Processes,,Industrial Processes|Iron and Steel,
+2C3_Aluminum-production,Industrial Processes,,Industrial Processes|Non-Ferrous Metals,Industrial Processes|Non-Ferrous Metals|Aluminum
+2C4_Non-Ferrous-other-metals,Industrial Processes,,Industrial Processes|Non-Ferrous Metals,
+2D_Chemical-products-manufacture-processing,Product Use,,,
+2D_Degreasing-Cleaning,Product Use,,,
+2D_Other-product-use,Product Use,,,
+2D_Paint-application,Product Use,,,
+2H_Pulp-and-paper-food-beverage-wood,Industrial Processes,,Industrial Processes|Pulp and Paper,
+2L_Other-process-emissions,Industrial Processes,,,
+3B_Manure-management,AFOLU,AFOLU|Agriculture,AFOLU|Agriculture|Livestock|Manure Management,
+3D_Rice-Cultivation,AFOLU,AFOLU|Agriculture,AFOLU|Agriculture|Rice,
+3D_Soil-emissions,AFOLU,AFOLU|Agriculture,AFOLU|Agriculture|Managed Soils,
+3E_Enteric-fermentation,AFOLU,AFOLU|Agriculture,AFOLU|Agriculture|Livestock|Enteric Fermentation,
+3I_Agriculture-other,AFOLU,AFOLU|Agriculture,AFOLU|Agriculture|Other,
+5A_Solid-waste-disposal,Waste,Waste|Solid Waste,,
+5C_Waste-combustion,Waste,Waste|Other,,
+5D_Wastewater-handling,Waste,Waste|Wastewater,,
+5E_Other-waste-handling,Waste,Waste|Other,,
+6A_Other-in-total,Other,,,
+6B_Other-not-in-total,Other,,,
+7A_Fossil-fuel-fires,AFOLU,AFOLU|Land,,
+7BC_Indirect-N2O-non-agricultural-N,AFOLU,AFOLU|Land,,
+1A3ai_International-aviation,Energy,Energy|Demand,Energy|Demand|Bunkers,
+1A3aii_Domestic-aviation,Energy,Energy|Demand,Energy|Demand|Transportation,
+1A3di_International-shipping,Energy,Energy|Demand,Energy|Demand|Bunkers,
