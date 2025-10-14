@@ -33,13 +33,13 @@ model_regions <- "r5"   # R5: five regions making up the world
 
 # IF it's desired to use the provided historical data in the IAMC format, rather 
 # than re-create it using src/process_hist_data.R, then download the files from:
-# PUBLIC_output_rhistiamc:
-# https://drive.google.com/open?id=117cTkVRekeu3vHYrFkH93zstpCqGxkM8&usp=drive_fs
-# into your local output/ folder
+# processed_historical:
+# https://drive.google.com/open?id=1dvOgPsSDInEo4KnLajaYP3c-7I6f5ZTd&usp=drive_fs
+# into your local data/processed_historical/ folder
 
 
 #### THEN read in historic data in wide format and convert to long
-data_hist_full <- read.csv(paste0("output/historical_",model_regions,".csv"), na.strings = "NA")
+data_hist_full <- read.csv(paste0("data/processed_historical/historical_",model_regions,".csv"), na.strings = "NA")
 colnames(data_hist_full) <- gsub("^X", "", colnames(data_hist_full))
 
 data_hist_full <- data_hist_full |>
@@ -76,11 +76,11 @@ data_hist_full <- data_hist_full |>
 
 
 # PUT the IAM_data.xlsx, downloaded from the following link, and 
-# any other processed scenarios results into the runs/ folder 
+# any other processed scenarios results into the data/scenarios/ folder 
 # within this local repo
 
 # https://data.ene.iiasa.ac.at/ngfs/#/downloads
-# Login as guest > Downloads > 1729832902777-V5.0-NGFS-Phase-5.zip (or latest) > unzip to runs/ folder 
+# Login as guest > Downloads > 1729832902777-V5.0-NGFS-Phase-5.zip (or latest) > unzip to data/scenarios/ folder 
 
 # Choose which scenario data to read in
 data_scen_option <- "ngfs_phase_V"
@@ -90,7 +90,7 @@ data_scen_option <- "ngfs_phase_V"
 if (data_scen_option == "ngfs_phase_V") { 
   
 
-  data_scen_full <- read_xlsx(file.path("runs/", "IAM_data.xlsx"))
+  data_scen_full <- read_xlsx(file.path("data/scenarios/", "IAM_data.xlsx"))
   colnames(data_scen_full) <- tolower(colnames(data_scen_full))
   
   data_scen_full <- data_scen_full |>
