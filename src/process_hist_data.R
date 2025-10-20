@@ -41,6 +41,7 @@ source("src/functions.R")
 # Start year for harmonized datasets
 starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
 
+#### Choose region aggregation ------------------------------
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
 model_regions <- "gcam32"   # Using GCAM core regions
@@ -56,7 +57,7 @@ save_option <- T
 
 ###### emissions: ghg - PRIMAP hist --------------------------------------------------
 
-prim <- read.csv("data/Guetschow_et_al_2025-PRIMAP-hist_v2.6.1_final_no_rounding_13-Mar-2025.csv")
+prim <- read.csv("data/raw_historical/Guetschow_et_al_2025-PRIMAP-hist_v2.6.1_final_no_rounding_13-Mar-2025.csv")
 unique(prim$entity)
 unique(prim$area..ISO3.)
 prim <- prim |> pivot_longer(cols = c(-source,-scenario..PRIMAP.hist.,-provenance,-area..ISO3.,-entity,-unit,-category..IPCC2006_PRIMAP.),names_to = "year")
@@ -70,40 +71,40 @@ prim$year <- parse_number(prim$year)
 ###### emissions: co2 - CEDS --------------------------------------------------
 
 #CEDS_v_2025_03_18 Release emission data
-ceds <- rbind(read.csv("data/CEDS_v_2025_03_18_aggregate/CH4_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+ceds <- rbind(read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/CH4_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,57)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/CO2_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/CO2_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,277)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/N2O_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/N2O_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                pivot_longer(cols = seq(4,57)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/SO2_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/SO2_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,277)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/BC_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/BC_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,277)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/CO_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/CO_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,277)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/NH3_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/NH3_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,277)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/NMVOC_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/NMVOC_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,277)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/NOx_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/NOx_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,277)),
-              read.csv("data/CEDS_v_2025_03_18_aggregate/OC_CEDS_estimates_by_country_v_2025_03_18.csv")|>
+              read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/OC_CEDS_estimates_by_country_v_2025_03_18.csv")|>
                 pivot_longer(cols = seq(4,277)))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5)))
 
 #sectoral ceds data (so far only for CO2, CH4, and N2O, but could be expanded to more gases):
-ceds_c <-read.csv("data/CEDS_v_2025_03_18_aggregate/CO2_CEDS_estimates_by_country_sector_v_2025_03_18.csv") |>
+ceds_c <-read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/CO2_CEDS_estimates_by_country_sector_v_2025_03_18.csv") |>
   pivot_longer(cols=seq(5,278))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5))) %>%
   filter(year > starty)
 
-ceds_m <-read.csv("data/CEDS_v_2025_03_18_aggregate/CH4_CEDS_estimates_by_country_sector_v_2025_03_18.csv") |>
+ceds_m <-read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/CH4_CEDS_estimates_by_country_sector_v_2025_03_18.csv") |>
   pivot_longer(cols=seq(5,58))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5)))  %>%
   filter(year > starty)
 
-ceds_n <-read.csv("data/CEDS_v_2025_03_18_aggregate/N2O_CEDS_estimates_by_country_sector_v_2025_03_18.csv") |>
+ceds_n <-read.csv("data/raw_historical/CEDS_v_2025_03_18_aggregate/N2O_CEDS_estimates_by_country_sector_v_2025_03_18.csv") |>
   pivot_longer(cols=seq(5,58))|>
   rename(iso=country,entity=em,year=name)|>mutate(iso = toupper(iso),year=parse_number(substr(year,2,5)))%>%
   filter(year > starty)
@@ -115,7 +116,7 @@ ceds_n <-read.csv("data/CEDS_v_2025_03_18_aggregate/N2O_CEDS_estimates_by_countr
 
 ###### emissions: co2 - OWID ---------
 
-owid_co2_data <- read_csv("data/owid-co2-data.csv")
+owid_co2_data <- read_csv("data/raw_historical/owid-co2-data.csv")
 
 # Pivot the CO2 dataset
 owid_co2_data <- owid_co2_data %>%
@@ -131,9 +132,9 @@ owid_co2_data <- owid_co2_data %>%
 
 ###### emissions: co2 luc - GCB ---------
 # Global Carbon Budget - National Land Use Change Carbon Emissions
-file_path <- "data/National_LandUseChange_Carbon_Emissions_2024v1.01.xlsx"
+file_path <- "data/raw_historical/National_LandUseChange_Carbon_Emissions_2024v1.01.xlsx"
 #get header info and change column names
-header_data <- read_excel(file_path, sheet = "BLUE", skip = 7, n_max = 1, col_names = FALSE)
+header_data <- read_excel(file_path, sheet = "BLUE", skip = 7, n_max = 1, col_names = FALSE, .name_repair = "minimal")
 column_names <- as.character(unlist(header_data[1, 1:202]))
 column_names[1] <- "year"
 column_names[85] <- "Cote d'Ivoire"
@@ -142,7 +143,7 @@ column_names[181] <- "Turkiye"
 #Function to process each sheet with different models
 #filter out unwanted years and columns
 process_sheet <- function(sheet_name, model_name) {
-  df <- read_excel(file_path, sheet = sheet_name, skip = 8, col_names = FALSE)[, 1:202]
+  df <- read_excel(file_path, sheet = sheet_name, skip = 8, col_names = FALSE, .name_repair = "minimal")[, 1:202]
   names(df) <- column_names
   df %>%
     filter(year > starty) %>%
@@ -164,7 +165,7 @@ land<- arrange(land, year, Country)
 
 ###### emissions: ch4 - IEA ---------
 
-file_path <- "data/IEA Methane Emissions 2024.csv"
+file_path <- "data/raw_historical/IEA Methane Emissions 2024.csv"
 iea_ch4 <- read.csv(file_path)
 
 iea_ch4 <- iea_ch4 %>%
@@ -190,11 +191,11 @@ iea_ch4 <- iea_ch4 %>%
 
 # Select CH4 as the Emissions Type, then download the Waste section as a CSV and unzip it
 
-ct_waste <- rbind(read.csv("data/solid-waste-disposal_country_emissions_v4_2_0_05_25.csv"),
-                  read.csv("data/industrial-wastewater-treatment-and-discharge_country_emissions_v4_2_0_05_2025.csv"),
-                  read.csv("data/domestic-wastewater-treatment-and-discharge_country_emissions_v4_2_0_05_2025.csv"),
-                  read.csv("data/incineration-and-open-burning-of-waste_country_emissions_v4_2_0_05_2025.csv"),
-                  read.csv("data/biological-treatment-of-solid-waste-and-biogenic_country_emissions_v4_2_0_05_2025.csv"))
+ct_waste <- rbind(read.csv("data/raw_historical/solid-waste-disposal_country_emissions_v4_2_0_05_25.csv"),
+                  read.csv("data/raw_historical/industrial-wastewater-treatment-and-discharge_country_emissions_v4_2_0_05_2025.csv"),
+                  read.csv("data/raw_historical/domestic-wastewater-treatment-and-discharge_country_emissions_v4_2_0_05_2025.csv"),
+                  read.csv("data/raw_historical/incineration-and-open-burning-of-waste_country_emissions_v4_2_0_05_2025.csv"),
+                  read.csv("data/raw_historical/biological-treatment-of-solid-waste-and-biogenic_country_emissions_v4_2_0_05_2025.csv"))
 
 ct_waste <- ct_waste %>%
   rename(iso=iso3_country) |>
@@ -211,8 +212,8 @@ ct_waste <- ct_waste %>%
 # - monthly_full_release_long_format-4.csv
 # - yearly_full_release_long_format.csv
 
-ember = read.csv("data/yearly_full_release_long_format_05_2025.csv")
-emberm = read.csv("data/monthly_full_release_long_format_05_2025.csv")
+ember = read.csv("data/raw_historical/yearly_full_release_long_format_05_2025.csv")
+emberm = read.csv("data/raw_historical/monthly_full_release_long_format_05_2025.csv")
 
 #create output in convenient cap (capacity), geny and genm (generation) formats (to be used in VRE-Eff script)
 ecap <- ember |> mutate(Country.code=case_when(
@@ -359,12 +360,12 @@ eemi_eu <- ember |>
 # - Key reports - Statistical Review of World Energy Data.XLSX
 # Consolidated Dataset Narrow format downloaded as - Statistical Review of World Energy Narrow File.csv
 # 2024-06-20 version: includes 2023 data points, files have _06_24 suffix
-ener_2024 <- read.csv("data/Statistical Review of World Energy Narrow File_06_24.csv") |>
+ener_2024 <- read.csv("data/raw_historical/Statistical Review of World Energy Narrow File_06_24.csv") |>
   rename(region=Country,year=Year,iso=ISO3166_alpha3,value=Value) |>
   select(region,year,iso,Var,value)
 
 # 2025 version: includes 2024 data points, files have _2025 suffix
-ener_2025 <- read.csv("data/Statistical Review of World Energy Narrow File_06_25.csv") |>
+ener_2025 <- read.csv("data/raw_historical/Statistical Review of World Energy Narrow File_06_25.csv") |>
   rename(region=Country,year=Year,iso=ISO3166_alpha3,value=Value) |>
   select(region,year,iso,Var,value)
 
@@ -381,9 +382,9 @@ ener_2024|>filter(iso=="USA",Var %in% c("gascons_ej","gasprod_ej"))|>pivot_wider
   mutate(exp=gasprod_ej-gascons_ej) |> filter(year>2009)
 
 #would make sense to also at some point use the LNG import and export data:
-lng <- rbind(read_xlsx(path = "data/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG imports bcm",range = "A3:Y38")|>
+lng <- rbind(read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG imports bcm",range = "A3:Y38")|>
                mutate(var="lng_imp_ej"),
-             read_xlsx(path = "data/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG exports bcm",range = "A3:Y31")|>
+             read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG exports bcm",range = "A3:Y31")|>
                mutate(var="lng_exp_ej")) |>
   pivot_longer(cols = seq(2,24),names_to = "year") |>
   mutate(region=`Billion cubic metres`,value=value/bcm2ej)
@@ -401,12 +402,12 @@ ener_2024|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wid
 
 # Region - WEO2024_AnnexA_Free_Dataset_Regions.csv
 # World - WEO2024_AnnexA_Free_Dataset_World.csv
-iea24 <- read.csv("data/WEO2024_AnnexA_Free_Dataset_Regions.csv")|>
+iea24 <- read.csv("data/raw_historical/WEO2024_AnnexA_Free_Dataset_Regions.csv")|>
   mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))
 iea24 <- rbind(iea24, ## add all available data on Net Zero scenarios, plus additional variables for others
-               read.csv("data/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
+               read.csv("data/raw_historical/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
                  mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)),#|>select(-X),
-               read.csv("data/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
+               read.csv("data/raw_historical/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
                  mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)) |> 
                  filter(!var %in% unique(iea24$var))#|>select(-X)
 )|>
@@ -418,7 +419,7 @@ iea24 <- rbind(iea24, ## add all available data on Net Zero scenarios, plus addi
 ###### energy: OWID ---------
 
 # In ReadMe: Download our complete Energy dataset : CSV
-owid_energy_data <- read_csv("data/owid-energy-data.csv")
+owid_energy_data <- read_csv("data/raw_historical/owid-energy-data.csv")
 
 # Pivot the CO2 dataset
 owid_energy_data <- owid_energy_data %>%
@@ -431,7 +432,7 @@ owid_energy_data <- owid_energy_data %>%
 
 ###### trn: ev - IEA GEVO --------------------------------------------------
 
-iea_ev <- readxl::read_excel("data/GlobalEVDataExplorer2025.xlsx")
+iea_ev <- readxl::read_excel("data/raw_historical/GlobalEVDataExplorer2025.xlsx")
 #This dataset had added a few new aggregate regions: Asia Pacific, Central and South America, EU27, Europe, Middle East and Caspian, North America, Rest of the world, World
 # Asia pacific+Central and South America+ Europe+ Middle East and Caspian+North America+Rest of the world = World(roughly)
 # Rename and drop columns to match expected structure
@@ -440,7 +441,7 @@ iea_ev <- iea_ev %>%
   select(-`Aggregate group`)
 ###### trn: ev - Robbie --------------------------------------------------
 
-robbie_ev <- read.csv("data/all_carsales_monthly_05_2025.csv") |>
+robbie_ev <- read.csv("data/raw_historical/all_carsales_monthly_05_2025.csv") |>
   mutate(variable = "all_carsales_monthly",
          Value = Value * 10^(-6),
          unit = "million")
@@ -450,22 +451,22 @@ robbie_ev <- read.csv("data/all_carsales_monthly_05_2025.csv") |>
 #https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSFREIGHT&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&to[TIME_PERIOD]=false&pd=%2C
 #https://data-explorer.oecd.org/vis?lc=en&fs[0]=Topic%2C0%7CTransport%23TRA%23&pg=0&fc=Topic&bp=true&snb=22&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSPASS&df[ag]=OECD.ITF&df[vs]=1.0&dq=.A.....&to[TIME_PERIOD]=false&pd=%2C
 # Click on the "Download" button > "Unfiltered data in tabular dataset (CSV)
-OECD_f <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSFREIGHT,1.0+all.csv")
-OECD_p <- read.csv("data/OECD.ITF,DSD_TRENDS@DF_TRENDSPASS,1.0+all.csv")
+OECD_f <- read.csv("data/raw_historical/OECD.ITF,DSD_TRENDS@DF_TRENDSFREIGHT,1.0+all.csv")
+OECD_p <- read.csv("data/raw_historical/OECD.ITF,DSD_TRENDS@DF_TRENDSPASS,1.0+all.csv")
 OECD <- bind_rows(OECD_f, OECD_p)
 
 ##### trn: service - OWID ---------------------------------------------------
 ##### Source: https://ourworldindata.org/grapher/air-passenger-kilometers.csv?v=1&csvType=full&useColumnShortNames=true
-owid_air <- read.csv("data/air-passenger-kilometers.csv")
+owid_air <- read.csv("data/raw_historical/air-passenger-kilometers.csv")
 
 ###### climate: temp - NASA --------------------------------------------------
 
-nasa_temp <- read.csv("data/GLB.Ts+dSST_05_2025.csv",skip = 1)
+nasa_temp <- read.csv("data/raw_historical/GLB.Ts+dSST_05_2025.csv",skip = 1)
 
 ###### climate: temp - CRU --------------------------------------------------
 
 # Read the data from the file
-file_path <- "data/HadCRUT5.0Analysis_gl.txt"
+file_path <- "data/raw_historical/HadCRUT5.0Analysis_gl.txt"
 
 # Read the data from the file
 data <- read_lines(file_path)
@@ -490,7 +491,7 @@ for (i in seq(1, length(data), by = 2)) {
 
 ###### socio: gdp and population - IIASA ---------
 
-file_path <- "data/1710759470883-ssp_basic_drivers_release_3.0.1_full.xlsx"
+file_path <- "data/raw_historical/1710759470883-ssp_basic_drivers_release_3.0.1_full.xlsx"
 
 # Read the data sheet
 iiasa_data <- read_excel(file_path, sheet = "data")
@@ -1082,7 +1083,7 @@ dat_owid_energy <- NULL
 
 
 ###### IEA GEVO -------------------------------------
-iea_ev <- read_excel("data/GlobalEVDataExplorer2025.xlsx") %>%
+iea_ev <- read_excel("data/raw_historical/GlobalEVDataExplorer2025.xlsx") %>%
   rename(region = region_country) %>%
   select(-`Aggregate group`) %>%
   mutate(
@@ -1626,7 +1627,7 @@ if (switch_variable_check == T) {
 #   ungroup()
 # 
 # #write out iso and World IAMC file
-# write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
+# write.csv(write_this, "data/processed_historical/historical_iso.csv",row.names = F,quote = F)
 
 
 ##### with ISO and World: -----
@@ -1643,7 +1644,7 @@ write_this <- rbind(data_iso, dat_ieah, dat_ieas, data_World) |>
 
 
 #write out iso and World IAMC file
-write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
+write.csv(write_this, "data/processed_historical/historical_iso.csv",row.names = F,quote = F)
 
 
 
@@ -1659,7 +1660,7 @@ write.csv(write_this, "output/historical_iso.csv",row.names = F,quote = F)
 # 
 # #write out IAMC file
 # write.csv(write_this, 
-#           file.path("output",paste0("historical_", model_regions, ".csv")),
+#           file.path("data/processed_historical",paste0("historical_", model_regions, ".csv")),
 #           row.names = F,quote = F)
 
 
@@ -1677,15 +1678,16 @@ write_this <- rbind(data_reg, dat_ieah, dat_ieas, data_World) |>
 
 #write out IAMC file
 write.csv(write_this, 
-          file.path("output",paste0("historical_", model_regions, ".csv")),
+          file.path("data/processed_historical",paste0("historical_", model_regions, ".csv")),
           row.names = F,quote = F)
 
 
 
 #### 4.b save and remove original source R objects ####
 if(save_option == T){
-  save(prim,ceds,eemi,eemi_eu,file = "output/emissions.Rds")
-  save(ember,emberm,ecap,egeny,egenm,ener_2024,ener_2025,iea_ev, file = "output/energy.Rds")
+  dir.create("data/raw_historical/combined", showWarnings = F)
+  save(prim,ceds,eemi,eemi_eu,file = "data/raw_historical/combined/emissions.Rds")
+  save(ember,emberm,ecap,egeny,egenm,ener_2024,ener_2025,iea_ev, file = "data/raw_historical/combined/energy.Rds")
 }
 
 rm(ecap,eemi,egeny,egenm,prim,ceds,ener_2024,ener_2025,iea_ev, dat_iea_ev)

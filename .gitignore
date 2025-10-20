@@ -1,12 +1,16 @@
 # Ignore these
 
 ## the contents of data-containing folders:
+data/raw_historical/*
+data/processed_historical/*
+data/scenarios/*
 data/*
 figures/*
 output/*
 runs/*
 
 ### exceptions:
+!*/*/.gitkeep
 !*/.gitkeep
 
 ## personalized files
