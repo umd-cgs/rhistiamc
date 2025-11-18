@@ -207,18 +207,17 @@ ct_waste <- ct_waste %>%
 
 
 
+
 ###### energy: elec - EMBER --------------------------------------------------
 
 # - monthly_full_release_long_format-4.csv
 # - yearly_full_release_long_format.csv
-
-ember = read.csv("data/raw_historical/yearly_full_release_long_format_05_2025.csv")
-emberm = read.csv("data/raw_historical/monthly_full_release_long_format_05_2025.csv")
-
+ember = read.csv("data/raw_historical/yearly_full_release_long_format_11_2025.csv") 
+emberm = read.csv("data/raw_historical/monthly_full_release_long_format_11_2025.csv")
 #create output in convenient cap (capacity), geny and genm (generation) formats (to be used in VRE-Eff script)
-ecap <- ember |> mutate(Country.code=case_when(
+ecap <- ember |> mutate(ISO.3.code=case_when(
   Area== "World" ~ "World",
-  .default=Country.code
+  .default=ISO.3.code
 ),Area.type=case_when(
   Area== "World" ~ "Country",
   .default=Area.type  
@@ -227,15 +226,15 @@ ecap <- ember |> mutate(Country.code=case_when(
          Category == "Capacity",
          # Subcategory == "Fuel",
          Unit == "GW") |>
-  select(Area,Country.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=Country.code,year=Year,variable =Category,
+  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
+  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
          fuel=Variable,value=Value,unit=Unit)|>
   pivot_wider(names_from = fuel)|>mutate(Total=Clean+Fossil) |>
   pivot_longer(cols=seq(6,21),names_to = "fuel")
 
-edem <- ember |> mutate(Country.code=case_when(
+edem <- ember |> mutate(ISO.3.code=case_when(
   Area== "World" ~ "World",
-  .default=Country.code
+  .default=ISO.3.code
 ),Area.type=case_when(
   Area== "World" ~ "Country",
   .default=Area.type  
@@ -243,14 +242,14 @@ edem <- ember |> mutate(Country.code=case_when(
   filter(Area.type == "Country",
          Category == "Electricity demand",
          Subcategory == "Demand") |>
-  select(Area,Country.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=Country.code,year=Year,variable =Category,
+  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
+  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
          fuel=Variable,value=Value,unit=Unit)
 
 
-egeny <- ember |>  mutate(Country.code=case_when(
+egeny <- ember |>  mutate(ISO.3.code=case_when(
   Area== "World" ~ "World",
-  .default=Country.code
+  .default=ISO.3.code
 ),Area.type=case_when(
   Area== "World" ~ "Country",
   .default=Area.type  
@@ -259,17 +258,17 @@ egeny <- ember |>  mutate(Country.code=case_when(
          Category == "Electricity generation",
          # Subcategory == "Fuel",
          Unit == "TWh") |>
-  select(Area,Country.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=Country.code,year=Year,variable =Category,
+  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
+  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
          fuel=Variable,value=Value,unit=Unit)|> 
   mutate(fuel=case_when(
     fuel=="Total Generation" ~ "Total",
     .default=fuel
   ))
 
-egenm <- emberm |>  mutate(Country.code=case_when(
+egenm <- emberm |>  mutate(ISO.3.code=case_when(
   Area== "World" ~ "World",
-  .default=Country.code
+  .default=ISO.3.code
 ),Area.type=case_when(
   Area== "World" ~ "Country",
   .default=Area.type  
@@ -278,8 +277,8 @@ egenm <- emberm |>  mutate(Country.code=case_when(
          Category == "Electricity generation",
          # Subcategory == "Fuel",
          Unit == "TWh") |>
-  select(Area,Country.code,Date,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=Country.code,year=Date,variable =Category,
+  select(Area,ISO.3.code,Date,Category,Variable,Value,Unit) |>
+  rename(region=Area,iso=ISO.3.code,year=Date,variable =Category,
          fuel=Variable,value=Value,unit=Unit) |> 
   #additional adjustment of Date for easier plotting and calculations
   mutate(year=as.double(gsub("-",".",substr(as.Date.character(year),1,7))))|>
@@ -323,17 +322,17 @@ if (switch_option) {
     }
   }
 }
- eemi <- ember |> mutate(Country.code=case_when(
+ eemi <- ember |> mutate(ISO.3.code=case_when(
    Area== "World" ~ "World",
-   .default=Country.code
+   .default=ISO.3.code
  ),Area.type=case_when(
    Area== "World" ~ "Country",
    .default=Area.type  
  )) |>
   filter(Area.type == "Country",
          Category == "Power sector emissions") |>
-  select(Area,Country.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=Country.code,year=Year,variable =Category,
+  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
+  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
          fuel=Variable,value=Value,unit=Unit)|> 
   mutate(fuel=case_when(
     fuel=="Total emissions" ~ "Total",
