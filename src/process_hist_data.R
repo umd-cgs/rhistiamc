@@ -396,19 +396,19 @@ ener_2024|>filter(iso=="USA",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wid
 ener_2024|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
   mutate(exp=coalprod_ej-coalcons_ej) |> filter(year>2009)
 
-###### energy: IEA WEO 2024 --------------------------------------------------
+###### energy: IEA WEO 2025 --------------------------------------------------
 
 
-# Region - WEO2024_AnnexA_Free_Dataset_Regions.csv
-# World - WEO2024_AnnexA_Free_Dataset_World.csv
-iea24 <- read.csv("data/raw_historical/WEO2024_AnnexA_Free_Dataset_Regions.csv")|>
+# Region - WEO2025_AnnexA_Free_Dataset_Regions.csv
+# World - WEO2025_AnnexA_Free_Dataset_World.csv
+iea25 <- read.csv("data/raw_historical/WEO2025_AnnexA_Free_Dataset_Regions.csv")|>
   mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW))
-iea24 <- rbind(iea24, ## add all available data on Net Zero scenarios, plus additional variables for others
-               read.csv("data/raw_historical/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
+iea25 <- rbind(iea25, ## add all available data on Net Zero scenarios, plus additional variables for others
+               read.csv("data/raw_historical/WEO2025_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
                  mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)),#|>select(-X),
-               read.csv("data/raw_historical/WEO2024_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
+               read.csv("data/raw_historical/WEO2025_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
                  mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)) |> 
-                 filter(!var %in% unique(iea24$var))#|>select(-X)
+                 filter(!var %in% unique(iea25$var))#|>select(-X)
 )|>
   select(-CATEGORY,-PRODUCT,-FLOW,-PUBLICATION)|>
   rename(unit=UNIT,region=REGION,year=YEAR,value=VALUE,scenario=SCENARIO)
@@ -1529,20 +1529,20 @@ data_reg <- data_iso |>
 ##The mapping files are created using the documentation which can be found on the following link:
 ##-- https://data.ene.iiasa.ac.at/ar6/#/docs
 
-map_iea <- read.csv("mappings/map_IEAWEO24_iamc.csv")
+map_iea <- read.csv("mappings/map_IEAWEO25_iamc.csv")
 
-dat_iea24 <- iea24 |>
+dat_iea25 <- iea25 |>
   mutate(region=case_when(
     region=="United States" ~ "USA",
     .default=region))|>
   filter(region %in% c(unique(reg_map$region), 
                        "Europe", "European Union", # Remove these regions if preferred
                        "World")) |>
-  mutate(model="IEA WEO 2024")|>
+  mutate(model="IEA WEO 2025")|>
   filter(!is.na(var))
 
 # bring to GCAM region mapping and IAMC format
-dat_iea24 <- dat_iea24 |>
+dat_iea25 <- dat_iea25 |>
   select(-unit) |> 
   left_join(map_iea,by=join_by(var==WEO)) |>
   filter(IAMC!="")|>
@@ -1554,24 +1554,24 @@ dat_iea24 <- dat_iea24 |>
   rename(variable=IAMC)
 
 # Sum across detailed variables
-dat_iea24 <- dat_iea24 |>
-  bind_rows(dat_iea24 |>
+dat_iea25 <- dat_iea25 |>
+  bind_rows(dat_iea25 |>
               filter(variable %in% c("Secondary Energy|Electricity|Solar|PV", 
                                      "Secondary Energy|Electricity|Solar|CSP")) |>
               mutate(variable = "Secondary Energy|Electricity|Solar")) |>
-  bind_rows(dat_iea24 |>
+  bind_rows(dat_iea25 |>
               filter(variable %in% c("Capacity|Electricity|Solar|PV", 
                                      "Capacity|Electricity|Solar|CSP")) |>
               mutate(variable = "Capacity|Electricity|Solar")) |>
-  bind_rows(dat_iea24 |>
+  bind_rows(dat_iea25 |>
               filter(variable %in% c("Capacity|Electricity|Coal|w/ CCS", 
                                      "Capacity|Electricity|Coal|w/o CCS")) |>
               mutate(variable = "Capacity|Electricity|Coal")) |>
-  bind_rows(dat_iea24 |>
+  bind_rows(dat_iea25 |>
               filter(variable %in% c("Capacity|Electricity|Gas|w/ CCS", 
                                      "Capacity|Electricity|Gas|w/o CCS")) |>
               mutate(variable = "Capacity|Electricity|Gas")) |>
-  bind_rows(dat_iea24 |>
+  bind_rows(dat_iea25 |>
               filter(variable %in% c("Capacity|Electricity|Fossil|w/ CCS", 
                                      "Capacity|Electricity|Fossil|w/o CCS")) |>
               mutate(variable = "Capacity|Electricity|Fossil")) |>
@@ -1580,13 +1580,16 @@ dat_iea24 <- dat_iea24 |>
   ungroup()
 
 #historic data
-dat_ieah <- dat_iea24 |> 
-  filter(year<2030, scenario=="Stated Policies Scenario") |>
+dat_ieah <- dat_iea25 |> 
+  filter(scenario=="Historical") |>
   mutate(scenario = "historical")
 
 #scenario data
-dat_ieas <- dat_iea24 |> filter(year>2022) 
- 
+dat_ieas <- dat_iea25 |>
+  filter(
+    scenario == "Current Policies Scenario" |
+    scenario == "Stated Policies Scenario"
+  )
 
 
 ### 3 Verify variable names ####
