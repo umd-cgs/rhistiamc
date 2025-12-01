@@ -136,6 +136,10 @@ gwp100 <- data.frame(variable=c("Emissions|CO2","Emissions|CH4","Emissions|N2O",
 # functions to convert energy units
 
 #conversion factors:
+eff_coal <- 0.39
+eff_oil <- 0.39
+eff_ng <- 0.5
+
 ej2twh <- 277.77777777778
 bcm2ej <- 36 #see "Approximate conversion factors.pdf" from IEA 
 
@@ -175,6 +179,79 @@ conv_EJ_GW <- function (data, cf, EJ){
   data %>%
     mutate(gw = EJ / (cf * hr_per_yr * EJ_to_GWh))
 }
+
+
+# harmonize units: -----
+
+# convert year of USD units
+
+# Calculate a gross domestic product (GDP) implicit price deflator between two years.
+#
+# The GDP deflator is a measure of price inflation with respect to a
+# specific base year; it allows us to back out the effects of inflation when we
+# compare prices over time.  This function calculates a deflator given a base
+# year (the year to convert from) and a conversion year (the year to convert
+# to).  To use the deflator, multiply prices in base-year dollars by the deflator; the
+# result will be prices in the converted dollar year.
+#
+# @param year Year to convert TO.
+# @param base_year Year to convert FROM.
+# @return GDP Deflator.  Multiply to convert FROM base_year dollars TO
+# year dollars.
+# @source U.S. Bureau of Economic Analysis, Gross domestic product (implicit
+# price deflator) [A191RD3A086NBEA], retrieved from FRED, Federal Reserve Bank
+# of St. Louis; https://fred.stlouisfed.org/series/A191RD3A086NBEA, January 9, 
+# 2025
+# @author BBL
+# @export
+# @examples
+# gdp_bil_1990USD <- c(4770, 4779, 4937)
+# gdp_bil_2010USD <- gdp_bil_1990USD * gdp_deflator(2010, base_year = 1990)
+gdp_deflator <- function(year, base_year) {
+  # This time series is the BEA "A191RD3A086NBEA" product
+  # Downloaded January 9, 2025 from https://fred.stlouisfed.org/series/A191RD3A086NBEA
+  gdp_years <- 1929:2023
+  gdp <- c(8.778, 8.457, 7.587, 6.7, 6.514, 6.871, 7.012, 7.097, 7.402, 
+           7.19, 7.12, 7.205, 7.692, 8.304, 8.683, 8.89, 9.12, 10.296, 
+           11.426, 12.067, 12.046, 12.195, 13.06, 13.286, 13.447, 13.572, 
+           13.801, 14.271, 14.744, 15.08, 15.287, 15.495, 15.66, 15.85, 
+           16.032, 16.276, 16.574, 17.039, 17.533, 18.28, 19.176, 20.189, 
+           21.212, 22.13, 23.342, 25.443, 27.8, 29.33, 31.152, 33.343, 
+           36.11, 39.371, 43.097, 45.759, 47.552, 49.267, 50.826, 51.849, 
+           53.134, 55.008, 57.165, 59.305, 61.31, 62.707, 64.194, 65.564, 
+           66.939, 68.164, 69.34, 70.119, 71.111, 72.722, 74.36, 75.515, 
+           77.006, 79.077, 81.556, 84.071, 86.349, 88.013, 88.556, 89.632, 
+           91.481, 93.185, 94.771, 96.421, 97.316, 98.241, 100, 102.291, 
+           103.979, 105.361, 110.172, 118.026, 122.273)
+  names(gdp) <- gdp_years
+  
+  assert_that(all(year %in% gdp_years))
+  assert_that(all(base_year %in% gdp_years))
+  
+  as.vector(unlist(gdp[as.character(year)] / gdp[as.character(base_year)]))
+}
+
+
+# change all USD units in dataframe to different year 
+
+harmonize_usd_year <- function(df, to_year){
+  
+  df <- df |>
+    mutate(from_year = ifelse(
+      (grepl("\\$", unit) | grepl("usd", unit) | grepl("USD", unit)) & 
+        (grepl("19", unit) | grepl("20", unit)),
+      # extract the year shown in the unit
+      as.numeric(str_extract_all(unit, "\\d+", simplify = T)[, 1]), ##max(str_extract_all(unit, "\\d+")[[1]]),
+      # otherwise same as to_year so that no conversion done
+      to_year)) |>
+    mutate(conv = gdp_deflator(year = to_year, base_year = from_year)) |>
+    mutate(value = value * conv) |>
+    mutate(unit = ifelse(from_year != to_year, str_replace_all(unit, pattern = as.character(from_year), as.character(to_year)), unit)) |>
+    select(-from_year, -conv)
+  
+  return(df)
+}
+
 
 
 # interpolate quantities -----------------
@@ -266,12 +343,16 @@ check_match <- function(x, y, colmn_x, colmn_y = NULL, opt = "e") {
     excl = unique(val_x[!(val_x[,1] %in% val_y[,1]),1])
     lst <- ifelse(length(excl) == 0, print("There are no variables in the first one that are not in the second one."),
                   print(list("The following are in the first one, but not in the second one:", excl)))
+    result = excl
   }
   if(opt == "i") {
     incl = unique(val_x[(val_x[,1] %in% val_y[,1]),1])
     lst <- ifelse(length(incl) == 0, print("There are no variables in the first one that are included in the second one."),
                   print(list("The following are in both:", incl)))
+    result = incl
   }
+  
+  return(result)
 }
 
 # check how the world value compares ---------------
@@ -452,6 +533,24 @@ pe_fuel.list <- c(  "Other", "Geothermal", "Solar", "Wind",
                     "Traditional biomass", "Biomass Traditional", 
                     "Hydro", "Nuclear", "Gas", "Oil", "Coal") 
 
+# Define color schemes for energy mix plots
+
+## categorize primary energy fuels -------------------
+
+
+pe_vars <-             c('Primary Energy|Coal',
+                         'Primary Energy|Oil',
+                         'Primary Energy|Gas',
+                         'Primary Energy|Nuclear',
+                         'Primary Energy|Geothermal',
+                         'Primary Energy|Biomass',
+                         'Primary Energy|Hydro',
+                         'Primary Energy|Solar',
+                         'Primary Energy|Wind',
+                         'Primary Energy|Other')
+
+pe_fuels <- gsub("Primary Energy\\|", "", pe_vars)
+
 pe_fuel.color <- c("Biomass Modern" = "#88CEB9", 
                    "Bio and Geo" = "#88CEB9", 
                    "Biomass" = "#88CEB9", 
@@ -476,6 +575,72 @@ fillScalePeFuel <- scale_fill_manual(name = "Fuel",
                                    na.translate = FALSE,
                                    guide = guide_legend(reverse = F, ncol = 1))
 
+
+## categorize electricity generation fuels -------------------
+
+seEl_vars <-             c('Secondary Energy|Electricity|Biomass',
+                           'Secondary Energy|Electricity',
+                           'Secondary Energy|Electricity|Coal',
+                           'Secondary Energy|Electricity|Oil',
+                           'Secondary Energy|Electricity|Gas',
+                           'Secondary Energy|Electricity|Wind',
+                           'Secondary Energy|Electricity|Solar',
+                           'Secondary Energy|Electricity|Hydro',
+                           'Secondary Energy|Electricity|Nuclear',
+                           'Secondary Energy|Electricity|Other',
+                           'Secondary Energy|Electricity|Geothermal')
+
+seEl_fuels <- gsub("Secondary Energy\\|Electricity\\|", "", seEl_vars)
+
+
+## categorize final energy sectors -------------------
+
+
+fe_sector.color <- c("Carbon Management" = "#000000",
+                     "Agriculture"="#88CEB9",
+                     "Bunkers" = "#4A4A4A",
+                     "Other Sector" = "#787878",
+                     "Non-Energy Use" = "#A4A4A4",
+                     "Transportation|Non-elec" = "#008a2b",
+                     "Industry|Non-elec" = "#335f7a",
+                     "Res & Com|Non-elec" = "#8a2b00",
+                     "Transportation|Electricity" = "#1ff889",
+                     "Industry|Electricity" = "#6BCAF1",
+                     "Res & Com|Electricity" = "#F8991F",
+                     # "other" = "firebrick3")
+                     "Other" = "plum")
+
+colScaleFeSector <- scale_colour_manual(name = "Sector",
+                                        values = fe_sector.color,
+                                        na.translate = FALSE,
+                                        guide = guide_legend(reverse = F, ncol = 1))
+fillScaleFeSector <- scale_fill_manual(name = "Sector",
+                                       values = fe_sector.color,
+                                       na.translate = FALSE,
+                                       guide = guide_legend(reverse = F, ncol = 1))
+
+
+
+# for emission mix plots -------------
+
+emis_sector.color <- c("Industrial Processes" = "#787878",
+                       "Energy|Demand|Bunkers" = "black",
+                       "Energy|Demand|Transportation" = "#008a2b",
+                       "Energy|Demand|Residential and Commercial" = "#F8991F",
+                       "Energy|Demand|Industry" = "#335f7a",
+                       "Energy|Demand|AFOFI"="lightgreen",
+                       "Energy|Demand|Other Sector"="plum",
+                       "Energy|Supply|Other" = "lightblue",
+                       "Energy|Supply|Electricity" = "#6BCAF1")
+
+colScaleEmisSector <- scale_colour_manual(name = "Sector",
+                                          values = emis_sector.color,
+                                          na.translate = FALSE,
+                                          guide = guide_legend(reverse = F, ncol = 1))
+fillScaleEmisSector <- scale_fill_manual(name = "Sector",
+                                         values = emis_sector.color,
+                                         na.translate = FALSE,
+                                         guide = guide_legend(reverse = F, ncol = 1))
 
 # categorize fuels ----------------
 fuel.list <- c("Hydrogen","Electricity","Biomass","Heat", "Other", "Gases","Liquids","Coal")
@@ -586,5 +751,125 @@ standard_scen_name <- function (data, Scenario) {
     mutate(target = factor(target, levels = target.list),
            scen = factor(scen, levels = scen.list))
 }
+
+# Custom key glyph for NDC targets - triangle with line
+draw_key_ndc <- function(data, params, size){
+  grid::grobTree(
+    ggplot2::GeomSegment$draw_key(
+      transform(data, x = 0.5, y = 0.25, xend = 0.5, yend = 0.75),
+      list(), size
+    ),
+    ggplot2::GeomPoint$draw_key(data, params, size)
+  )
+}
+
+# Custom key glyph for conditional targets - triangle with horizontal line
+draw_key_conditional <- function(data, params, size) {
+  grid::grobTree(
+    grid::pointsGrob(0.5, 0.5, pch = 17, size = unit(1, "char"),
+                     gp = grid::gpar(col = data$colour %||% "mediumpurple2",
+                                    fill = data$colour %||% "mediumpurple2")),
+    grid::linesGrob(c(0.2, 0.8), c(0.5, 0.5),
+                    gp = grid::gpar(col = data$colour %||% "mediumpurple2",
+                                   lwd = 2))
+  )
+}
+
+method_color <- c(
+  # "d_delfrag"="#F37138",
+  # "d_delfrag"="#88CEB9", 
+  "Historical"= "black",
+  "EMBER"="black",
+  "ceds"="black",
+  "d_strain"="#4393C3",
+  "Current Policy"="#D71920",
+  "h_ndc"="darkblue",
+  "o_1p5c"="#52C2B7", 
+  "d_delfrag"="#5E55A4",
+  "Low GDP"="#5E55A4",
+  "o_2c"="#F8991F",
+  "High GDP"="#F8991F",
+  "o_lowdem"="#760015",
+  "Very High Amb."="#52C2B7",
+  "High Ambition"="#52C2B7",
+  "Non-federal leadership" = "#1B7837",
+  "2C"="#52C2B7",
+  "Net Zero 2050"="#52C2B7",
+  "Delayed Transition"="#5E55A4",
+  "Low Ambition"="#5E55A4",
+  "Medium Ambition"= "#F8991F",
+  "Cpol"="#52C2B7",
+  "Aclt"="#5E55A4",
+  "India_High_Amb"="#760015",
+  "NDC"="mediumpurple2",
+  "extrap"="springgreen4",
+  "interp"="#1B5183",
+  "net-zero"="#D71920",
+  "PRIMAP-hist" = "black", 
+  "Extrapolated from 2022"="black",
+  "BAU"="goldenrod1",
+  "NDC Target unconditional" = "mediumpurple2",
+  "NDC Target conditional" = "hotpink",
+  "NDC Target unconditional (lower)" = "mediumpurple2",
+  "NDC Target unconditional (upper)" = "mediumpurple2",
+  "NDC Target conditional (lower)" = "mediumpurple2",
+  "NDC Target conditional (upper)" = "mediumpurple2",
+  "40% NDC Target (w/o offsets)" ="mediumpurple2",
+  "40% NDC Target" ="mediumpurple2",
+  "NDC Target"="mediumpurple2",
+  "NDC lower limit"="mediumpurple2",
+  "NDC upper limit"="mediumpurple2",
+  "CO2 lower limit"="mediumpurple2",
+  "CO2 upper limit"="mediumpurple2",
+  "NDC Target - 5.4%"="mediumpurple2",
+  "NDC Target - 4.5%"="hotpink",
+  "NDC Target - 3.5%"="springgreen4",
+  "35% NDC Target (w/+ 5% offsets)"="hotpink",
+  "35% NDC Target"="hotpink",
+  "Today to NDC Trend"="#5FBB46",
+  "NDC to Net-Zero Trend"="#A25CA4",
+  "Net-Zero Target"="#D71920",
+  "Current Policies"="chocolate3"
+)
+
+method_shape <- c(
+  "NDC Target" = 17,
+  "35% NDC Target" = 17,
+  "40% NDC Target" = 17,
+  "35% NDC Target (w/+ 5% offsets)" = 17,
+  "40% NDC Target (w/o offsets)" = 17,
+  "NDC lower limit" = 17,
+  "NDC upper limit" = 17,
+  "Net-Zero Target" = 17,
+  "Today to NDC Trend" = 16,
+  "NDC to Net-Zero Trend" = 16,
+  "BAU" = 17,
+  "NDC Target unconditional" = 17,
+  "NDC Target conditional" = 17,
+  "NDC Target unconditional (lower)" = 17,
+  "NDC Target unconditional (upper)" = 17,
+  "NDC Target conditional (lower)" = 17,
+  "NDC Target conditional (upper)" = 17,
+  "CO2 upper limit" = 16,
+  "CO2 lower limit" = 16
+)
+
+alphaScaleScen<- scale_alpha_manual(values = c("AR6 1.5C Range - low overshoot" = 0.15, 
+                                               "AR6 1.5C Range - high overshoot"=0.15,
+                                               "History"=NA),
+                                    guide = guide_legend(reverse = F, ncol = 1)) 
+fillscale <- scale_fill_manual(name="Gases",
+                               values= c("AR6 1.5C Range - low overshoot" = "brown",
+                                         "AR6 1.5C Range - high overshoot"= "red",
+                                         "F-Gases"= "#F4D823",
+                                         "CH4"= "#5FBB46",
+                                         "CO2|Energy and Industrial Processes"= "#DBDFC6",
+                                         "CO2"= "#DBDFC6",
+                                         "N2O"= "#A25CA4",
+                                         # Add scenario colors for uncertainty bands
+                                         "High Ambition"="#52C2B7",
+                                         "Current Policies"="chocolate3"),
+                               labels = c("CO2|Energy and Industrial Processes" = "CO2-FFI")
+                               )
 
 

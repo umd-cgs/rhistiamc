@@ -1544,7 +1544,7 @@ dat_iea25 <- iea25 |>
 # bring to GCAM region mapping and IAMC format
 dat_iea25 <- dat_iea25 |>
   select(-unit) |> 
-  left_join(map_iea,by=join_by(var==WEO)) |>
+  left_join(map_iea,by=join_by(var==WEO), relationship = "many-to-many") |>
   filter(IAMC!="")|>
   rename(unit = Unit_IAMC) |>
   mutate(Conversion = as.numeric(Conversion)) |>
