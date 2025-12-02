@@ -219,10 +219,10 @@ ecap <- ember |> mutate(ISO.3.code=case_when(
   Area== "World" ~ "World",
   .default=ISO.3.code
 ),Area.type=case_when(
-  Area== "World" ~ "Country",
+  Area== "World" ~ "Country or economy",
   .default=Area.type  
 )) |>
-  filter(Area.type == "Country",
+  filter(Area.type == "Country or economy",
          Category == "Capacity",
          # Subcategory == "Fuel",
          Unit == "GW") |>
@@ -236,10 +236,10 @@ edem <- ember |> mutate(ISO.3.code=case_when(
   Area== "World" ~ "World",
   .default=ISO.3.code
 ),Area.type=case_when(
-  Area== "World" ~ "Country",
+  Area== "World" ~ "Country or economy",
   .default=Area.type  
 )) |>
-  filter(Area.type == "Country",
+  filter(Area.type == "Country or economy",
          Category == "Electricity demand",
          Subcategory == "Demand") |>
   select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
@@ -251,10 +251,10 @@ egeny <- ember |>  mutate(ISO.3.code=case_when(
   Area== "World" ~ "World",
   .default=ISO.3.code
 ),Area.type=case_when(
-  Area== "World" ~ "Country",
+  Area== "World" ~ "Country or economy",
   .default=Area.type  
 )) |>
-  filter(Area.type == "Country",
+  filter(Area.type == "Country or economy",
          Category == "Electricity generation",
          # Subcategory == "Fuel",
          Unit == "TWh") |>
@@ -270,10 +270,10 @@ egenm <- emberm |>  mutate(ISO.3.code=case_when(
   Area== "World" ~ "World",
   .default=ISO.3.code
 ),Area.type=case_when(
-  Area== "World" ~ "Country",
+  Area== "World" ~ "Country or economy",
   .default=Area.type  
 )) |>
-  filter(Area.type == "Country",
+  filter(Area.type == "Country or economy",
          Category == "Electricity generation",
          # Subcategory == "Fuel",
          Unit == "TWh") |>
