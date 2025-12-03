@@ -44,8 +44,8 @@ starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time se
 #### Choose region aggregation ------------------------------
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
-model_regions <- "gcam32"   # Using GCAM core regions
-#model_regions <- "r10"
+#model_regions <- "gcam32"   # Using GCAM core regions
+model_regions <- "r10"
 #model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
@@ -326,10 +326,10 @@ if (switch_option) {
    Area== "World" ~ "World",
    .default=ISO.3.code
  ),Area.type=case_when(
-   Area== "World" ~ "Country",
+   Area== "World" ~ "Country or economy",
    .default=Area.type  
  )) |>
-  filter(Area.type == "Country",
+  filter(Area.type == "Country or economy",
          Category == "Power sector emissions") |>
   select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
   rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
