@@ -1,0 +1,175 @@
+# Source: https://github.com/bc3LC-GCAMEurope/gcam-core/blob/GCAM-Europe/input/gcamdata/inst/extdata/common/GCAM_region_names.csv
+# Source: https://github.com/bc3LC-GCAMEurope/gcam-core/blob/GCAM-Europe/input/gcamdata/inst/extdata/common/GCAM32_to_EU.csv
+
+iso,region
+AFG,South Asia
+ALB,Albania
+DZA,Africa_Northern
+AGO,Africa_Western
+ARG,Argentina
+ARM,Central Asia
+AUS,Australia_NZ
+AUT,Austria
+AZE,Central Asia
+BHS,Central America and Caribbean
+BHR,Middle East
+BGD,South Asia
+BRB,Central America and Caribbean
+BLR,Belarus
+BEL,Belgium
+BLZ,Central America and Caribbean
+BEN,Africa_Western
+BTN,South Asia
+BOL,South America_Northern
+BIH,Bosnia and Herzegovina
+BWA,Africa_Southern
+BRA,Brazil
+BRN,Southeast Asia
+BGR,Bulgaria
+BFA,Africa_Western
+BDI,Africa_Eastern
+KHM,Southeast Asia
+CMR,Africa_Western
+CAN,Canada
+CPV,Africa_Western
+CAF,Africa_Western
+TCD,Africa_Western
+CHL,South America_Southern
+CHN,China
+COL,Colombia
+COM,Africa_Eastern
+COG,Africa_Western
+COD,Africa_Western
+CRI,Central America and Caribbean
+CIV,Africa_Western
+HRV,Croatia
+CUB,Central America and Caribbean
+CYP,Cyprus
+CZE,Czech Republic
+DNK,Denmark
+DJI,Africa_Eastern
+DOM,Central America and Caribbean
+ECU,South America_Southern
+EGY,Africa_Northern
+SLV,Central America and Caribbean
+GNQ,Africa_Western
+ERI,Africa_Eastern
+EST,Estonia
+ETH,Africa_Eastern
+FJI,Australia_NZ
+FIN,Finland
+FRA,France
+GAB,Africa_Western
+GMB,Africa_Western
+GEO,Central Asia
+DEU,Germany
+GHA,Africa_Western
+GRC,Greece
+GTM,Central America and Caribbean
+GIN,Africa_Western
+GNB,Africa_Western
+GUY,South America_Northern
+HTI,Central America and Caribbean
+HND,Central America and Caribbean
+HUN,Hungary
+ISL,Iceland
+IND,India
+IDN,Indonesia
+IRN,Middle East
+IRQ,Middle East
+IRL,Ireland
+ISR,Middle East
+ITA,Italy
+JAM,Central America and Caribbean
+JPN,Japan
+JOR,Middle East
+KAZ,Central Asia
+KEN,Africa_Eastern
+KWT,Middle East
+KGZ,Central Asia
+LAO,Southeast Asia
+LVA,Latvia
+LBN,Middle East
+LSO,Africa_Southern
+LBR,Africa_Western
+LBY,Africa_Northern
+LTU,Lithuania
+LUX,Luxembourg
+MKD,Macedonia
+MDG,Africa_Eastern
+MWI,Africa_Eastern
+MYS,Southeast Asia
+MDV,South Asia
+MLI,Africa_Western
+MLT,Malta
+MRT,Africa_Western
+MUS,Africa_Eastern
+MEX,Mexico
+MDA,Moldova
+MNG,Central Asia
+MNE,Serbia and Montenegro
+MAR,Africa_Northern
+MOZ,Africa_Eastern
+MMR,Southeast Asia
+NAM,Africa_Southern
+NPL,South Asia
+NLD,Netherlands
+NZL,Australia_NZ
+NIC,Central America and Caribbean
+NER,Africa_Western
+NGA,Africa_Western
+NOR,Norway
+OMN,Middle East
+PAK,Pakistan
+PAN,Central America and Caribbean
+PNG,Southeast Asia
+PRY,South America_Southern
+PER,South America_Southern
+PHL,Southeast Asia
+POL,Poland
+PRT,Portugal
+QAT,Middle East
+ROU,Romania
+RUS,Russia
+RWA,Africa_Eastern
+SAU,Middle East
+SEN,Africa_Western
+SRB,Serbia and Montenegro
+SLE,Africa_Western
+SGP,Southeast Asia
+SVK,Slovakia
+SVN,Slovenia
+SOM,Africa_Eastern
+ZAF,South Africa
+KOR,South Korea
+SSD,Africa_Eastern
+ESP,Spain
+LKA,South Asia
+SDN,Africa_Eastern
+SUR,South America_Northern
+SWZ,Africa_Southern
+SWE,Sweden
+CHE,Switzerland
+SYR,Middle East
+TWN,Taiwan
+TJK,Central Asia
+TZA,Africa_Southern
+THA,Southeast Asia
+TLS,Southeast Asia
+TGO,Africa_Western
+TTO,Central America and Caribbean
+TUN,Africa_Northern
+TUR,Turkey
+TKM,Central Asia
+UGA,Africa_Eastern
+UKR,Ukraine
+ARE,Middle East
+GBR,UK
+USA,USA
+URY,South America_Southern
+UZB,Central Asia
+VEN,South America_Northern
+VNM,Southeast Asia
+YEM,Middle East
+ZMB,Africa_Eastern
+ZWE,Africa_Eastern
