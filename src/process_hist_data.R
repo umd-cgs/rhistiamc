@@ -44,8 +44,9 @@ starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time se
 #### Choose region aggregation ------------------------------
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
+model_regions <- "gcamEurope"   # Using GCAM core regions (with detailed Europe)
 #model_regions <- "gcam32"   # Using GCAM core regions
-model_regions <- "r10"
+#model_regions <- "r10"
 #model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
@@ -1496,6 +1497,8 @@ if (model_regions == "gcam32"){
   ## aggregate to R10: ten regions making up the world
   reg_map <- read.csv("mappings/iso_r10.csv") 
   
+} else if(model_regions == "gcamEurope"){
+  reg_map <- read.csv("mappings/iso_gcam_europe.csv", skip = 3)
 }
 
 
