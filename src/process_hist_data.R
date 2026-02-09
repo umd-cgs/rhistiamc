@@ -44,9 +44,9 @@ starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time se
 #### Choose region aggregation ------------------------------
 # Choose the desired regions for the historical data to be aggregated up to, in 
 # addition to by country: Model name / number of regions
-model_regions <- "gcamEurope"   # Using GCAM core regions (with detailed Europe)
+# model_regions <- "gcamEurope"   # Using GCAM core regions (with detailed Europe)
 #model_regions <- "gcam32"   # Using GCAM core regions
-#model_regions <- "r10"
+model_regions <- "r10"
 #model_regions <- "r5"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
@@ -58,7 +58,7 @@ save_option <- T
 
 ###### emissions: ghg - PRIMAP hist --------------------------------------------------
 
-prim <- read.csv("data/raw_historical/Guetschow_et_al_2025-PRIMAP-hist_v2.6.1_final_no_rounding_13-Mar-2025.csv")
+prim <- read.csv("data/raw_historical/Guetschow_et_al_2025a-PRIMAP-hist_v2.7_final_no_extrap_no_rounding_22-Aug-2025.csv")
 unique(prim$entity)
 unique(prim$area..ISO3.)
 prim <- prim |> pivot_longer(cols = c(-source,-scenario..PRIMAP.hist.,-provenance,-area..ISO3.,-entity,-unit,-category..IPCC2006_PRIMAP.),names_to = "year")
