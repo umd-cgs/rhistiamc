@@ -49,8 +49,12 @@ starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time se
 model_regions <- "r10"
 #model_regions <- "r5"
 
+# Select GCAM version for region mappings
+# Options: "v7" , "v8"
+gcam_version <- "v7"
+
 # Change save_option to False to skip re-saving the raw data as .Rds files
-save_option <- T 
+save_option <- T
 
 ### Process the data -----
 
@@ -1482,9 +1486,15 @@ data_iso <- data_iso |> filter(region != "World")
 
 # Use model_regions setting from the constants step to choose region mapping
 if (model_regions == "gcam32"){
-  reg_map <- read.csv("mappings/iso_EI_GCAM_regID.csv",skip = 6) |>
-    left_join(read.csv("mappings/GCAM_region_names.csv",skip = 6))|>
-    mutate(iso=toupper(iso))
+  if (gcam_version == "v8") {
+    reg_map <- read.csv("mappings/iso_EI_GCAM_regID_v8.csv", skip = 6) |>
+      left_join(read.csv("mappings/GCAM_region_names_v8.csv", skip = 6)) |>
+      mutate(iso = toupper(iso))
+  } else {
+    reg_map <- read.csv("mappings/iso_EI_GCAM_regID_v7.csv", skip = 6) |>
+      left_join(read.csv("mappings/GCAM_region_names_v7.csv", skip = 6)) |>
+      mutate(iso = toupper(iso))
+  }
   
   ## check_match(data_iso, reg_map, "iso")
   
