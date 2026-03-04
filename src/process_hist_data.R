@@ -42,11 +42,8 @@ source("src/functions.R")
 starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
 
 #### Choose region aggregation ------------------------------
-# All region schemes are run in a loop below and produce separate output files.
-# Regions: "gcam32", "r10", "r5", "gcamEurope"
-
-# Select GCAM version for gcam32 region mappings: "v7" or "v8"
-gcam_version <- "v7"
+# All region schemes are run in a loop and produce separate output files:
+# "gcam32_v7", "gcam32_v8", "r10", "r5", "gcamEurope"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
 save_option <- T
@@ -1479,22 +1476,23 @@ data_iso <- data_iso |> filter(region != "World")
 #there is a bit of overlap between o-afr and o-wafr/eafr for a few oil and coal variables
 
 
-for (model_regions in c("gcam32", "r10", "r5", "gcamEurope")) {
+for (model_regions in c("gcam32_v7", "gcam32_v8", "r10", "r5", "gcamEurope")) {
 
 message("Processing region scheme: ", model_regions)
 
 # Choose region mapping
-if (model_regions == "gcam32"){
-  if (gcam_version == "v8") {
-    reg_map <- read.csv("mappings/iso_EI_GCAM_regID_v8.csv", skip = 6) |>
-      left_join(read.csv("mappings/GCAM_region_names_v8.csv", skip = 6)) |>
-      mutate(iso = toupper(iso))
-  } else {
-    reg_map <- read.csv("mappings/iso_EI_GCAM_regID_v7.csv", skip = 6) |>
-      left_join(read.csv("mappings/GCAM_region_names_v7.csv", skip = 6)) |>
-      mutate(iso = toupper(iso))
-  }
-  
+if (model_regions == "gcam32_v8"){
+  reg_map <- read.csv("mappings/iso_EI_GCAM_regID_v8.csv", skip = 6) |>
+    left_join(read.csv("mappings/GCAM_region_names_v8.csv", skip = 6)) |>
+    mutate(iso = toupper(iso))
+
+  ## check_match(data_iso, reg_map, "iso")
+
+} else if (model_regions == "gcam32_v7"){
+  reg_map <- read.csv("mappings/iso_EI_GCAM_regID_v7.csv", skip = 6) |>
+    left_join(read.csv("mappings/GCAM_region_names_v7.csv", skip = 6)) |>
+    mutate(iso = toupper(iso))
+
   ## check_match(data_iso, reg_map, "iso")
   
 } else if(model_regions == "r5"){
@@ -1658,7 +1656,7 @@ write_this <- rbind(data_iso, dat_ieah, dat_ieas, data_World) |>
 
 
 #write out iso and World IAMC file (only once, independent of region scheme)
-if (model_regions == "gcam32") {
+if (model_regions == "gcam32_v7") {
   write.csv(write_this, "data/processed_historical/historical_iso.csv",row.names = F,quote = F)
 }
 
