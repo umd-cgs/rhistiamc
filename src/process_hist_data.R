@@ -42,15 +42,11 @@ source("src/functions.R")
 starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
 
 #### Choose region aggregation ------------------------------
-# Choose the desired regions for the historical data to be aggregated up to, in 
-# addition to by country: Model name / number of regions
-# model_regions <- "gcamEurope"   # Using GCAM core regions (with detailed Europe)
-#model_regions <- "gcam32"   # Using GCAM core regions
-model_regions <- "r10"
-#model_regions <- "r5"
+# All region schemes are run in a loop and produce separate output files:
+# "gcam32_v7", "gcam32_v8", "r10", "r5", "gcamEurope"
 
 # Change save_option to False to skip re-saving the raw data as .Rds files
-save_option <- T 
+save_option <- T
 
 ### Process the data -----
 
@@ -1480,12 +1476,23 @@ data_iso <- data_iso |> filter(region != "World")
 #there is a bit of overlap between o-afr and o-wafr/eafr for a few oil and coal variables
 
 
-# Use model_regions setting from the constants step to choose region mapping
-if (model_regions == "gcam32"){
-  reg_map <- read.csv("mappings/iso_EI_GCAM_regID.csv",skip = 6) |>
-    left_join(read.csv("mappings/GCAM_region_names.csv",skip = 6))|>
-    mutate(iso=toupper(iso))
-  
+for (model_regions in c("gcam32_v7", "gcam32_v8", "r10", "r5", "gcamEurope")) {
+
+message("Processing region scheme: ", model_regions)
+
+# Choose region mapping
+if (model_regions == "gcam32_v8"){
+  reg_map <- read.csv("mappings/iso_EI_GCAM_regID_v8.csv", skip = 6) |>
+    left_join(read.csv("mappings/GCAM_region_names_v8.csv", skip = 6)) |>
+    mutate(iso = toupper(iso))
+
+  ## check_match(data_iso, reg_map, "iso")
+
+} else if (model_regions == "gcam32_v7"){
+  reg_map <- read.csv("mappings/iso_EI_GCAM_regID_v7.csv", skip = 6) |>
+    left_join(read.csv("mappings/GCAM_region_names_v7.csv", skip = 6)) |>
+    mutate(iso = toupper(iso))
+
   ## check_match(data_iso, reg_map, "iso")
   
 } else if(model_regions == "r5"){
@@ -1648,8 +1655,10 @@ write_this <- rbind(data_iso, dat_ieah, dat_ieas, data_World) |>
   ungroup()
 
 
-#write out iso and World IAMC file
-write.csv(write_this, "data/processed_historical/historical_iso.csv",row.names = F,quote = F)
+#write out iso and World IAMC file (only once, independent of region scheme)
+if (model_regions == "gcam32_v7") {
+  write.csv(write_this, "data/processed_historical/historical_iso.csv",row.names = F,quote = F)
+}
 
 
 
@@ -1682,10 +1691,11 @@ write_this <- rbind(data_reg, dat_ieah, dat_ieas, data_World) |>
 
 
 #write out IAMC file
-write.csv(write_this, 
+write.csv(write_this,
           file.path("data/processed_historical",paste0("historical_", model_regions, ".csv")),
           row.names = F,quote = F)
 
+} # end loop over model_regions
 
 
 #### 4.b save and remove original source R objects ####
