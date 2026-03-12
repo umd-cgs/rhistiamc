@@ -485,7 +485,7 @@ for (i in seq(1, length(data), by = 2)) {
 
 
 
-###### socio: gdp and population - IIASA ---------
+###### socio: gdp, population - IIASA ---------
 
 file_path <- "data/raw_historical/1710759470883-ssp_basic_drivers_release_3.0.1_full.xlsx"
 
@@ -709,13 +709,13 @@ if (switch_count_heat_as_elec == T) {
 
 #add sectoral data based on IAMC mappings
 
-dat_ceds <- dat_ceds |> rbind(test <- ceds_c |> left_join(map_ceds, by = c("sector"), relationship = "many-to-many")|> 
+dat_ceds <- dat_ceds |> rbind(ceds_c |> left_join(map_ceds, by = c("sector"), relationship = "many-to-many")|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt CO2/yr",value=value/1000)|> rename(variable=var))  
 
-dat_ceds <- dat_ceds |> rbind(test <- ceds_m |> left_join(map_ceds, by = c("sector"), relationship = "many-to-many")|> 
+dat_ceds <- dat_ceds |> rbind(ceds_m |> left_join(map_ceds, by = c("sector"), relationship = "many-to-many")|> 
                                 group_by(iso,entity,year,var,units) |> summarize(value=sum(value))|>
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
@@ -1701,11 +1701,17 @@ write.csv(write_this,
 #### 4.b save and remove original source R objects ####
 if(save_option == T){
   dir.create("data/raw_historical/combined", showWarnings = F)
-  save(prim,ceds,eemi,eemi_eu,file = "data/raw_historical/combined/emissions.Rds")
-  save(ember,emberm,ecap,egeny,egenm,ener_2024,ener_2025,iea_ev, file = "data/raw_historical/combined/energy.Rds")
+  
+  save(prim, ceds, ceds_c, ceds_m, ceds_n, owid_co2_data, eemi, eemi_eu, land, iea_ch4, ct_waste,
+       file = "data/raw_historical/combined/emissions.Rds")
+  
+  save(ember,emberm,ecap,egeny,egenm,ener_2024,ener_2025,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25,
+       file = "data/raw_historical/combined/energy.Rds")
+  
+  save(nasa_temp, crut, iiasa_data,
+       file = "data/raw_historical/combined/climate_and_socio.Rds")
 }
 
-rm(ecap,eemi,egeny,egenm,prim,ceds,ener_2024,ener_2025,iea_ev, dat_iea_ev)
-
+rm(prim, ceds, ceds_c, ceds_m, ceds_n, owid_co2_data, eemi, eemi_eu, land, iea_ch4, ct_waste, ember,emberm,ecap,egeny,egenm,ener_2024,ener_2025,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25, nasa_temp, crut, iiasa_data)
 
 
