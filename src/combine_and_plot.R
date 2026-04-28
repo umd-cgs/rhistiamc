@@ -22,9 +22,10 @@ start_yr <- 1990
 
 # # Choose the desired regions for the analysis
 # model_regions <- "iso"   # ISO: Using country codes
-# model_regions <- "gcam32"    # Using GCAM core regions
+model_regions <- "gcam32_v8"    # Using GCAM v8 (and later) core regions
+# model_regions <- "gcam32_v7"    # Using GCAM v7 (and before) core regions
 # model_regions <- "r10"   # R10: ten regions making up the world
-model_regions <- "r5"   # R5: five regions making up the world
+# model_regions <- "r5"   # R5: five regions making up the world
 
 
 #### 2. Load data ------------------
@@ -62,7 +63,7 @@ data_hist_full <- data_hist_full |> rbind(
 
 # for GDP, keep only the OECD values
 data_hist_full <- data_hist_full |>
-  filter(!(grepl("IIASA GDP", model))) |>
+  # filter(!(grepl("IIASA GDP", model))) |>
   # and only keep one of the IEA WEO scenarios, since they have the same values as each other
   filter(!(grepl("GDP", variable) & scenario %in% c("Net Zero Emissions by 2050 Scenario", "Announced Pledges Scenario")))
 
@@ -236,7 +237,17 @@ vars <- data.frame(
 #   )
 # )
 
+# Set whether to make figures of all the historical variables, for vetting purposes, etc
+vetting_mode <- T
 
+if (vetting_mode == T){
+  vars <- data.frame(
+    vars=c(unique(data_hist$variable)
+    ),
+    # Aliases for the variables to include in the saved filenames
+    names=seq(1,length(unique(data_hist$variable)))
+  )
+}
   
 #### 4. Run the plot scripts -----
   
