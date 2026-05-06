@@ -54,7 +54,7 @@ save_option <- T
 
 ###### emissions: ghg - PRIMAP hist --------------------------------------------------
 
-prim <- read.csv("data/raw_historical/Guetschow_et_al_2025a-PRIMAP-hist_v2.7_final_no_extrap_no_rounding_22-Aug-2025.csv")
+prim <- read.csv("data/raw_historical/Guetschow_et_al_2025a-PRIMAP-hist_v2.7_final_no_rounding_22-Aug-2025.csv")
 unique(prim$entity)
 unique(prim$area..ISO3.)
 prim <- prim |> pivot_longer(cols = c(-source,-scenario..PRIMAP.hist.,-provenance,-area..ISO3.,-entity,-unit,-category..IPCC2006_PRIMAP.),names_to = "year")
