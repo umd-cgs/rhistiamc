@@ -605,9 +605,12 @@ dat_prim <- dat_prim |>
   filter(!(year %in% c(2024, 2025) &
            variable %in% c("Emissions|Kyoto Gases (incl. all LULUCF)",
                            "Emissions|Kyoto Gases (excl. LUC)",
+                           "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
+                           "Emissions|Kyoto Gases|AR5 (excl. LUC)",
                            "Emissions|CH4",
                            "Emissions|N2O",
                            "Emissions|F-Gases",
+                           "Emissions|F-Gases|AR5",
                            "Emissions|CO2|Energy and Industrial Processes")))
 
 
