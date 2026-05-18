@@ -600,6 +600,16 @@ dat_prim <- dat_prim |>
   #filter out country groups (only keep EU27BX and World)
   filter(!iso %in% c("LDC","AOSIS","ANNEXI","BASIC","NONANNEXI","UMBRELLA"))
 
+# Drop 2024/2025 values for selected variables (data quality issues - extrapolated/incomplete in PRIMAP v2.7)
+dat_prim <- dat_prim |>
+  filter(!(year %in% c(2024, 2025) &
+           variable %in% c("Emissions|Kyoto Gases (incl. all LULUCF)",
+                           "Emissions|Kyoto Gases (excl. LUC)",
+                           "Emissions|CH4",
+                           "Emissions|N2O",
+                           "Emissions|F-Gases",
+                           "Emissions|CO2|Energy and Industrial Processes")))
+
 
 #total CO2 and total Kyoto also get calculated with the LULUCF to get to a consistent set with / without indirect LULUCF (Grassi effect)
 dat_prim <-  rbind(dat_prim,
@@ -613,6 +623,12 @@ dat_prim <-  rbind(dat_prim,
                       variable=="Emissions|Kyoto Gases" ~ "Mt CO2-equiv/yr",
                       variable=="Emissions|CO2" ~ "Mt CO2/yr"
                     )))
+
+# Drop 2024/2025 for the derived totals as well — pivot_wider(values_fill = 0) above
+# silently substitutes 0 for the rows we filtered earlier, producing underestimated totals.
+dat_prim <- dat_prim |>
+  filter(!(year %in% c(2024, 2025) &
+           variable %in% c("Emissions|CO2", "Emissions|Kyoto Gases")))
 
 #addition of international shipping and aviation emissions to dat_prim further below
 #search for:
