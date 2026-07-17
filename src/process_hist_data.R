@@ -154,10 +154,22 @@ hc    <- process_sheet("H&C2023", "H&C")
 oscar <- process_sheet("OSCAR", "OSCAR")
 luce  <- process_sheet("LUCE", "LUCE")
 
-#Combine and arrange 
+#Combine and arrange
 land <- bind_rows(blue, oscar, hc, luce)
 land<- arrange(land, year, Country)
 
+
+
+###### forest: tree cover loss - GFW (Global Forest Watch) --------------------
+# Source: https://www.globalforestwatch.org/dashboards/country/IDN/
+# global.xlsx sheet "Country tree cover loss"; use threshold = 30 (% canopy).
+gfw_forest <- read_excel("data/raw_historical/global.xlsx",
+                         sheet = "Country tree cover loss") |>
+  filter(threshold == 30) |>
+  select(country, starts_with("tc_loss_ha_")) |>
+  pivot_longer(cols = starts_with("tc_loss_ha_"),
+               names_to = "year", values_to = "value") |>
+  mutate(year = parse_number(year))
 
 
 ###### emissions: ch4 - IEA ---------
@@ -874,6 +886,26 @@ dat_land <- dat_land %>%
 
 
 
+###### GFW Forest ------------------------------------
+dat_forest <- gfw_forest |>
+  mutate(iso = countrycode(country, "country.name", "iso3c")) |>
+  filter(!is.na(iso), year > starty) |>
+  mutate(value    = value / 1e6,        # ha -> million ha
+         variable = "Forest Area Change|Deforestation",
+         unit     = "million ha/yr",
+         model    = "GFW",
+         scenario = "historical") |>
+  select(iso, variable, unit, year, value, model, scenario)
+
+# add World total (sum across mapped countries)
+dat_forest <- dat_forest |>
+  bind_rows(dat_forest |>
+              group_by(year, variable, unit, model, scenario) |>
+              summarise(value = sum(value, na.rm = TRUE), .groups = "drop") |>
+              mutate(iso = "World"))
+
+
+
 ###### IEA CH4  ------------------------------------
 
 dat_ch4 <- iea_ch4 %>%
@@ -1468,7 +1500,7 @@ dat_crut <- crut %>%
 
 #### 2.b combine iso based data sets #####
 data_iso <- rbind(dat_ener_2024,dat_ener_2025,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
-              dat_robbie, dat_oecd, dat_owid_air, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
+              dat_robbie, dat_oecd, dat_owid_air, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct, dat_forest)
 
 data_iso <- data_iso %>%
   filter(!is.na(iso),
