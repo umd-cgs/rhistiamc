@@ -154,10 +154,22 @@ hc    <- process_sheet("H&C2023", "H&C")
 oscar <- process_sheet("OSCAR", "OSCAR")
 luce  <- process_sheet("LUCE", "LUCE")
 
-#Combine and arrange 
+#Combine and arrange
 land <- bind_rows(blue, oscar, hc, luce)
 land<- arrange(land, year, Country)
 
+
+
+###### forest: tree cover loss - GFW (Global Forest Watch) --------------------
+# Source: https://www.globalforestwatch.org/dashboards/country/IDN/
+# global.xlsx sheet "Country tree cover loss"; use threshold = 30 (% canopy).
+gfw_forest <- read_excel("data/raw_historical/global.xlsx",
+                         sheet = "Country tree cover loss") |>
+  filter(threshold == 30) |>
+  select(country, starts_with("tc_loss_ha_")) |>
+  pivot_longer(cols = starts_with("tc_loss_ha_"),
+               names_to = "year", values_to = "value") |>
+  mutate(year = parse_number(year))
 
 
 ###### emissions: ch4 - IEA ---------
@@ -600,6 +612,19 @@ dat_prim <- dat_prim |>
   #filter out country groups (only keep EU27BX and World)
   filter(!iso %in% c("LDC","AOSIS","ANNEXI","BASIC","NONANNEXI","UMBRELLA"))
 
+# Drop 2024/2025 values for selected variables (data quality issues - extrapolated/incomplete in PRIMAP v2.7)
+dat_prim <- dat_prim |>
+  filter(!(year %in% c(2024, 2025) &
+           variable %in% c("Emissions|Kyoto Gases (incl. all LULUCF)",
+                           "Emissions|Kyoto Gases (excl. LUC)",
+                           "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
+                           "Emissions|Kyoto Gases|AR5 (excl. LUC)",
+                           "Emissions|CH4",
+                           "Emissions|N2O",
+                           "Emissions|F-Gases",
+                           "Emissions|F-Gases|AR5",
+                           "Emissions|CO2|Energy and Industrial Processes")))
+
 
 #total CO2 and total Kyoto also get calculated with the LULUCF to get to a consistent set with / without indirect LULUCF (Grassi effect)
 dat_prim <-  rbind(dat_prim,
@@ -613,6 +638,12 @@ dat_prim <-  rbind(dat_prim,
                       variable=="Emissions|Kyoto Gases" ~ "Mt CO2-equiv/yr",
                       variable=="Emissions|CO2" ~ "Mt CO2/yr"
                     )))
+
+# Drop 2024/2025 for the derived totals as well — pivot_wider(values_fill = 0) above
+# silently substitutes 0 for the rows we filtered earlier, producing underestimated totals.
+dat_prim <- dat_prim |>
+  filter(!(year %in% c(2024, 2025) &
+           variable %in% c("Emissions|CO2", "Emissions|Kyoto Gases")))
 
 #addition of international shipping and aviation emissions to dat_prim further below
 #search for:
@@ -852,6 +883,26 @@ dat_land$iso <- ifelse(is.na(dat_land$iso) & dat_land$Country == "Global", "Worl
                               dat_land$iso))
 dat_land <- dat_land %>%
   select(-Country)
+
+
+
+###### GFW Forest ------------------------------------
+dat_forest <- gfw_forest |>
+  mutate(iso = countrycode(country, "country.name", "iso3c")) |>
+  filter(!is.na(iso), year > starty) |>
+  mutate(value    = value / 1e6,        # ha -> million ha
+         variable = "Forest Area Change|Deforestation",
+         unit     = "million ha/yr",
+         model    = "GFW",
+         scenario = "historical") |>
+  select(iso, variable, unit, year, value, model, scenario)
+
+# add World total (sum across mapped countries)
+dat_forest <- dat_forest |>
+  bind_rows(dat_forest |>
+              group_by(year, variable, unit, model, scenario) |>
+              summarise(value = sum(value, na.rm = TRUE), .groups = "drop") |>
+              mutate(iso = "World"))
 
 
 
@@ -1449,7 +1500,7 @@ dat_crut <- crut %>%
 
 #### 2.b combine iso based data sets #####
 data_iso <- rbind(dat_ener_2024,dat_ener_2025,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
-              dat_robbie, dat_oecd, dat_owid_air, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct)
+              dat_robbie, dat_oecd, dat_owid_air, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct, dat_forest)
 
 data_iso <- data_iso %>%
   filter(!is.na(iso),
