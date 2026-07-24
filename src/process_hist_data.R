@@ -623,7 +623,10 @@ dat_prim <- dat_prim |>
                            "Emissions|N2O",
                            "Emissions|F-Gases",
                            "Emissions|F-Gases|AR5",
-                           "Emissions|CO2|Energy and Industrial Processes")))
+                           "Emissions|CO2|Energy and Industrial Processes",
+                           "Emissions|CO2 (incl. all LULUCF)",
+                           "Emissions|CO2|AFOLU",
+                           "Emissions|CO2|AFOLU|Land")))
 
 
 #total CO2 and total Kyoto also get calculated with the LULUCF to get to a consistent set with / without indirect LULUCF (Grassi effect)
