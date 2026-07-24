@@ -440,7 +440,7 @@ owid_energy_data <- owid_energy_data %>%
 
 ###### trn: ev - IEA GEVO --------------------------------------------------
 
-iea_ev <- readxl::read_excel("data/raw_historical/GlobalEVDataExplorer2025.xlsx")
+iea_ev <- readxl::read_excel("data/raw_historical/GlobalEVDataExplorer2026.xlsx")
 #This dataset had added a few new aggregate regions: Asia Pacific, Central and South America, EU27, Europe, Middle East and Caspian, North America, Rest of the world, World
 # Asia pacific+Central and South America+ Europe+ Middle East and Caspian+North America+Rest of the world = World(roughly)
 # Rename and drop columns to match expected structure
@@ -1133,13 +1133,14 @@ dat_owid_energy <- NULL
 
 
 ###### IEA GEVO -------------------------------------
-iea_ev <- read_excel("data/raw_historical/GlobalEVDataExplorer2025.xlsx") %>%
+read_gevo <- function(path, model_name) {
+  read_excel(path) %>%
   rename(region = region_country) %>%
   select(-`Aggregate group`) %>%
   mutate(
     iso = countrycode(region, "country.name", "iso3c"),
     iso = case_when(region == "World" ~ "World",
-                    region == "EU27" ~ "EU27BX",
+                    region %in% c("EU27", "European Union") ~ "EU27BX",
                     TRUE ~ iso),
     mode_group = case_when(
       mode %in% c("Cars", "Vans", "2 and 3 wheelers") ~ "Light-Duty Vehicle",
@@ -1163,9 +1164,12 @@ iea_ev <- read_excel("data/raw_historical/GlobalEVDataExplorer2025.xlsx") %>%
       unit == "Vehicles" ~ "million",
       TRUE ~ unit
     ),
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   filter(!is.na(iso), !is.na(mode_group))
+}
+
+derive_gevo <- function(iea_ev, model_name) {
 
 # === EV STOCKS ===
 ev_stock <- iea_ev %>%
@@ -1222,7 +1226,7 @@ stock_total <- left_join(ev_stock_total, ev_stock_share,
     value = ev_stock / (ev_share / 100),
     variable = paste0("Stocks|Transportation|", mode_group, "|", sub_mode),
     unit = "million",
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   select(iso, variable, unit, year, value, model, scenario, mode_group, sub_mode)
 
@@ -1233,7 +1237,7 @@ stock_total_agg <- stock_total %>%
   mutate(
     variable = paste0("Stocks|Transportation|", mode_group),
     unit = "million",
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
@@ -1249,7 +1253,7 @@ sales_total <- left_join(ev_sales_total, ev_sales_share,
     value = ev_sales / (ev_share / 100),
     variable = paste0("Sales|Transportation|", mode_group, "|", sub_mode),
     unit = "million",
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   select(iso, variable, unit, year, value, model, scenario, mode_group, sub_mode)
 # === AGGREGATE TOTAL SALES BY MODE GROUP (LDV, Bus, Truck) ===
@@ -1259,7 +1263,7 @@ sales_total_agg <- sales_total %>%
   mutate(
     variable = paste0("Sales|Transportation|", mode_group),
     unit = "million",
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
@@ -1274,7 +1278,7 @@ ice_stock <- left_join(stock_total, ev_stock_total,
       "|Internal Combustion"
     ),
     unit = "million",
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
@@ -1288,7 +1292,7 @@ ice_sales <- left_join(sales_total, ev_sales_total,
       "|Internal Combustion"
     ),
     unit = "million",
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
@@ -1310,7 +1314,7 @@ bev_sales_share <- ev_sales %>%
       "|Battery-Electric"
     ),
     unit = "%",
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
@@ -1332,7 +1336,7 @@ bev_stock_share <- ev_stock %>%
       "|Battery-Electric"
     ),
     unit = "%",
-    model = "IEA_GEVO"
+    model = model_name
   ) %>%
   select(iso, variable, unit, year, value, model, scenario)
 
@@ -1340,7 +1344,7 @@ bev_stock_share <- ev_stock %>%
 ev_stock_clean <- ev_stock %>%
   filter(!grepl("^Stocks\\|Transportation\\|[^|]+$", variable))  # only with powertrain
 
-dat_iea_ev <- bind_rows(
+bind_rows(
   ev_sales %>% select(-mode_group, -sub_mode),
   ev_stock_clean %>% select(-mode_group, -sub_mode),
   sales_total %>% select(-mode_group, -sub_mode),
@@ -1353,6 +1357,17 @@ dat_iea_ev <- bind_rows(
   bev_stock_share
 ) %>%
   distinct()
+}
+
+iea_ev <- read_gevo("data/raw_historical/GlobalEVDataExplorer2026.xlsx", "IEA_GEVO")
+dat_iea_ev <- derive_gevo(iea_ev, "IEA_GEVO")
+
+# Graft the 2030 projection from the previous vintage (GEVO 2025). GEVO 2026 nolonger publishes 2030 
+dat_iea_ev_2025 <- read_gevo("data/raw_historical/GlobalEVDataExplorer2025.xlsx", "IEA_GEVO_2025") %>%
+  derive_gevo("IEA_GEVO_2025") %>%
+  filter(year == 2030, scenario == "Projection-STEPS")
+
+dat_iea_ev <- bind_rows(dat_iea_ev, dat_iea_ev_2025)
 
 
 
