@@ -1621,15 +1621,27 @@ dat_iea25 <- iea25 |>
   filter(!is.na(var))
 
 # bring to GCAM region mapping and IAMC format
+map_iea_active <- map_iea |> filter(IAMC != "")
+
+unmatched <- map_iea_active |>
+  anti_join(dat_iea25 |> distinct(var, unit), by = join_by(WEO == var, Unit_WEO == unit))
+if (nrow(unmatched) > 0) {
+  stop("map_IEAWEO25_iamc.csv: ", nrow(unmatched),
+       " mapping row(s) match no (var, unit) pair in the WEO data:\n",
+       paste0("  ", unmatched$WEO, " [", unmatched$Unit_WEO, "] -> ", unmatched$IAMC,
+              collapse = "\n"))
+}
+
 dat_iea25 <- dat_iea25 |>
-  select(-unit) |> 
-  left_join(map_iea,by=join_by(var==WEO), relationship = "many-to-many") |>
-  filter(IAMC!="")|>
+  left_join(map_iea_active, by = join_by(var == WEO, unit == Unit_WEO),
+            relationship = "many-to-many") |>
+  filter(!is.na(IAMC)) |>
+  select(-unit) |>
   rename(unit = Unit_IAMC) |>
   mutate(Conversion = as.numeric(Conversion)) |>
-  mutate(value = value*Conversion)|>  
+  mutate(value = value*Conversion)|>
   select(year,IAMC,unit,value,region,model,scenario) |>
-  na.omit(IAMC) |> 
+  na.omit(IAMC) |>
   rename(variable=IAMC)
 
 # Sum across detailed variables
@@ -1651,9 +1663,15 @@ dat_iea25 <- dat_iea25 |>
                                      "Capacity|Electricity|Gas|w/o CCS")) |>
               mutate(variable = "Capacity|Electricity|Gas")) |>
   bind_rows(dat_iea25 |>
-              filter(variable %in% c("Capacity|Electricity|Fossil|w/ CCS", 
+              filter(variable %in% c("Capacity|Electricity|Fossil|w/ CCS",
                                      "Capacity|Electricity|Fossil|w/o CCS")) |>
               mutate(variable = "Capacity|Electricity|Fossil")) |>
+  bind_rows(dat_iea25 |>
+              filter(variable %in% c("Primary Energy|Biomass|Solids",
+                                     "Primary Energy|Biomass|Liquids",
+                                     "Primary Energy|Biomass|Gases",
+                                     "Primary Energy|Biomass|Traditional")) |>
+              mutate(variable = "Primary Energy|Biomass")) |>
   group_by(across(-value)) |>
   summarise(value = sum(value, na.rm = T)) |>
   ungroup()
