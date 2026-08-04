@@ -367,43 +367,39 @@ eemi_eu <- ember |>
 # This link corresponds to multiple reports from the Energy Institute. Our analysis draws two files 
 # - Key reports - Statistical Review of World Energy Data.XLSX
 # Consolidated Dataset Narrow format downloaded as - Statistical Review of World Energy Narrow File.csv
-# 2024-06-20 version: includes 2023 data points, files have _06_24 suffix
-ener_2024 <- read.csv("data/raw_historical/Statistical Review of World Energy Narrow File_06_24.csv") |>
-  rename(region=Country,year=Year,iso=ISO3166_alpha3,value=Value) |>
-  select(region,year,iso,Var,value)
-
-# 2025 version: includes 2024 data points, files have _2025 suffix
-ener_2025 <- read.csv("data/raw_historical/Statistical Review of World Energy Narrow File_06_25.csv") |>
+# 2026-06-30 version (75th edition): includes 2025 data points.
+# Note: filename uses "Narrow format" (earlier vintages used "Narrow File").
+ener_2026 <- read.csv("data/raw_historical/Statistical Review of World Energy Narrow format_06_26.csv") |>
   rename(region=Country,year=Year,iso=ISO3166_alpha3,value=Value) |>
   select(region,year,iso,Var,value)
 
 #check USA implied net oil trade to compare with sheet "Oil - Trade movements" to 
 # see which GJ per barrel value leads to reproduction of pattern (net exporter in 2020 and 2022)
-ener_2024|>filter(iso=="USA",Var %in% c("oilcons_ej","oilprod_kbd"))|>pivot_wider(names_from = Var)|>
-  mutate(exp=oilprod_kbd*5.8*365/1000000-oilcons_ej) |> filter(year>2010)
+ener_2026|>filter(iso=="USA",Var %in% c("oil_tes_ej","oilprod_kbd"))|>pivot_wider(names_from = Var)|>
+  mutate(exp=oilprod_kbd*5.8*365/1000000-oil_tes_ej) |> filter(year>2010)
 # implies that 5.8 GJ per barrel of oil is a good value. On the other hand, file:///C:/Users/bertram/Downloads/Approximate%20conversion%20factors%20-%20tables.pdf
 # says that 1 boe is 6.118 GJ, so using an average value of 6 on average seems good approach
 # difference probably due to accounting for products vs. crude (see tables in file.)
 
 #check gas trade: this works well, see sheet "Gas - Inter-regional trade"
-ener_2024|>filter(iso=="USA",Var %in% c("gascons_ej","gasprod_ej"))|>pivot_wider(names_from = Var)|>
-  mutate(exp=gasprod_ej-gascons_ej) |> filter(year>2009)
+ener_2026|>filter(iso=="USA",Var %in% c("gas_tes_ej","gasprod_ej"))|>pivot_wider(names_from = Var)|>
+  mutate(exp=gasprod_ej-gas_tes_ej) |> filter(year>2009)
 
 #would make sense to also at some point use the LNG import and export data:
-lng <- rbind(read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG imports bcm",range = "A3:Y38")|>
-               mutate(var="lng_imp_ej"),
-             read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG exports bcm",range = "A3:Y31")|>
-               mutate(var="lng_exp_ej")) |>
-  pivot_longer(cols = seq(2,24),names_to = "year") |>
-  mutate(region=`Billion cubic metres`,value=value/bcm2ej)
+# lng <- rbind(read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG imports bcm",range = "A3:Y38")|>
+#                mutate(var="lng_imp_ej"),
+#              read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG exports bcm",range = "A3:Y31")|>
+#                mutate(var="lng_exp_ej")) |>
+#   pivot_longer(cols = seq(2,24),names_to = "year") |>
+#   mutate(region=`Billion cubic metres`,value=value/bcm2ej)
 
 #check coal trade: this works ok, see sheet "Coal - Trade movements"
-ener_2024|>filter(iso=="USA",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
-  mutate(exp=coalprod_ej-coalcons_ej) |> filter(year>2009)
+ener_2026|>filter(iso=="USA",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
+  mutate(exp=coalprod_ej-coal_tes_ej) |> filter(year>2009)
 
 #check coal trade: this works ok, see sheet "Coal - Trade movements"
-ener_2024|>filter(iso=="IND",Var %in% c("coalcons_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
-  mutate(exp=coalprod_ej-coalcons_ej) |> filter(year>2009)
+ener_2026|>filter(iso=="IND",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
+  mutate(exp=coalprod_ej-coal_tes_ej) |> filter(year>2009)
 
 ###### energy: IEA WEO 2025 --------------------------------------------------
 
@@ -1075,18 +1071,11 @@ dat_eemi <- eemi |> filter(year > starty)|> select (-variable,-region)|>
 
 ###### EI SRWED -------------------------------------
 
-dat_ener_2024 <- ener_2024 |> left_join(read.csv("mappings/map_ei_iamc.csv"),by = join_by(Var==EI)) |>
-  filter(!is.na(IAMC),!IAMC=="",year>starty)|>mutate(value=value*factor) |> 
-  select(year,iso,value,unit,IAMC) |> 
+dat_ener_2026 <- ener_2026 |> left_join(read.csv("mappings/map_ei_26_iamc.csv"),by = join_by(Var==EI)) |>
+  filter(!is.na(IAMC),!IAMC=="",year>starty)|>mutate(value=value*factor) |>
+  select(year,iso,value,unit,IAMC) |>
   mutate(iso = ifelse(iso == "WLD", "World", iso),
-         model="Stat. Rev. World Energy Data_2024",   ## Statistical Review of World Energy Data"
-         scenario="historical") |> rename(variable=IAMC)
-
-dat_ener_2025 <- ener_2025 |> left_join(read.csv("mappings/map_ei_25_iamc.csv"),by = join_by(Var==EI)) |>
-  filter(!is.na(IAMC),!IAMC=="",year>starty)|>mutate(value=value*factor) |> 
-  select(year,iso,value,unit,IAMC) |> 
-  mutate(iso = ifelse(iso == "WLD", "World", iso),
-         model="Stat. Rev. World Energy Data_2025",   ## Statistical Review of World Energy Data"
+         model="Stat. Rev. World Energy Data_2026",   ## Statistical Review of World Energy Data"
          scenario="historical") |> rename(variable=IAMC)
 
 ###### OWID Energy  ------------------------------------
@@ -1517,7 +1506,7 @@ dat_crut <- crut %>%
 
 
 #### 2.b combine iso based data sets #####
-data_iso <- rbind(dat_ener_2024,dat_ener_2025,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
+data_iso <- rbind(dat_ener_2026,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
               dat_robbie, dat_oecd, dat_owid_air, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct, dat_forest)
 
 data_iso <- data_iso %>%
@@ -1792,13 +1781,13 @@ if(save_option == T){
   save(prim, ceds, ceds_c, ceds_m, ceds_n, owid_co2_data, eemi, eemi_eu, land, iea_ch4, ct_waste,
        file = "data/raw_historical/combined/emissions.Rds")
   
-  save(ember,emberm,ecap,egeny,egenm,ener_2024,ener_2025,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25,
+  save(ember,emberm,ecap,egeny,egenm,ener_2026,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25,
        file = "data/raw_historical/combined/energy.Rds")
   
   save(nasa_temp, crut, iiasa_data,
        file = "data/raw_historical/combined/climate_and_socio.Rds")
 }
 
-rm(prim, ceds, ceds_c, ceds_m, ceds_n, owid_co2_data, eemi, eemi_eu, land, iea_ch4, ct_waste, ember,emberm,ecap,egeny,egenm,ener_2024,ener_2025,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25, nasa_temp, crut, iiasa_data)
+rm(prim, ceds, ceds_c, ceds_m, ceds_n, owid_co2_data, eemi, eemi_eu, land, iea_ch4, ct_waste, ember,emberm,ecap,egeny,egenm,ener_2026,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25, nasa_temp, crut, iiasa_data)
 
 
