@@ -412,8 +412,8 @@ iea25 <- rbind(iea25, ## add all available data on Net Zero scenarios, plus addi
                read.csv("data/raw_historical/WEO2025_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO=="Net Zero Emissions by 2050 Scenario")|>
                  mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)),#|>select(-X),
                read.csv("data/raw_historical/WEO2025_AnnexA_Free_Dataset_World.csv") |> filter(SCENARIO!="Net Zero Emissions by 2050 Scenario")|>
-                 mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)) |> 
-                 filter(!var %in% unique(iea25$var))#|>select(-X)
+                 mutate(var = paste0(CATEGORY,"-",PRODUCT,"-",FLOW)) |>
+                 filter(!paste0(var, "\r", UNIT) %in% unique(paste0(iea25$var, "\r", iea25$UNIT)))#|>select(-X)
 )|>
   select(-CATEGORY,-PRODUCT,-FLOW,-PUBLICATION)|>
   rename(unit=UNIT,region=REGION,year=YEAR,value=VALUE,scenario=SCENARIO)
