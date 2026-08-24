@@ -142,6 +142,7 @@ eff_ng <- 0.5
 
 ej2twh <- 277.77777777778
 bcm2ej <- 36 #see "Approximate conversion factors.pdf" from IEA 
+kbd2ej <- 6 * 365 / 1e6   # thousand barrels/day -> EJ/yr at 6 GJ/bbl
 
 TWh_to_EJ <- 0.0036
 EJ_to_GWh <- 1000/TWh_to_EJ
