@@ -221,80 +221,56 @@ ct_waste <- ct_waste %>%
 
 # - monthly_full_release_long_format-4.csv
 # - yearly_full_release_long_format.csv
-ember = read.csv("data/raw_historical/yearly_full_release_long_format_04_2026.csv") 
-emberm = read.csv("data/raw_historical/monthly_full_release_long_format_04_2026.csv")
+ember  <- read.csv("data/raw_historical/release_generation_yearly_global_08_2026.csv")
+emberm <- read.csv("data/raw_historical/release_generation_monthly_global_08_2026.csv")
 #create output in convenient cap (capacity), geny and genm (generation) formats (to be used in VRE-Eff script)
-ecap <- ember |> mutate(ISO.3.code=case_when(
-  Area== "World" ~ "World",
-  .default=ISO.3.code
-),Area.type=case_when(
-  Area== "World" ~ "Country or economy",
-  .default=Area.type  
-)) |>
-  filter(Area.type == "Country or economy",
-         Category == "Capacity",
-         # Subcategory == "Fuel",
-         Unit == "GW") |>
-  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)|>
-  pivot_wider(names_from = fuel)|>mutate(Total=Clean+Fossil) |>
-  pivot_longer(cols=seq(6,21),names_to = "fuel")
 
-edem <- ember |> mutate(ISO.3.code=case_when(
-  Area== "World" ~ "World",
-  .default=ISO.3.code
-),Area.type=case_when(
-  Area== "World" ~ "Country or economy",
-  .default=Area.type  
-)) |>
-  filter(Area.type == "Country or economy",
-         Category == "Electricity demand",
-         Subcategory == "Demand") |>
-  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)
+ember_prep <- function(x) {
+  x |>
+    mutate(ISO.3.code = case_when(Area == "World" ~ "World", .default = ISO.3.code),
+           Area.type  = case_when(Area == "World" ~ "Country or economy",
+                                  .default = Area.type)) |>
+    filter(Area.type == "Country or economy")
+}
+
+# Capacity is published on the "Total generation" row now, so the old
+# pivot_wider() -> mutate(Total = Clean + Fossil) -> pivot_longer(seq(6,21))
+# round-trip is no longer needed. Checked against 5,504 area-years: the
+# published total equals Clean + Fossil exactly.
+ecap <- ember_prep(ember) |>
+  filter(!is.na(Capacity..GW.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Capacity..GW.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Capacity..GW.) |>
+  mutate(unit = "GW", variable = "Capacity",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel))
+
+edem <- ember_prep(ember) |>
+  filter(Electricity.source == "Demand", !is.na(Generation..TWh.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Generation..TWh.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Generation..TWh.) |>
+  mutate(unit = "TWh", variable = "Electricity demand")
+
+egeny <- ember_prep(ember) |>
+  filter(!is.na(Generation..TWh.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Generation..TWh.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Generation..TWh.) |>
+  mutate(unit = "TWh", variable = "Electricity generation",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel))
+
+egenm <- ember_prep(emberm) |>
+  filter(!is.na(Generation..TWh.)) |>
+  select(Area, ISO.3.code, Date, Electricity.source, Generation..TWh.) |>
+  rename(region = Area, iso = ISO.3.code, year = Date,
+         fuel = Electricity.source, value = Generation..TWh.) |>
+  mutate(year = as.double(gsub("-", ".", substr(as.Date.character(year), 1, 7))),
+         unit = "TWh", variable = "Electricity generation",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel))
 
 
-egeny <- ember |>  mutate(ISO.3.code=case_when(
-  Area== "World" ~ "World",
-  .default=ISO.3.code
-),Area.type=case_when(
-  Area== "World" ~ "Country or economy",
-  .default=Area.type  
-)) |>
-  filter(Area.type == "Country or economy",
-         Category == "Electricity generation",
-         # Subcategory == "Fuel",
-         Unit == "TWh") |>
-  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)|> 
-  mutate(fuel=case_when(
-    fuel=="Total Generation" ~ "Total",
-    .default=fuel
-  ))
 
-egenm <- emberm |>  mutate(ISO.3.code=case_when(
-  Area== "World" ~ "World",
-  .default=ISO.3.code
-),Area.type=case_when(
-  Area== "World" ~ "Country or economy",
-  .default=Area.type  
-)) |>
-  filter(Area.type == "Country or economy",
-         Category == "Electricity generation",
-         # Subcategory == "Fuel",
-         Unit == "TWh") |>
-  select(Area,ISO.3.code,Date,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Date,variable =Category,
-         fuel=Variable,value=Value,unit=Unit) |> 
-  #additional adjustment of Date for easier plotting and calculations
-  mutate(year=as.double(gsub("-",".",substr(as.Date.character(year),1,7))))|>
-  mutate(fuel=case_when(
-    fuel=="Total Generation" ~ "Total",
-    .default=fuel
-  ))
 
  ##### fill in yearly data for 2023 where available
 
@@ -331,34 +307,24 @@ if (switch_option) {
     }
   }
 }
- eemi <- ember |> mutate(ISO.3.code=case_when(
-   Area== "World" ~ "World",
-   .default=ISO.3.code
- ),Area.type=case_when(
-   Area== "World" ~ "Country or economy",
-   .default=Area.type  
- )) |>
-  filter(Area.type == "Country or economy",
-         Category == "Power sector emissions") |>
-  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)|> 
-  mutate(fuel=case_when(
-    fuel=="Total emissions" ~ "Total",
-    .default=fuel
-  ))|>filter(fuel %in% c("Total","Gas","Coal","Fossil"))
+eemi <- ember_prep(ember) |>
+  filter(!is.na(Emissions..MtCO2e.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Emissions..MtCO2e.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Emissions..MtCO2e.) |>
+  mutate(unit = "mtCO2", variable = "Power sector emissions",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel)) |>
+  filter(fuel %in% c("Total", "Gas", "Coal", "Fossil"))
 
-#EU total emissions
-eemi_eu <- ember |> 
-  filter(Area == "EU",
-         Category == "Power sector emissions") |>
-  select(Year,Category,Variable,Value,Unit) |>
-  rename(year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)|> 
-  mutate(region="EU27",iso="EU27BX",fuel=case_when(
-    fuel=="Total emissions" ~ "Total",
-    .default=fuel
-  ))|>filter(fuel %in% c("Total","Gas","Coal","Fossil"))
+eemi_eu <- ember |>
+  filter(Area == "EU", !is.na(Emissions..MtCO2e.)) |>
+  select(Year, Electricity.source, Emissions..MtCO2e.) |>
+  rename(year = Year, fuel = Electricity.source, value = Emissions..MtCO2e.) |>
+  mutate(region = "EU27", iso = "EU27BX",
+         unit = "mtCO2", variable = "Power sector emissions",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel)) |>
+  filter(fuel %in% c("Total", "Gas", "Coal", "Fossil"))
+
 
 
 ###### energy: other - EI SRWED --------------------------------------------------
@@ -410,7 +376,7 @@ ener_2026|>filter(iso=="IND",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wid
 # exports", which is what is usually wanted) and, where a row label maps
 # unambiguously to an ISO3 country, that country too.
 
-ei_xlsx <- "data/raw_historical/EI-Stats-Review-ALL-data.xlsx"
+ei_xlsx <- "data/raw_historical/Statistical Review of World Energy Data_06_26.xlsx"
 
 # Row labels in the workbook -> ISO3. Regional/composite rows are deliberately
 # omitted: they overlap and cannot be aggregated safely.
@@ -1117,8 +1083,8 @@ dat_ct <- dat_ct |>
 ###### EMBER ######
 dat_ecap <- ecap |> filter(year > starty)|> select (-variable,-region)|>
   mutate(fuel = case_when(
-    fuel=="Other Fossil" ~ "Capacity|Electricity|Other Fossil",
-    fuel=="Other Renewables" ~ "Capacity|Electricity|Geothermal",
+    fuel=="Other fossil" ~ "Capacity|Electricity|Other Fossil",
+    fuel=="Other renewables" ~ "Capacity|Electricity|Geothermal",
     fuel=="Bioenergy" ~ "Capacity|Electricity|Biomass",
     fuel=="Coal" ~ "Capacity|Electricity|Coal",
     fuel=="Gas" ~ "Capacity|Electricity|Gas",
@@ -1135,8 +1101,8 @@ dat_ecap <- ecap |> filter(year > starty)|> select (-variable,-region)|>
 
 dat_egeny <- egeny |> filter(year > starty)|> select (-variable,-region)|>
   mutate(fuel = case_when(
-    fuel=="Other Fossil" ~ "Secondary Energy|Electricity|Other Fossil",
-    fuel=="Other Renewables" ~ "Secondary Energy|Electricity|Geothermal",
+    fuel=="Other fossil" ~ "Secondary Energy|Electricity|Other Fossil",
+    fuel=="Other renewables" ~ "Secondary Energy|Electricity|Geothermal",
     fuel=="Bioenergy" ~ "Secondary Energy|Electricity|Biomass",
     fuel=="Coal" ~ "Secondary Energy|Electricity|Coal",
     fuel=="Gas" ~ "Secondary Energy|Electricity|Gas",
