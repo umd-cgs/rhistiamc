@@ -39,9 +39,9 @@ source("src/functions.R")
 
 
 # Start year for harmonized datasets
-starty <- 1750 - 1  # earliest year in any source (CEDS, PRIMAP); each dataset contributes from its own first year
+starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
+# starty <- 1750 - 1  # earliest year in any source (CEDS, PRIMAP); each dataset contributes from its own first year
 
-#### Choose region aggregation ------------------------------
 # All region schemes are run in a loop and produce separate output files:
 # "gcam32_v7", "gcam32_v8", "r10", "r5", "gcamEurope"
 
@@ -351,14 +351,6 @@ ener_2026|>filter(iso=="USA",Var %in% c("oil_tes_ej","oilprod_kbd"))|>pivot_wide
 ener_2026|>filter(iso=="USA",Var %in% c("gas_tes_ej","gasprod_ej"))|>pivot_wider(names_from = Var)|>
   mutate(exp=gasprod_ej-gas_tes_ej) |> filter(year>2009)
 
-#would make sense to also at some point use the LNG import and export data:
-# lng <- rbind(read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG imports bcm",range = "A3:Y38")|>
-#                mutate(var="lng_imp_ej"),
-#              read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG exports bcm",range = "A3:Y31")|>
-#                mutate(var="lng_exp_ej")) |>
-#   pivot_longer(cols = seq(2,24),names_to = "year") |>
-#   mutate(region=`Billion cubic metres`,value=value/bcm2ej)
-
 #check coal trade: this works ok, see sheet "Coal - Trade movements"
 ener_2026|>filter(iso=="USA",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
   mutate(exp=coalprod_ej-coal_tes_ej) |> filter(year>2009)
@@ -367,9 +359,9 @@ ener_2026|>filter(iso=="USA",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wid
 ener_2026|>filter(iso=="IND",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
   mutate(exp=coalprod_ej-coal_tes_ej) |> filter(year>2009)
 
-###### energy: IEA WEO 2025 --------------------------------------------------
 
-###### energy: EI SRWED gross trade (Key Reports workbook) ---------------------
+###### energy: EI SRWED gross trade ---------------------
+# (Key Reports workbook) 
 # The consolidated narrow-format file carries no trade variables at all.
 # Gross exports exist only in the Key Reports workbook, and only for aggregate
 # regions plus a few key countries. We take the World totals (= "sum of all
@@ -453,19 +445,19 @@ read_ei_trade_sheet <- function(path, sheet, hdr_row = 3, section = NULL,
   out
 }
 
-# --- oil: thousand barrels daily, exports section, 1980- ----------------------
+# --- oil: thousand barrels daily, exports section, 1980
 ei_trade_oil <- read_ei_trade_sheet(ei_xlsx, "Oil trade movements",
                                     section = "Exports", total_label = "Total World") |>
   filter(!is.na(value)) |>
   mutate(sheet_fuel = "oil", value = value * kbd2ej)
 
-# --- coal: exajoules, exports section, 2000- ---------------------------------
+# --- coal: exajoules, exports section, 2000
 ei_trade_coal <- read_ei_trade_sheet(ei_xlsx, "Coal - Trade movements",
                                      section = "Exports", total_label = "Total World") |>
   filter(!is.na(value)) |>
   mutate(sheet_fuel = "coal")
 
-# --- gas: bcm, one block per region, 2000- -----------------------------------
+# --- gas: bcm, one block per region, 2000
 # Gas has no single "Exports" section; each region block carries its own
 # "Total exports" row, and the World block a "Total trade" row. Attribute each
 # total to the region heading above it.
@@ -497,6 +489,8 @@ ei_trade_gross <- bind_rows(ei_trade_oil, ei_trade_coal, ei_trade_gas) |>
 stopifnot(all(c("oil", "gas", "coal") %in%
                 unique(ei_trade_gross$sheet_fuel[ei_trade_gross$iso == "WLD"])))
 
+
+###### energy: IEA WEO 2025 --------------------------------------------------
 
 # Region - WEO2025_AnnexA_Free_Dataset_Regions.csv
 # World - WEO2025_AnnexA_Free_Dataset_World.csv
