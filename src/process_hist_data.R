@@ -40,8 +40,8 @@ source("src/functions.R")
 
 # Start year for harmonized datasets
 starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
+# starty <- 1750 - 1  # earliest year in any source (CEDS, PRIMAP); each dataset contributes from its own first year
 
-#### Choose region aggregation ------------------------------
 # All region schemes are run in a loop and produce separate output files:
 # "gcam32_v7", "gcam32_v8", "r10", "r5", "gcamEurope"
 
@@ -221,80 +221,56 @@ ct_waste <- ct_waste %>%
 
 # - monthly_full_release_long_format-4.csv
 # - yearly_full_release_long_format.csv
-ember = read.csv("data/raw_historical/yearly_full_release_long_format_04_2026.csv") 
-emberm = read.csv("data/raw_historical/monthly_full_release_long_format_04_2026.csv")
+ember  <- read.csv("data/raw_historical/release_generation_yearly_global_08_2026.csv")
+emberm <- read.csv("data/raw_historical/release_generation_monthly_global_08_2026.csv")
 #create output in convenient cap (capacity), geny and genm (generation) formats (to be used in VRE-Eff script)
-ecap <- ember |> mutate(ISO.3.code=case_when(
-  Area== "World" ~ "World",
-  .default=ISO.3.code
-),Area.type=case_when(
-  Area== "World" ~ "Country or economy",
-  .default=Area.type  
-)) |>
-  filter(Area.type == "Country or economy",
-         Category == "Capacity",
-         # Subcategory == "Fuel",
-         Unit == "GW") |>
-  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)|>
-  pivot_wider(names_from = fuel)|>mutate(Total=Clean+Fossil) |>
-  pivot_longer(cols=seq(6,21),names_to = "fuel")
 
-edem <- ember |> mutate(ISO.3.code=case_when(
-  Area== "World" ~ "World",
-  .default=ISO.3.code
-),Area.type=case_when(
-  Area== "World" ~ "Country or economy",
-  .default=Area.type  
-)) |>
-  filter(Area.type == "Country or economy",
-         Category == "Electricity demand",
-         Subcategory == "Demand") |>
-  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)
+ember_prep <- function(x) {
+  x |>
+    mutate(ISO.3.code = case_when(Area == "World" ~ "World", .default = ISO.3.code),
+           Area.type  = case_when(Area == "World" ~ "Country or economy",
+                                  .default = Area.type)) |>
+    filter(Area.type == "Country or economy")
+}
+
+# Capacity is published on the "Total generation" row now, so the old
+# pivot_wider() -> mutate(Total = Clean + Fossil) -> pivot_longer(seq(6,21))
+# round-trip is no longer needed. Checked against 5,504 area-years: the
+# published total equals Clean + Fossil exactly.
+ecap <- ember_prep(ember) |>
+  filter(!is.na(Capacity..GW.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Capacity..GW.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Capacity..GW.) |>
+  mutate(unit = "GW", variable = "Capacity",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel))
+
+edem <- ember_prep(ember) |>
+  filter(Electricity.source == "Demand", !is.na(Generation..TWh.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Generation..TWh.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Generation..TWh.) |>
+  mutate(unit = "TWh", variable = "Electricity demand")
+
+egeny <- ember_prep(ember) |>
+  filter(!is.na(Generation..TWh.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Generation..TWh.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Generation..TWh.) |>
+  mutate(unit = "TWh", variable = "Electricity generation",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel))
+
+egenm <- ember_prep(emberm) |>
+  filter(!is.na(Generation..TWh.)) |>
+  select(Area, ISO.3.code, Date, Electricity.source, Generation..TWh.) |>
+  rename(region = Area, iso = ISO.3.code, year = Date,
+         fuel = Electricity.source, value = Generation..TWh.) |>
+  mutate(year = as.double(gsub("-", ".", substr(as.Date.character(year), 1, 7))),
+         unit = "TWh", variable = "Electricity generation",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel))
 
 
-egeny <- ember |>  mutate(ISO.3.code=case_when(
-  Area== "World" ~ "World",
-  .default=ISO.3.code
-),Area.type=case_when(
-  Area== "World" ~ "Country or economy",
-  .default=Area.type  
-)) |>
-  filter(Area.type == "Country or economy",
-         Category == "Electricity generation",
-         # Subcategory == "Fuel",
-         Unit == "TWh") |>
-  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)|> 
-  mutate(fuel=case_when(
-    fuel=="Total Generation" ~ "Total",
-    .default=fuel
-  ))
 
-egenm <- emberm |>  mutate(ISO.3.code=case_when(
-  Area== "World" ~ "World",
-  .default=ISO.3.code
-),Area.type=case_when(
-  Area== "World" ~ "Country or economy",
-  .default=Area.type  
-)) |>
-  filter(Area.type == "Country or economy",
-         Category == "Electricity generation",
-         # Subcategory == "Fuel",
-         Unit == "TWh") |>
-  select(Area,ISO.3.code,Date,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Date,variable =Category,
-         fuel=Variable,value=Value,unit=Unit) |> 
-  #additional adjustment of Date for easier plotting and calculations
-  mutate(year=as.double(gsub("-",".",substr(as.Date.character(year),1,7))))|>
-  mutate(fuel=case_when(
-    fuel=="Total Generation" ~ "Total",
-    .default=fuel
-  ))
 
  ##### fill in yearly data for 2023 where available
 
@@ -331,34 +307,24 @@ if (switch_option) {
     }
   }
 }
- eemi <- ember |> mutate(ISO.3.code=case_when(
-   Area== "World" ~ "World",
-   .default=ISO.3.code
- ),Area.type=case_when(
-   Area== "World" ~ "Country or economy",
-   .default=Area.type  
- )) |>
-  filter(Area.type == "Country or economy",
-         Category == "Power sector emissions") |>
-  select(Area,ISO.3.code,Year,Category,Variable,Value,Unit) |>
-  rename(region=Area,iso=ISO.3.code,year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)|> 
-  mutate(fuel=case_when(
-    fuel=="Total emissions" ~ "Total",
-    .default=fuel
-  ))|>filter(fuel %in% c("Total","Gas","Coal","Fossil"))
+eemi <- ember_prep(ember) |>
+  filter(!is.na(Emissions..MtCO2e.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Emissions..MtCO2e.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Emissions..MtCO2e.) |>
+  mutate(unit = "mtCO2", variable = "Power sector emissions",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel)) |>
+  filter(fuel %in% c("Total", "Gas", "Coal", "Fossil"))
 
-#EU total emissions
-eemi_eu <- ember |> 
-  filter(Area == "EU",
-         Category == "Power sector emissions") |>
-  select(Year,Category,Variable,Value,Unit) |>
-  rename(year=Year,variable =Category,
-         fuel=Variable,value=Value,unit=Unit)|> 
-  mutate(region="EU27",iso="EU27BX",fuel=case_when(
-    fuel=="Total emissions" ~ "Total",
-    .default=fuel
-  ))|>filter(fuel %in% c("Total","Gas","Coal","Fossil"))
+eemi_eu <- ember |>
+  filter(Area == "EU", !is.na(Emissions..MtCO2e.)) |>
+  select(Year, Electricity.source, Emissions..MtCO2e.) |>
+  rename(year = Year, fuel = Electricity.source, value = Emissions..MtCO2e.) |>
+  mutate(region = "EU27", iso = "EU27BX",
+         unit = "mtCO2", variable = "Power sector emissions",
+         fuel = case_when(fuel == "Total generation" ~ "Total", .default = fuel)) |>
+  filter(fuel %in% c("Total", "Gas", "Coal", "Fossil"))
+
 
 
 ###### energy: other - EI SRWED --------------------------------------------------
@@ -385,14 +351,6 @@ ener_2026|>filter(iso=="USA",Var %in% c("oil_tes_ej","oilprod_kbd"))|>pivot_wide
 ener_2026|>filter(iso=="USA",Var %in% c("gas_tes_ej","gasprod_ej"))|>pivot_wider(names_from = Var)|>
   mutate(exp=gasprod_ej-gas_tes_ej) |> filter(year>2009)
 
-#would make sense to also at some point use the LNG import and export data:
-# lng <- rbind(read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG imports bcm",range = "A3:Y38")|>
-#                mutate(var="lng_imp_ej"),
-#              read_xlsx(path = "data/raw_historical/Statistical Review of World Energy Data_06_24.xlsx",sheet="Gas - LNG exports bcm",range = "A3:Y31")|>
-#                mutate(var="lng_exp_ej")) |>
-#   pivot_longer(cols = seq(2,24),names_to = "year") |>
-#   mutate(region=`Billion cubic metres`,value=value/bcm2ej)
-
 #check coal trade: this works ok, see sheet "Coal - Trade movements"
 ener_2026|>filter(iso=="USA",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
   mutate(exp=coalprod_ej-coal_tes_ej) |> filter(year>2009)
@@ -401,8 +359,138 @@ ener_2026|>filter(iso=="USA",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wid
 ener_2026|>filter(iso=="IND",Var %in% c("coal_tes_ej","coalprod_ej"))|>pivot_wider(names_from = Var)|>
   mutate(exp=coalprod_ej-coal_tes_ej) |> filter(year>2009)
 
-###### energy: IEA WEO 2025 --------------------------------------------------
 
+###### energy: EI SRWED gross trade ---------------------
+# (Key Reports workbook) 
+# The consolidated narrow-format file carries no trade variables at all.
+# Gross exports exist only in the Key Reports workbook, and only for aggregate
+# regions plus a few key countries. We take the World totals (= "sum of all
+# exports", which is what is usually wanted) and, where a row label maps
+# unambiguously to an ISO3 country, that country too.
+
+ei_xlsx <- "data/raw_historical/Statistical Review of World Energy Data_06_26.xlsx"
+
+# Row labels in the workbook -> ISO3. Regional/composite rows are deliberately
+# omitted: they overlap and cannot be aggregated safely.
+ei_trade_iso <- tribble(
+  ~sheet_fuel, ~label,             ~iso,
+  "oil",       "Total World",      "WLD",
+  "oil",       "Canada",           "CAN",
+  "oil",       "Mexico",           "MEX",
+  "oil",       "US",               "USA",
+  "oil",       "Russia",           "RUS",
+  "oil",       "Saudi Arabia",     "SAU",
+  "gas",       "World",            "WLD",
+  "gas",       "US",               "USA",
+  "gas",       "Brazil",           "BRA",
+  "gas",       "Russian Federation","RUS",
+  "gas",       "China",            "CHN",
+  "gas",       "India",            "IND",
+  "coal",      "Total World",      "WLD",
+  "coal",      "Canada",           "CAN",
+  "coal",      "US",               "USA",
+  "coal",      "Colombia",         "COL",
+  "coal",      "Russia",           "RUS",
+  "coal",      "South Africa",     "ZAF",
+  "coal",      "Australia",        "AUS",
+  "coal",      "China",            "CHN",
+  "coal",      "Indonesia",        "IDN",
+  "coal",      "Mongolia",         "MNG"
+)
+
+#' Read one EI trade sheet into long form.
+#'
+#' The sheets are presentation tables, not data tables: a title row, a header
+#' row of years followed by two or three growth/share columns that repeat the
+#' final year, then blocks of rows under section headings, then footnotes.
+#' We keep only the strictly increasing run of year columns, and only the rows
+#' inside the requested section.
+read_ei_trade_sheet <- function(path, sheet, hdr_row = 3, section = NULL,
+                                total_label = NULL) {
+  
+  raw <- suppressMessages(
+    readxl::read_xlsx(path, sheet = sheet, col_names = FALSE, .name_repair = "minimal")
+  )
+  
+  yr <- suppressWarnings(as.numeric(unlist(raw[hdr_row, ])))
+  ok <- which(!is.na(yr) & yr >= 1900 & yr <= 2100)
+  if (length(ok) == 0) stop("read_ei_trade_sheet(): no year header found in '", sheet, "'")
+  # drop the trailing growth/share columns, which repeat the last year
+  ok <- ok[c(TRUE, diff(yr[ok]) > 0)]
+  years <- yr[ok]
+  
+  raw_label <- as.character(raw[[1]])
+  lab <- trimws(gsub("[0-9*\u2020^\u2666]+$", "", raw_label))
+  
+  # restrict to the export section, if the sheet has one
+  rows <- seq_len(nrow(raw))
+  if (!is.null(section)) {
+    start <- which(lab == section)
+    if (length(start) == 0) stop("read_ei_trade_sheet(): section '", section,
+                                 "' not found in '", sheet, "'")
+    rows <- rows[rows > start[1]]
+  }
+  rows <- rows[!is.na(lab[rows]) & lab[rows] != ""]
+  
+  # NOTE: keep value-less rows here. On the gas sheet the region headings carry
+  # no data of their own, and dropping them at this stage loses the hierarchy.
+  lapply(rows, function(i) {
+    tibble(row = i, label = lab[i], raw_label = raw_label[i],
+           year = years, value = suppressWarnings(as.numeric(unlist(raw[i, ok]))))
+  }) |> bind_rows() -> out
+  
+  if (!is.null(total_label) && !any(out$label == total_label))
+    stop("read_ei_trade_sheet(): '", total_label, "' not found in '", sheet, "'")
+  
+  out
+}
+
+# --- oil: thousand barrels daily, exports section, 1980
+ei_trade_oil <- read_ei_trade_sheet(ei_xlsx, "Oil trade movements",
+                                    section = "Exports", total_label = "Total World") |>
+  filter(!is.na(value)) |>
+  mutate(sheet_fuel = "oil", value = value * kbd2ej)
+
+# --- coal: exajoules, exports section, 2000
+ei_trade_coal <- read_ei_trade_sheet(ei_xlsx, "Coal - Trade movements",
+                                     section = "Exports", total_label = "Total World") |>
+  filter(!is.na(value)) |>
+  mutate(sheet_fuel = "coal")
+
+# --- gas: bcm, one block per region, 2000
+# Gas has no single "Exports" section; each region block carries its own
+# "Total exports" row, and the World block a "Total trade" row. Attribute each
+# total to the region heading above it.
+ei_trade_gas_raw <- read_ei_trade_sheet(ei_xlsx, "Gas - Trade movements")
+
+# Each region block carries its own "Total exports" row; the World block a
+# "Total trade" row. Region headings sit flush left, while "of which:" detail
+# rows are indented -- indentation is what separates the two, since some detail
+# rows repeat a region name ("of which: Russian Federation").
+gas_subrows <- c("Pipeline imports", "LNG imports", "Total imports",
+                 "Pipeline exports", "LNG exports", "Total exports",
+                 "Inter-regional pipeline trade", "LNG trade", "Total trade")
+
+ei_trade_gas <- ei_trade_gas_raw |>
+  mutate(block = if_else(grepl("^\\s", raw_label) | label %in% gas_subrows,
+                         NA_character_, label)) |>
+  arrange(row) |>
+  group_by(year) |>
+  fill(block, .direction = "down") |>
+  ungroup() |>
+  filter(label %in% c("Total exports", "Total trade"), !is.na(value)) |>
+  transmute(label = block, year, value = value / bcm2ej, sheet_fuel = "gas")
+
+ei_trade_gross <- bind_rows(ei_trade_oil, ei_trade_coal, ei_trade_gas) |>
+  inner_join(ei_trade_iso, by = join_by(sheet_fuel, label)) |>
+  select(sheet_fuel, iso, year, value)
+
+# quick check: the World rows must be there for all three fuels
+stopifnot(all(c("oil", "gas", "coal") %in%
+                unique(ei_trade_gross$sheet_fuel[ei_trade_gross$iso == "WLD"])))
+
+
+###### energy: IEA WEO 2025 --------------------------------------------------
 
 # Region - WEO2025_AnnexA_Free_Dataset_Regions.csv
 # World - WEO2025_AnnexA_Free_Dataset_World.csv
@@ -503,7 +591,7 @@ iiasa_data <- read_excel(file_path, sheet = "data")
 
 iiasa_data <- iiasa_data %>%
   filter(Variable %in% c("GDP|PPP", "Population")) %>%
-  pivot_longer(cols = starts_with("19") | starts_with("20") | starts_with("21"), names_to = "year", values_to = "value") %>%
+  pivot_longer(cols = matches("^[0-9]{4}$"), names_to = "year", values_to = "value") %>%
   drop_na(value)
 
 iiasa_data <- iiasa_data %>%
@@ -989,8 +1077,8 @@ dat_ct <- dat_ct |>
 ###### EMBER ######
 dat_ecap <- ecap |> filter(year > starty)|> select (-variable,-region)|>
   mutate(fuel = case_when(
-    fuel=="Other Fossil" ~ "Capacity|Electricity|Other Fossil",
-    fuel=="Other Renewables" ~ "Capacity|Electricity|Geothermal",
+    fuel=="Other fossil" ~ "Capacity|Electricity|Other Fossil",
+    fuel=="Other renewables" ~ "Capacity|Electricity|Geothermal",
     fuel=="Bioenergy" ~ "Capacity|Electricity|Biomass",
     fuel=="Coal" ~ "Capacity|Electricity|Coal",
     fuel=="Gas" ~ "Capacity|Electricity|Gas",
@@ -1007,8 +1095,8 @@ dat_ecap <- ecap |> filter(year > starty)|> select (-variable,-region)|>
 
 dat_egeny <- egeny |> filter(year > starty)|> select (-variable,-region)|>
   mutate(fuel = case_when(
-    fuel=="Other Fossil" ~ "Secondary Energy|Electricity|Other Fossil",
-    fuel=="Other Renewables" ~ "Secondary Energy|Electricity|Geothermal",
+    fuel=="Other fossil" ~ "Secondary Energy|Electricity|Other Fossil",
+    fuel=="Other renewables" ~ "Secondary Energy|Electricity|Geothermal",
     fuel=="Bioenergy" ~ "Secondary Energy|Electricity|Biomass",
     fuel=="Coal" ~ "Secondary Energy|Electricity|Coal",
     fuel=="Gas" ~ "Secondary Energy|Electricity|Gas",
@@ -1077,6 +1165,89 @@ dat_ener_2026 <- ener_2026 |> left_join(read.csv("mappings/map_ei_26_iamc.csv"),
   mutate(iso = ifelse(iso == "WLD", "World", iso),
          model="Stat. Rev. World Energy Data_2026",   ## Statistical Review of World Energy Data"
          scenario="historical") |> rename(variable=IAMC)
+
+###### EI SRWED: fossil trade -------------------------------------------------
+
+# (A) NET trade, derived as production - total energy supply, for every country
+#     in the narrow file. This is the comprehensive route: it covers ~57 (oil),
+#     ~63 (gas) and ~50 (coal) reporters, against the handful in the workbook.
+#
+#     Caveats worth keeping in mind:
+#      - Net, not gross. A country that both imports and exports nets out.
+#      - Stock changes, statistical differences and (for oil) refinery gains
+#        are absorbed into the residual.
+#      - Production and supply are not measured on the same calorific basis, so
+#        the world total does not close exactly. See calibration below.
+
+ei_calibrate_trade <- TRUE   # set FALSE to keep the raw, uncalibrated residual
+
+ener_wide <- ener_2026 |>
+  filter(Var %in% c("oilprod_kbd", "oil_tes_ej",
+                    "gasprod_ej",  "gas_tes_ej",
+                    "coalprod_ej", "coal_tes_ej",
+                    "biofuels_prod_pj", "biofuels_tes_pj")) |>
+  select(iso, year, Var, value) |>
+  pivot_wider(names_from = Var, values_from = value) |>
+  mutate(oilprod_ej  = oilprod_kbd * kbd2ej,
+         biofuels_prod_ej = biofuels_prod_pj / 1000,
+         biofuels_tes_ej  = biofuels_tes_pj  / 1000)
+
+# Global calibration. EI reports production and supply on slightly different
+# calorific bases, so summing (prod - TES) over the world leaves a residual:
+# about +7% of supply for oil (the 6 GJ/bbl factor is high against a products
+# basis; the balance implies ~5.6), +4% for coal in recent years, <1% for gas.
+# Scaling production to the world supply total each year removes that bias and
+# makes net trade sum to zero globally, as the IAMC definition expects.
+ei_calib <- ener_wide |>
+  filter(iso == "WLD") |>
+  transmute(year,
+            f_oil  = oil_tes_ej  / oilprod_ej,
+            f_gas  = gas_tes_ej  / gasprod_ej,
+            f_coal = coal_tes_ej / coalprod_ej,
+            f_biof = biofuels_tes_ej / biofuels_prod_ej)
+
+if (!ei_calibrate_trade) {
+  ei_calib <- ei_calib |> mutate(across(starts_with("f_"), ~ 1))
+}
+
+dat_ei_trade_net <- ener_wide |>
+  left_join(ei_calib, by = "year") |>
+  mutate(across(starts_with("f_"), ~ replace_na(.x, 1))) |>
+  transmute(
+    iso, year,
+    `Trade|Primary Energy|Oil [Volume]`             = oilprod_ej      * f_oil  - oil_tes_ej,
+    `Trade|Primary Energy|Gas [Volume]`             = gasprod_ej      * f_gas  - gas_tes_ej,
+    `Trade|Primary Energy|Coal [Volume]`            = coalprod_ej     * f_coal - coal_tes_ej,
+    `Trade|Secondary Energy|Liquids|Biomass [Volume]` =
+      biofuels_prod_ej * f_biof - biofuels_tes_ej
+  ) |>
+  mutate(`Trade|Primary Energy|Fossil [Volume]` =
+           rowSums(across(c(`Trade|Primary Energy|Oil [Volume]`,
+                            `Trade|Primary Energy|Gas [Volume]`,
+                            `Trade|Primary Energy|Coal [Volume]`)), na.rm = TRUE) *
+           # only report the aggregate where at least one component exists
+           if_else(rowSums(!is.na(across(c(`Trade|Primary Energy|Oil [Volume]`,
+                                           `Trade|Primary Energy|Gas [Volume]`,
+                                           `Trade|Primary Energy|Coal [Volume]`)))) > 0,
+                   1, NA_real_)) |>
+  pivot_longer(cols = -c(iso, year), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value))
+
+# (B) GROSS exports from the Key Reports workbook
+dat_ei_trade_gross <- ei_trade_gross |>
+  mutate(variable = paste0("Trade|Primary Energy|",
+                           recode(sheet_fuel, oil = "Oil", gas = "Gas", coal = "Coal"),
+                           "|Gross Exports [Volume]")) |>
+  select(iso, year, variable, value)
+
+dat_ener_2026_trade <- bind_rows(dat_ei_trade_net, dat_ei_trade_gross) |>
+  filter(year > starty) |>
+  mutate(iso   = if_else(iso == "WLD", "World", iso),
+         unit  = "EJ/yr",
+         model = "Stat. Rev. World Energy Data_2026",
+         scenario = "historical") |>
+  select(year, iso, value, unit, variable, model, scenario)
+
 
 ###### OWID Energy  ------------------------------------
 dat_owid_energy <- owid_energy_data %>%
@@ -1506,7 +1677,7 @@ dat_crut <- crut %>%
 
 
 #### 2.b combine iso based data sets #####
-data_iso <- rbind(dat_ener_2026,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
+data_iso <- rbind(dat_ener_2026,dat_ener_2026_trade,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
               dat_robbie, dat_oecd, dat_owid_air, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct, dat_forest)
 
 data_iso <- data_iso %>%
@@ -1726,7 +1897,7 @@ write_this <- rbind(data_iso, dat_ieah, dat_ieas, data_World) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
   mutate(across(where(is.list), ~ ifelse(lengths(.) == 0, NA, unlist(.)))) |>  # Remove NULL lists
-  mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
+  mutate(across(matches("^[0-9]{4}$"), ~ as.numeric(.))) |>
   unique() |>
   ungroup()
 
@@ -1761,7 +1932,7 @@ write_this <- rbind(data_reg, dat_ieah, dat_ieas, data_World) |>
   group_by(model, scenario, region, variable, value, unit) |>
   arrange(year) |>
   pivot_wider(names_from = year, values_from = value) |>
-  mutate(across(starts_with("20") | starts_with("19"), ~ as.numeric(.))) |>
+  mutate(across(matches("^[0-9]{4}$"), ~ as.numeric(.))) |>
   unique() |>
   ungroup()
 
