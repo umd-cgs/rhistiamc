@@ -39,7 +39,7 @@ source("src/functions.R")
 
 
 # Start year for harmonized datasets
-starty <- 1976 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
+starty <- 1990 - 1 # can be adjusted for even shorter or longer historic time series in IAMC format
 # starty <- 1750 - 1  # earliest year in any source (CEDS, PRIMAP); each dataset contributes from its own first year
 
 # All region schemes are run in a loop and produce separate output files:
