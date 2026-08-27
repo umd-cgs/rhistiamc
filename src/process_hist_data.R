@@ -252,6 +252,14 @@ edem <- ember_prep(ember) |>
          fuel = Electricity.source, value = Generation..TWh.) |>
   mutate(unit = "TWh", variable = "Electricity demand")
 
+enet <- ember_prep(ember) |>
+  filter(Electricity.source == "Net imports", !is.na(Generation..TWh.)) |>
+  select(Area, ISO.3.code, Year, Electricity.source, Generation..TWh.) |>
+  rename(region = Area, iso = ISO.3.code, year = Year,
+         fuel = Electricity.source, value = Generation..TWh.) |>
+  mutate(unit = "TWh", variable = "Net imports")
+
+
 egeny <- ember_prep(ember) |>
   filter(!is.na(Generation..TWh.)) |>
   select(Area, ISO.3.code, Year, Electricity.source, Generation..TWh.) |>
@@ -1110,6 +1118,14 @@ dat_egeny <- egeny |> filter(year > starty)|> select (-variable,-region)|>
   mutate(model="EMBER",scenario="historical",value=value/ej2twh)|>
   rename(variable=fuel)|>mutate(unit="EJ/yr")
 
+# Ember reports net imports positive = net importer; IAMC Trade variables are
+# positive = net exporter, so the sign is flipped here.
+dat_enet <- enet |> filter(year > starty) |> select(-variable, -region, -fuel) |>
+  mutate(variable = "Trade|Secondary Energy|Electricity [Volume]",
+         value = -value / ej2twh,
+         unit = "EJ/yr",
+         model = "EMBER", scenario = "historical")
+
 # Calculate the share in Total for each fuel type and create a new dataframe
 dat_egeny_shares <- dat_egeny |>
   group_by(across(-c(variable, value))) |>
@@ -1179,7 +1195,8 @@ dat_ener_2026 <- ener_2026 |> left_join(read.csv("mappings/map_ei_26_iamc.csv"),
 #      - Production and supply are not measured on the same calorific basis, so
 #        the world total does not close exactly. See calibration below.
 
-ei_calibrate_trade <- TRUE   # set FALSE to keep the raw, uncalibrated residual
+ei_calibrate_trade <- FALSE   # historical annual data has genuine imbalances from
+# inventory changes; set TRUE to force World net trade to zero
 
 ener_wide <- ener_2026 |>
   filter(Var %in% c("oilprod_kbd", "oil_tes_ej",
@@ -1384,7 +1401,8 @@ stock_total <- left_join(ev_stock_total, ev_stock_share,
   filter(!is.na(ev_share), ev_share > 0) %>%
   mutate(
     value = ev_stock / (ev_share / 100),
-    variable = paste0("Stocks|Transportation|", mode_group, "|", sub_mode),
+    variable = paste0("Stocks|Transportation|", mode_group,
+                      ifelse(sub_mode != "", paste0("|", sub_mode), "")),
     unit = "million",
     model = model_name
   ) %>%
@@ -1411,7 +1429,8 @@ sales_total <- left_join(ev_sales_total, ev_sales_share,
   filter(!is.na(ev_share), ev_share > 0) %>%
   mutate(
     value = ev_sales / (ev_share / 100),
-    variable = paste0("Sales|Transportation|", mode_group, "|", sub_mode),
+    variable = paste0("Sales|Transportation|", mode_group,
+                      ifelse(sub_mode != "", paste0("|", sub_mode), "")),
     unit = "million",
     model = model_name
   ) %>%
@@ -1677,7 +1696,7 @@ dat_crut <- crut %>%
 
 
 #### 2.b combine iso based data sets #####
-data_iso <- rbind(dat_ener_2026,dat_ener_2026_trade,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_egeny_shares, dat_eemi,dat_iea_ev,
+data_iso <- rbind(dat_ener_2026,dat_ener_2026_trade,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_enet,dat_egeny_shares, dat_eemi,dat_iea_ev,
               dat_robbie, dat_oecd, dat_owid_air, dat_nasa,dat_land,dat_ch4, iiasa_data ,dat_crut,dat_owid_energy, dat_owid_co2, dat_ct, dat_forest)
 
 data_iso <- data_iso %>%
