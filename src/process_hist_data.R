@@ -977,7 +977,11 @@ dat_land <- dat_land %>%
 dat_forest <- gfw_forest |>
   mutate(iso = countrycode(country, "country.name", "iso3c")) |>
   filter(!is.na(iso), year > starty) |>
-  mutate(value    = value / 1e6,        # ha -> million ha
+  # Northern Cyprus has no ISO code of its own and maps to CYP alongside Cyprus,
+  # producing two rows per year. Sum territories sharing an ISO code.
+  group_by(iso, year) |>
+  summarise(value = sum(value, na.rm = TRUE), .groups = "drop") |>
+  mutate(value    = value / 1e6,
          variable = "Forest Area Change|Deforestation",
          unit     = "million ha/yr",
          model    = "GFW",
