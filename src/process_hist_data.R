@@ -1300,6 +1300,7 @@ dat_owid_energy <- NULL
 read_gevo <- function(path, model_name) {
   read_excel(path) %>%
   rename(region = region_country) %>%
+    filter(!`Aggregate group` %in% c("Other_aggregate", "Projection_region")) %>%
   select(-`Aggregate group`) %>%
   mutate(
     iso = countrycode(region, "country.name", "iso3c"),
