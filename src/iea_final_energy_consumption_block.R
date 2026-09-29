@@ -25,7 +25,7 @@ library(countrycode)
 
 ## CHANGED: point at the corrected multi-year files. Update this path to
 ## wherever the new batch is finally stored (see note below).
-iea_fe_dir <- "data/raw_historical/drive-download-20260910T193822Z-1-001"
+iea_fe_dir <- "data/raw_historical/iea_final_energy"
 
 # TJ -> EJ conversion (1 EJ = 1,000,000 TJ)
 tj2ej <- 1e-6
