@@ -1717,7 +1717,17 @@ data_World <- data_iso |> filter(region == "World")
 
 data_iso <- data_iso |> filter(region != "World")
 
+#### 2.c.1 add IEA final energy consumption data (Industry/Residential/Transport by fuel) ####
+## Source: multi-year IEA "total final consumption by source" files (one per
+## sector x country), currently Australia/Brazil/Canada, covering 2000-2024.
+## See src/iea_final_energy_consumption_block.R for the parsing/mapping logic
+## that builds `iea_final_energy`.
+iea_final_energy <- local({
+  source("src/iea_final_energy_consumption_block.R", local = TRUE)
+  iea_final_energy
+})
 
+data_iso <- data_iso |> bind_rows(iea_final_energy)
 
 
 #### 2.d convert to model regions ####
