@@ -54,7 +54,7 @@ save_option <- T
 
 ###### emissions: ghg - PRIMAP hist --------------------------------------------------
 
-prim <- read.csv("data/raw_historical/Guetschow_et_al_2025a-PRIMAP-hist_v2.7_final_no_rounding_22-Aug-2025.csv")
+prim <- read.csv("data/raw_historical/Guetschow_et_al_2026-PRIMAP-hist_v2.8_final_no_rounding_22-Sep-2026.csv")
 unique(prim$entity)
 unique(prim$area..ISO3.)
 prim <- prim |> pivot_longer(cols = c(-source,-scenario..PRIMAP.hist.,-provenance,-area..ISO3.,-entity,-unit,-category..IPCC2006_PRIMAP.),names_to = "year")
@@ -704,9 +704,9 @@ dat_prim <- dat_prim |>
   #filter out country groups (only keep EU27BX and World)
   filter(!iso %in% c("LDC","AOSIS","ANNEXI","BASIC","NONANNEXI","UMBRELLA"))
 
-# Drop 2024/2025 values for selected variables (data quality issues - extrapolated/incomplete in PRIMAP v2.7)
+# Retain 2024 PRIMAP v2.8 values, including extrapolated estimates; drop incomplete 2025 values.
 dat_prim <- dat_prim |>
-  filter(!(year %in% c(2024, 2025) &
+  filter(!(year == 2025 &
            variable %in% c("Emissions|Kyoto Gases (incl. all LULUCF)",
                            "Emissions|Kyoto Gases (excl. LUC)",
                            "Emissions|Kyoto Gases|AR5 (incl. all LULUCF)",
@@ -734,10 +734,10 @@ dat_prim <-  rbind(dat_prim,
                       variable=="Emissions|CO2" ~ "Mt CO2/yr"
                     )))
 
-# Drop 2024/2025 for the derived totals as well — pivot_wider(values_fill = 0) above
+# Drop 2025 for the derived totals as well — pivot_wider(values_fill = 0) above
 # silently substitutes 0 for the rows we filtered earlier, producing underestimated totals.
 dat_prim <- dat_prim |>
-  filter(!(year %in% c(2024, 2025) &
+  filter(!(year == 2025 &
            variable %in% c("Emissions|CO2", "Emissions|Kyoto Gases")))
 
 #addition of international shipping and aviation emissions to dat_prim further below
