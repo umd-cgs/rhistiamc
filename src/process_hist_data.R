@@ -635,6 +635,43 @@ iiasa_data <- iiasa_data %>%
 # View the updated data
 head(iiasa_data)
 
+###### energy: IEA final energy consumption (raw files) --------------------------------------------------
+# IEA website downloads, one csv per country (12 countries) in data/raw_historical/iea_final_energy/:
+#  - "International Energy Agency - <sector> total final consumption by source in <Country>.csv"
+#      <sector> = industry / residential / transport; rows = fuel categories (Coal, Oil, Natural gas, Electricity, Heat, ...)
+#  - "International Energy Agency - total final energy consumption in <Country>.csv"
+#      rows = sectors (Industry, Transport, Residential, Commercial and public services, Agriculture and forestry, ...)
+# Everything is read as it comes: unit TJ, blank cells kept as NA, no category or sector dropped.
+# The mapping to IAMC variables (and a list of what is not used) is in step 2, section "IEA final energy consumption".
+iea_fe_dir <- "data/raw_historical/iea_final_energy"
+
+read_iea_fe_file <- function(path) {
+  fname     <- gsub("_", " ", basename(path))  # tolerate underscores in downloaded file names
+  by_source <- str_match(fname, "^International Energy Agency - (.+?) total final consumption by source in (.+)\\.csv$")
+  by_sector <- str_match(fname, "^International Energy Agency - total final energy consumption in (.+)\\.csv$")
+  if (!is.na(by_source[1, 1])) {
+    file_type <- "by_source"; sector <- by_source[1, 2]; country <- by_source[1, 3]
+  } else if (!is.na(by_sector[1, 1])) {
+    file_type <- "by_sector"; sector <- NA_character_;  country <- by_sector[1, 2]
+  } else {
+    warning("IEA final energy: file name not recognised, skipped: ", fname)
+    return(NULL)
+  }
+  df <- read.csv(path, check.names = FALSE, stringsAsFactors = FALSE)
+  names(df)[1] <- "category"   # first column header repeats the file title, so take it by position
+  stopifnot(all(c("Value", "Year", "Units") %in% names(df)))
+  tibble(file = fname, file_type = file_type, sector = sector, country = country,
+         category = df$category, year = as.integer(df$Year),
+         value = suppressWarnings(as.numeric(df$Value)), unit = trimws(df$Units))
+}
+
+iea_fe <- list.files(iea_fe_dir, pattern = "^International.Energy.Agency.*\\.csv$", full.names = TRUE) |>
+  lapply(read_iea_fe_file) |> bind_rows()
+message(sprintf("IEA final energy raw: %d rows from %d files (%d by source, %d by sector), %d countries, years %d-%d",
+                nrow(iea_fe), n_distinct(iea_fe$file), n_distinct(iea_fe$file[iea_fe$file_type == "by_source"]),
+                n_distinct(iea_fe$file[iea_fe$file_type == "by_sector"]), n_distinct(iea_fe$country),
+                min(iea_fe$year), max(iea_fe$year)))
+
 
 #### 2.a Convert to IAMC variables _____________ ##########
 
@@ -1699,6 +1736,54 @@ dat_crut <- crut %>%
     iso = "World"
   ) |> rename(value=Mean_Temperature,year=Year)
 
+###### IEA final energy consumption -------------------------------------
+# Raw data: iea_fe (step 1). Mapping: mappings/map_IEA_final_energy_iamc.csv
+# (IEA_file_type, IEA_sector, IEA_category -> IAMC variable, unit, factor TJ -> EJ).
+#  - by_source files (fuel breakdown within Industry / Residential / Transport) give the fuel line items,
+#    e.g. Final Energy|Industry|Electricity.
+#  - by_sector files ("total final energy consumption in <Country>", the more complete accounting) give the sector totals,
+#    e.g. Final Energy|Industry. Several categories mapped to the same IAMC variable are summed: "Other non-specified"
+#    is added to Industry.
+# Rows with a blank IAMC in the mapping file are not used; they are listed in the message printed below.
+map_iea_fe  <- read.csv("mappings/map_IEA_final_energy_iamc.csv", stringsAsFactors = FALSE)
+iea_fe_keys <- c("file_type" = "IEA_file_type", "sector" = "IEA_sector", "category" = "IEA_category")
+iea_fe_use  <- iea_fe |> mutate(sector = coalesce(sector, "")) |> filter(!is.na(value))
+
+dat_iea_fe_long <- iea_fe_use |>
+  inner_join(select(filter(map_iea_fe, IAMC != ""), all_of(unname(iea_fe_keys)), IAMC, factor), by = iea_fe_keys) |>
+  mutate(value = value * factor) |>
+  group_by(country, year, variable = IAMC) |>
+  summarise(value = sum(value), .groups = "drop")
+
+dat_iea_fe <- dat_iea_fe_long |>
+  mutate(region   = countrycode(country, "country.name", "iso3c", custom_match = c("Europe" = "EUR")),
+         model    = "IEA", scenario = "historical", unit = "EJ/yr",
+         year     = as.character(year), value = as.character(value))
+
+# countries that did not resolve to an ISO code are dropped; say so
+iea_fe_no_iso <- dat_iea_fe |> filter(is.na(region)) |> distinct(country)
+if (nrow(iea_fe_no_iso) > 0) { message("IEA final energy: countries without ISO code (dropped):"); print(iea_fe_no_iso) }
+dat_iea_fe <- dat_iea_fe |> filter(!is.na(region)) |> select(region, variable, unit, year, value, model, scenario)
+
+# what is left out, so nothing disappears silently
+iea_fe_left_out <- iea_fe |> mutate(sector = coalesce(sector, "")) |>
+  left_join(select(map_iea_fe, all_of(unname(iea_fe_keys)), IAMC), by = iea_fe_keys) |>
+  mutate(reason = case_when(is.na(value) ~ "blank value in raw file",
+                            is.na(IAMC) ~ "category missing from mapping file",
+                            IAMC == "" ~ "no IAMC variable assigned (left out)")) |>
+  filter(!is.na(reason)) |>
+  count(file_type, sector, category, reason, name = "n_rows")
+# sector names of the by-sector files that are skipped (not in the mapping file, or no IAMC variable assigned)
+iea_fe_sectors_skipped <- iea_fe_left_out |> filter(file_type == "by_sector", reason != "blank value in raw file") |>
+  distinct(category, reason)
+if (nrow(iea_fe_sectors_skipped) > 0) {
+  message("IEA final energy: sector names in the by-sector files that are skipped:")
+  print(as.data.frame(iea_fe_sectors_skipped), row.names = FALSE)
+}
+message("IEA final energy: all raw rows not used:")
+print(as.data.frame(iea_fe_left_out), row.names = FALSE)
+
+
 
 #### 2.b combine iso based data sets #####
 data_iso <- rbind(dat_ener_2026,dat_ener_2026_trade,dat_prim,dat_ceds,dat_ecap,dat_egeny,dat_enet,dat_egeny_shares, dat_eemi,dat_iea_ev,
@@ -1717,17 +1802,19 @@ data_World <- data_iso |> filter(region == "World")
 
 data_iso <- data_iso |> filter(region != "World")
 
-#### 2.c.1 add IEA final energy consumption data (Industry/Residential/Transport by fuel) ####
-## Source: multi-year IEA "total final consumption by source" files (one per
-## sector x country), currently Australia/Brazil/Canada, covering 2000-2024.
-## See src/iea_final_energy_consumption_block.R for the parsing/mapping logic
-## that builds `iea_final_energy`.
-iea_final_energy <- local({
-  source("src/iea_final_energy_consumption_block.R", local = TRUE)
-  iea_final_energy
-})
+# Drop misleading zero rows for CEDS-tagged CO2 AFOLU/Land: genuinely zero for
+# 213 of 218 regions (only AUS, CHN, IND, KWT, USA have real data under this
+# model tag), which reads as "measured zero" rather than "not available."
+data_iso <- data_iso |>
+  filter(!(model == "ceds" &
+             variable %in% c("Emissions|CO2|AFOLU", "Emissions|CO2|AFOLU|Land") &
+             region != "World" &
+             value == 0))
 
-data_iso <- data_iso |> bind_rows(iea_final_energy)
+#### 2.c.1 add IEA final energy consumption data (read in step 1, converted in step 2.a) ####
+data_iso <- data_iso |> bind_rows(dat_iea_fe)
+
+
 
 
 #### 2.d convert to model regions ####
@@ -1986,13 +2073,13 @@ if(save_option == T){
   save(prim, ceds, ceds_c, ceds_m, ceds_n, owid_co2_data, eemi, eemi_eu, land, iea_ch4, ct_waste,
        file = "data/raw_historical/combined/emissions.Rds")
   
-  save(ember,emberm,ecap,egeny,egenm,ener_2026,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25,
+  save(ember,emberm,ecap,egeny,egenm,ener_2026,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25, iea_fe,
        file = "data/raw_historical/combined/energy.Rds")
   
   save(nasa_temp, crut, iiasa_data,
        file = "data/raw_historical/combined/climate_and_socio.Rds")
 }
 
-rm(prim, ceds, ceds_c, ceds_m, ceds_n, owid_co2_data, eemi, eemi_eu, land, iea_ch4, ct_waste, ember,emberm,ecap,egeny,egenm,ener_2026,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25, nasa_temp, crut, iiasa_data)
+rm(prim, ceds, ceds_c, ceds_m, ceds_n, owid_co2_data, eemi, eemi_eu, land, iea_ch4, ct_waste, ember,emberm,ecap,egeny,egenm,ener_2026,iea_ev, robbie_ev, OECD, owid_air, owid_energy_data, iea25, nasa_temp, crut, iiasa_data, iea_fe)
 
 
