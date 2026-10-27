@@ -221,7 +221,7 @@ ct_waste <- ct_waste %>%
 
 # - monthly_full_release_long_format-4.csv
 # - yearly_full_release_long_format.csv
-ember  <- read.csv("data/raw_historical/release_generation_yearly_global_08_2026.csv")
+ember  <- read.csv("data/raw_historical/release_generation_yearly_global_10_2026.csv")
 emberm <- read.csv("data/raw_historical/release_generation_monthly_global_08_2026.csv")
 #create output in convenient cap (capacity), geny and genm (generation) formats (to be used in VRE-Eff script)
 
