@@ -1590,6 +1590,14 @@ dat_iea_ev_2025 <- read_gevo("data/raw_historical/GlobalEVDataExplorer2025.xlsx"
 
 dat_iea_ev <- bind_rows(dat_iea_ev, dat_iea_ev_2025)
 
+# KAN-70: distribute the IEA GEVO leftover (World - sum of single countries) to countries without GEVO data.
+# Off by default; adds a separate model '<model> (leftover distributed)'. Weights: OWID population.
+source("src/gevo_leftover.R")
+switch_gevo_distribute <- F
+if (switch_gevo_distribute) {
+  dat_iea_ev <- bind_rows(dat_iea_ev, distribute_gevo_leftover(dat_iea_ev, dat_owid_co2))
+}
+
 
 
 
