@@ -1008,7 +1008,7 @@ dat_owid_co2 <- dat_owid_co2 %>% filter(year > starty)
 ###### GCB  ------------------------------------
 #create new columns
 dat_land <- land %>%
-  mutate(model = paste0("GCB_",model), scenario = "historical", unit = "Mt CO2/yr", variable = "Emissions|CO2|LUC", iso = countrycode(Country, "country.name", "iso3c"))
+  mutate(model = paste0("GCB_",model), scenario = "historical", unit = "Mt CO2/yr", variable = "Emissions|CO2|AFOLU|Land", iso = countrycode(Country, "country.name", "iso3c"))
 
 dat_land$iso <- ifelse(is.na(dat_land$iso) & dat_land$Country == "Global", "World",
                        ifelse(is.na(dat_land$iso) & dat_land$Country == "EU27", "EU27",
