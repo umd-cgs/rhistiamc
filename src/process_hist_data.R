@@ -1700,13 +1700,14 @@ dat_oecd <- OECD %>%
 ###### OWID trn - aviation --------------------------------
 
 dat_owid_air <- owid_air %>%
-  rename("region" = "Entity", "iso" = "Code", "year" = "Year", "value" = "X9.1.2...Passenger.volume..passenger.kilometres...by.mode.of.transport...IS_RDP_PFVOL...Air.transport") %>%
+  rename(region = 1, iso = 2, year = 3, value = 4) %>%
   mutate(iso = ifelse(iso == "" | is.na(iso), NA, iso)) %>%
   filter(!is.na(value)) %>%
   mutate(variable = "Energy Service|Transportation|Passenger|Aviation",
          unit = "Millions Passenger-kilometres",
          value = value / 1e6) %>%
   filter(!is.na(iso)) %>%
+  filter(iso == "OWID_WRL" | grepl("^[A-Z]{3}$", iso)) %>%
   select(iso, variable, unit, year, value) %>%
   mutate(model = "OWID", scenario = "historical") %>%
   arrange(iso, variable, unit, year, value, model, scenario)
