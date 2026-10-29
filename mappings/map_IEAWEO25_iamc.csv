@@ -2,8 +2,8 @@ WEO,IAMC,Unit_WEO,Unit_IAMC,Conversion,Comment
 Activity of stock-Total-Navigation: international bunkers,Energy Service|Transportation|Freight|Shipping|International,Billion tonne-km,billion tkm,1,
 Activity of stock-Total-Road freight trucks,Energy Service|Transportation|Freight|Truck,Billion tonne-km,billion tkm,1,
 Activity of stock-Total-Road passenger light duty vehicles,Energy Service|Transportation|Passenger|Road|Light-Duty Vehicle,Billion passenger-km,billion pkm,1,
-Activity of stock-Total-Aviation: domestic and international bunkers,Energy Service|Transportation|Passenger|Aviation,Billion passenger-km,billion pkm,1,Not in common-definitions template; kept as is (KAN-51)
-Capacity: installed-Battery storage-Electrical capacity,Capacity|Electricity|Storage|Battery,GW,GW,1,Not in common-definitions template; kept as is (KAN-51)
+Activity of stock-Total-Aviation: domestic and international bunkers,Energy Service|Transportation|Passenger|Aviation,Billion passenger-km,billion pkm,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: passenger transport activity of domestic and international aviation (billion pkm)
+Capacity: installed-Battery storage-Electrical capacity,Capacity|Electricity|Storage|Battery,GW,GW,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: installed electrical capacity of battery storage (GW)
 Capacity: installed-Bioenergy: with CCUS-Electrical capacity,Capacity|Electricity|Biomass|w/ CCS,GW,GW,1,
 Capacity: installed-Coal: unabated-Electrical capacity,Capacity|Electricity|Coal|w/o CCS,GW,GW,1,total coal via summation
 Capacity: installed-Coal: with CCUS-Electrical capacity,Capacity|Electricity|Coal|w/ CCS,GW,GW,1,
@@ -38,9 +38,9 @@ CO2 combustion-Oil-Total energy supply,,,,,
 CO2 combustion-Oil-Total final consumption,,,,,
 CO2 combustion-Total-Total energy supply,,,,,
 CO2 total-Total-Buildings,Emissions|CO2|Energy|Demand|Residential and Commercial,Mt CO2,Mt CO2/yr,1,
-CO2 total-Total-Power sector inputs,Emissions|CO2|Energy|Supply|Electricity w/ coupled prod,Mt CO2,Mt CO2/yr,1,Not in common-definitions template; kept as is (KAN-51)
+CO2 total-Total-Power sector inputs,Emissions|CO2|Energy|Supply|Electricity w/ coupled prod,Mt CO2,Mt CO2/yr,1,Not in common-definitions template; renamed (couple -> coupled) (KAN-51)
 CO2 total-Total-Residential,,,,,
-CO2 total-Total-Road,Emissions|CO2|Transportation|Road,Mt CO2,Mt CO2/yr,1,Not in common-definitions template; kept as is (KAN-51)
+CO2 total-Total-Road,Emissions|CO2|Transportation|Road,Mt CO2,Mt CO2/yr,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: CO2 emissions from road transport
 CO2 total-Total-Road freight trucks,,,,,
 CO2 total-Total-Road passenger light duty vehicles,Emissions|CO2|Energy|Demand|Transportation|Light-Duty Vehicle,Mt CO2,Mt CO2/yr,1,
 CO2 total-Total-Services,,,,,
@@ -62,9 +62,9 @@ CO2 total captured-Total-Total energy supply,,,,,
 CO2 total intensity-Electricity-Electricity generation,,,,,
 CO2 total removed-Total-Biofuels production and direct air capture,,,,,
 CO2 total removed-Total-Total energy supply,,,,,
-Economic indicators-Total-GDP per capita,GDP|PPP|per-capita,"USD per capita (2024, PPP)",$US-2024/capita,1,WEO2025 reports in 2024 PPP; no rebasing applied; Not in common-definitions template; kept as is (KAN-51)
+Economic indicators-Total-GDP per capita,GDP|PPP|per-capita,"USD per capita (2024, PPP)",$US-2024/capita,1,WEO2025 reports in 2024 PPP; no rebasing applied; Not in common-definitions template; kept as is (KAN-51); Proposed definition: GDP per person in 2024 PPP dollars
 Economic indicators-Total-Gross domestic product,GDP|PPP,"Billion USD (2024, PPP)",billion $US 2024,1,WEO2025 reports in 2024 PPP; no rebasing applied
-Economic indicators-Total-Household,Households,Million units,million,1,Not in common-definitions template; kept as is (KAN-51)
+Economic indicators-Total-Household,Households,Million units,million,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: number of households (million)
 Energy-Ammonia-Power sector inputs,,,,,
 Energy-Ammonia-Total final consumption,,,,,
 Energy-Bioenergy: with CCUS-Electricity generation,Secondary Energy|Electricity|Biomass|w/ CCS,TWh,EJ/yr,0.0036,
@@ -122,7 +122,7 @@ Energy-Hydrogen (incl onsite)-International bunkers,Final Energy|Bunkers|Hydroge
 Energy-Hydrogen-Low-emissions hydrogen-based fuels,,,,,
 Energy-Hydrogen-Low-emissions hydrogen production,,,,,
 Energy-Hydrogen-Power generation,,,,,H2 input to power in Mt; electricity output is Energy-Hydrogen and H2-based fuels-Electricity generation
-Energy-Hydrogen-Power sector inputs,Secondary Energy|Input|Hydrogen|Electricity,EJ,EJ/yr,1,Not in common-definitions template; kept as is (KAN-51)
+Energy-Hydrogen-Power sector inputs,Secondary Energy|Input|Hydrogen|Electricity,EJ,EJ/yr,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: hydrogen used as input to electricity generation (EJ)
 Energy-Hydrogen-To biofuels,,,,,
 Energy-Hydrogen-To hydrogen-based fuels,,,,,
 Energy-Hydrogen-To power generation,,,,,
@@ -214,14 +214,14 @@ Energy-Total-Power sector inputs,,,,,
 Energy-Total-Refinery runs,,,,,
 Energy-Total-Refining capacity,,,,,
 Energy-Total-Residential,Final Energy|Residential,EJ,EJ/yr,1,
-Energy-Total-Road,Final Energy|Transportation|Road,EJ,EJ/yr,1,Not in common-definitions template; kept as is (KAN-51)
+Energy-Total-Road,Final Energy|Transportation|Road,EJ,EJ/yr,1,
 Energy-Total-Road freight trucks,Final Energy|Transportation|Truck,EJ,EJ/yr,1,
 Energy-Total-Road passenger light duty vehicles,Final Energy|Transportation|Light-Duty Vehicle,EJ,EJ/yr,1,
 Energy-Total-Services,,,,,
-Energy-Total-Aviation: domestic and international bunkers,Final Energy|Transportation|Aviation,EJ,EJ/yr,1,Not in common-definitions template; kept as is (KAN-51)
+Energy-Total-Aviation: domestic and international bunkers,Final Energy|Transportation|Aviation,EJ,EJ/yr,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: final energy consumption of domestic and international aviation
 Energy-Total-Total energy supply,Primary Energy,EJ,EJ/yr,1,
 Energy-Total-Total final consumption,Final Energy,EJ,EJ/yr,1,
-Energy-Total-Navigation: domestic and international bunkers,Final Energy|Transportation|Maritime,EJ,EJ/yr,1,Not in common-definitions template; kept as is (KAN-51)
+Energy-Total-Navigation: domestic and international bunkers,Final Energy|Transportation|Maritime,EJ,EJ/yr,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: final energy consumption of domestic and international navigation (maritime)
 Energy-Total-Transport,Final Energy|Transportation,EJ,EJ/yr,1,
 Energy-Total gases-Buildings,Final Energy|Residential and Commercial|Gases,EJ,EJ/yr,1,
 Energy-Total gases-Industry,Final Energy|Industry|Gases,EJ,EJ/yr,1,
