@@ -40,7 +40,7 @@ CO2 combustion-Total-Total energy supply,,,,,
 CO2 total-Total-Buildings,Emissions|CO2|Energy|Demand|Residential and Commercial,Mt CO2,Mt CO2/yr,1,
 CO2 total-Total-Power sector inputs,Emissions|CO2|Energy|Supply|Electricity w/ coupled prod,Mt CO2,Mt CO2/yr,1,Not in common-definitions template; renamed (couple -> coupled) (KAN-51)
 CO2 total-Total-Residential,,,,,
-CO2 total-Total-Road,Emissions|CO2|Transportation|Road,Mt CO2,Mt CO2/yr,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: CO2 emissions from road transport
+CO2 total-Total-Road,Emissions|CO2|Energy|Demand|Transportation|Road,Mt CO2,Mt CO2/yr,1,Not in common-definitions template; kept as is (KAN-51); Proposed definition: CO2 emissions from road transport
 CO2 total-Total-Road freight trucks,,,,,
 CO2 total-Total-Road passenger light duty vehicles,Emissions|CO2|Energy|Demand|Transportation|Light-Duty Vehicle,Mt CO2,Mt CO2/yr,1,
 CO2 total-Total-Services,,,,,
