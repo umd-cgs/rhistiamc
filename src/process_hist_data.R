@@ -1592,9 +1592,15 @@ dat_iea_ev <- bind_rows(dat_iea_ev, dat_iea_ev_2025)
 
 # KAN-70: distribute the IEA GEVO leftover (World - sum of single countries) to countries without GEVO data.
 # Off by default; adds a separate model '<model> (leftover distributed)'. Weights: OWID population.
-distribute_gevo_leftover <-
-  function(dat, pop, ref_year = 2023,
-           suffix = " (leftover distributed)", verbose = TRUE) {
+switch_gevo_distribute <- F
+if (switch_gevo_distribute) {
+  dat_iea_ev <- bind_rows(dat_iea_ev, local({
+    dat      <- dat_iea_ev
+    pop      <- dat_owid_co2
+    ref_year <- 2023
+    suffix   <- " (leftover distributed)"
+    verbose  <- TRUE
+    
     iso3    <- "^[A-Z]{3}$"
     fuels   <- c("Battery-Electric", "Plug-in Hybrid", "Fuel-Cell-Electric", "Internal Combustion")
     classes <- c("Bus", "Light-Duty Vehicle|Car", "Light-Duty Vehicle|Two-Wheeler",
@@ -1678,13 +1684,8 @@ distribute_gevo_leftover <-
       cat("check: negative values in allocated rows:", any(alloc$value < 0, na.rm = TRUE), "\n")
     }
     out
-  }
-
-switch_gevo_distribute <- F
-if (switch_gevo_distribute) {
-  dat_iea_ev <- bind_rows(dat_iea_ev, distribute_gevo_leftover(dat_iea_ev, dat_owid_co2))
+  }))
 }
-
 
 
 
