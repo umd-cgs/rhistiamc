@@ -889,6 +889,14 @@ dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds, by = c("sector"), re
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt N2O/yr",value=value/1000)|> rename(variable=var))  
+# Combined Electricity and Heat = Electricity + Heat (all regions; CO2, CH4, N2O).
+# Added alongside the separate Electricity and Heat variables (requested KAN: ceds electricity/heat naming).
+dat_ceds_eh <- dat_ceds |>
+  filter(grepl("^Emissions\\|(CO2|CH4|N2O)\\|Energy\\|Supply\\|(Electricity|Heat)$", variable)) |>
+  mutate(variable = sub("\\|(Electricity|Heat)$", "|Electricity and Heat", variable)) |>
+  group_by(iso, variable, year, unit, model, scenario) |>
+  summarize(value = sum(value, na.rm = TRUE), .groups = "drop")
+dat_ceds <- rbind(dat_ceds, dat_ceds_eh)
 
 
 #add sectoral data based on IAMC2 mappings
