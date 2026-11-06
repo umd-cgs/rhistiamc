@@ -1853,6 +1853,14 @@ dat_iea_fe_long <- iea_fe_use |>
   mutate(value = value * factor) |>
   group_by(country, year, variable = IAMC) |>
   summarise(value = sum(value), .groups = "drop")
+# aggregate categories: add each parent variable (name without its last "|level") as the sum of its children,
+# only where the parent is not already given directly by the mapping (e.g. Final Energy|Industry stays from by_sector)
+iea_fe_parents <- dat_iea_fe_long |>
+  mutate(variable = sub("\\|[^|]+$", "", variable)) |>
+  filter(!variable %in% map_iea_fe$IAMC) |>
+  group_by(country, year, variable) |>
+  summarise(value = sum(value), .groups = "drop")
+dat_iea_fe_long <- bind_rows(dat_iea_fe_long, iea_fe_parents)
 
 dat_iea_fe <- dat_iea_fe_long |>
   mutate(region   = countrycode(country, "country.name", "iso3c", custom_match = c("Europe" = "EUR")),

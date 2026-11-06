@@ -4,14 +4,14 @@ by_source,industry,Natural gas,Final Energy|Industry|Gases,EJ/yr,1e-6
 by_source,industry,Coal and coal products,Final Energy|Industry|Solids|Coal,EJ/yr,1e-6
 by_source,industry,Oil and oil products,Final Energy|Industry|Liquids,EJ/yr,1e-6
 by_source,industry,Heat,Final Energy|Industry|Heat,EJ/yr,1e-6
-by_source,industry,Biofuels and waste,,,
+by_source,industry,Biofuels and waste,Final Energy|Industry|Solids|Biomass,EJ/yr,1e-6
 by_source,industry,"Solar, wind and other renewables",,,
 by_source,residential,Electricity,Final Energy|Residential and Commercial|Electricity,EJ/yr,1e-6
 by_source,residential,Natural gas,Final Energy|Residential and Commercial|Gases,EJ/yr,1e-6
 by_source,residential,Coal and coal products,Final Energy|Residential and Commercial|Solids|Coal,EJ/yr,1e-6
 by_source,residential,Oil products,Final Energy|Residential and Commercial|Liquids,EJ/yr,1e-6
 by_source,residential,Heat,Final Energy|Residential and Commercial|Heat,EJ/yr,1e-6
-by_source,residential,Biofuels and waste,,,
+by_source,residential,Biofuels and waste,Final Energy|Residential|Solids|Biomass,EJ/yr,1e-6
 by_source,residential,"Solar, wind and other renewables",,,
 by_source,transport,Electricity,Final Energy|Transportation|Electricity,EJ/yr,1e-6
 by_source,transport,Natural gas,Final Energy|Transportation|Gases,EJ/yr,1e-6
