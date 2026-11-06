@@ -1844,7 +1844,8 @@ dat_crut <- crut %>%
 #    e.g. Final Energy|Industry. Several categories mapped to the same IAMC variable are summed: "Other non-specified"
 #    is added to Industry.
 # Rows with a blank IAMC in the mapping file are not used; they are listed in the message printed below.
-map_iea_fe  <- read.csv("mappings/map_IEA_final_energy_iamc.csv", stringsAsFactors = FALSE)
+map_iea_fe_wide <- read.csv("mappings/map_IEA_final_energy_iamc.csv", stringsAsFactors = FALSE)
+map_iea_fe      <- map_iea_fe_wide |> gather_map() |> rename(IAMC = var)  # one row per variable a category feeds (leaf + aggregates)
 iea_fe_keys <- c("file_type" = "IEA_file_type", "sector" = "IEA_sector", "category" = "IEA_category")
 iea_fe_use  <- iea_fe |> mutate(sector = coalesce(sector, "")) |> filter(!is.na(value))
 
@@ -1853,14 +1854,7 @@ dat_iea_fe_long <- iea_fe_use |>
   mutate(value = value * factor) |>
   group_by(country, year, variable = IAMC) |>
   summarise(value = sum(value), .groups = "drop")
-# aggregate categories: add each parent variable (name without its last "|level") as the sum of its children,
-# only where the parent is not already given directly by the mapping (e.g. Final Energy|Industry stays from by_sector)
-iea_fe_parents <- dat_iea_fe_long |>
-  mutate(variable = sub("\\|[^|]+$", "", variable)) |>
-  filter(!variable %in% map_iea_fe$IAMC) |>
-  group_by(country, year, variable) |>
-  summarise(value = sum(value), .groups = "drop")
-dat_iea_fe_long <- bind_rows(dat_iea_fe_long, iea_fe_parents)
+
 
 dat_iea_fe <- dat_iea_fe_long |>
   mutate(region   = countrycode(country, "country.name", "iso3c", custom_match = c("Europe" = "EUR")),
@@ -1874,7 +1868,7 @@ dat_iea_fe <- dat_iea_fe |> filter(!is.na(region)) |> select(region, variable, u
 
 # what is left out, so nothing disappears silently
 iea_fe_left_out <- iea_fe |> mutate(sector = coalesce(sector, "")) |>
-  left_join(select(map_iea_fe, all_of(unname(iea_fe_keys)), IAMC), by = iea_fe_keys) |>
+  left_join(select(mutate(map_iea_fe_wide, IAMC = var1), all_of(unname(iea_fe_keys)), IAMC), by = iea_fe_keys) |>
   mutate(reason = case_when(is.na(value) ~ "blank value in raw file",
                             is.na(IAMC) ~ "category missing from mapping file",
                             IAMC == "" ~ "no IAMC variable assigned (left out)")) |>
