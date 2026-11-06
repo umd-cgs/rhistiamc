@@ -819,13 +819,7 @@ dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
   mutate(model="ceds",scenario="historical")|>
   rename(variable=entity)
 
-## Decide whether to map heat production to electricity, rather than report as own category, which may be appropriate for eg. China figures
-switch_count_heat_as_elec <- F
-if (switch_count_heat_as_elec == T) {
-  map_ceds <- read.csv("mappings/ceds_sector_mapping_China.csv") %>% gather_map() 
-} else {
-  map_ceds <- read.csv("mappings/ceds_sector_mapping.csv") %>% gather_map()
-}
+map_ceds <- read.csv("mappings/ceds_sector_mapping.csv") %>% gather_map()
 
 #add iamc2 mappings
 # ceds_iamc2 <- read.csv("mappings/aggregated_sector.csv")
