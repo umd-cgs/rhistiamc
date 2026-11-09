@@ -6,11 +6,11 @@ by_source,industry,Oil and oil products,Final Energy|Industry|Liquids,,EJ/yr,1e-
 by_source,industry,Heat,Final Energy|Industry|Heat,,EJ/yr,1e-6
 by_source,industry,Biofuels and waste,Final Energy|Industry|Solids,Final Energy|Industry|Solids|Biomass,EJ/yr,1e-6
 by_source,industry,"Solar, wind and other renewables",,,,
-by_source,residential,Electricity,Final Energy|Residential and Commercial|Electricity,,EJ/yr,1e-6
-by_source,residential,Natural gas,Final Energy|Residential and Commercial|Gases,,EJ/yr,1e-6
-by_source,residential,Coal and coal products,Final Energy|Residential and Commercial|Solids,Final Energy|Residential and Commercial|Solids|Coal,EJ/yr,1e-6
-by_source,residential,Oil products,Final Energy|Residential and Commercial|Liquids,,EJ/yr,1e-6
-by_source,residential,Heat,Final Energy|Residential and Commercial|Heat,,EJ/yr,1e-6
+by_source,residential,Electricity,Final Energy|Residential|Electricity,,EJ/yr,1e-6
+by_source,residential,Natural gas,Final Energy|Residential|Gases,,EJ/yr,1e-6
+by_source,residential,Coal and coal products,Final Energy|Residential|Solids,Final Energy|Residential|Solids|Coal,EJ/yr,1e-6
+by_source,residential,Oil products,Final Energy|Residential|Liquids,,EJ/yr,1e-6
+by_source,residential,Heat,Final Energy|Residential|Heat,,EJ/yr,1e-6
 by_source,residential,Biofuels and waste,Final Energy|Residential|Solids,Final Energy|Residential|Solids|Biomass,EJ/yr,1e-6
 by_source,residential,"Solar, wind and other renewables",,,,
 by_source,transport,Electricity,Final Energy|Transportation|Electricity,,EJ/yr,1e-6
@@ -21,8 +21,8 @@ by_source,transport,Biofuels and waste,Final Energy|Transportation|Liquids,Final
 by_sector,,Industry,Final Energy|Industry,,EJ/yr,1e-6
 by_sector,,Other non-specified,Final Energy|Industry,,EJ/yr,1e-6
 by_sector,,Transport,Final Energy|Transportation,,EJ/yr,1e-6
-by_sector,,Residential,Final Energy|Residential and Commercial,,EJ/yr,1e-6
-by_sector,,Commercial and public services,Final Energy|Commercial,,EJ/yr,1e-6
+by_sector,,Residential,Final Energy|Residential and Commercial,Final Energy|Residential,EJ/yr,1e-6
+by_sector,,Commercial and public services,Final Energy|Residential and Commercial,Final Energy|Commercial,EJ/yr,1e-6
 by_sector,,Agriculture and forestry,Final Energy|Agriculture,,EJ/yr,1e-6
 by_sector,,Fishing,Final Energy|Agriculture,,EJ/yr,1e-6
 by_sector,,Non-energy use,Final Energy|Non-Energy Use,,EJ/yr,1e-6
