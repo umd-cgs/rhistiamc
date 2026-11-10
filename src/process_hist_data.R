@@ -819,13 +819,7 @@ dat_ceds <- ceds |> filter(year > starty)|> select (-units)|>
   mutate(model="ceds",scenario="historical")|>
   rename(variable=entity)
 
-## Decide whether to map heat production to electricity, rather than report as own category, which may be appropriate for eg. China figures
-switch_count_heat_as_elec <- F
-if (switch_count_heat_as_elec == T) {
-  map_ceds <- read.csv("mappings/ceds_sector_mapping_China.csv") %>% gather_map() 
-} else {
-  map_ceds <- read.csv("mappings/ceds_sector_mapping.csv") %>% gather_map()
-}
+map_ceds <- read.csv("mappings/ceds_sector_mapping.csv") %>% gather_map()
 
 #add iamc2 mappings
 # ceds_iamc2 <- read.csv("mappings/aggregated_sector.csv")
@@ -889,6 +883,14 @@ dat_ceds <- dat_ceds |> rbind(ceds_n |> left_join(map_ceds, by = c("sector"), re
                                 ungroup() |> mutate(var = paste0("Emissions|",entity,"|",var))|>
                                 select(-entity,-units)|>mutate(model="ceds",scenario="historical",
                                                                unit="Mt N2O/yr",value=value/1000)|> rename(variable=var))  
+# Combined Electricity and Heat = Electricity + Heat (all regions; CO2, CH4, N2O).
+# Added alongside the separate Electricity and Heat variables (requested KAN: ceds electricity/heat naming).
+dat_ceds_eh <- dat_ceds |>
+  filter(grepl("^Emissions\\|(CO2|CH4|N2O)\\|Energy\\|Supply\\|(Electricity|Heat)$", variable)) |>
+  mutate(variable = sub("\\|(Electricity|Heat)$", "|Electricity and Heat", variable)) |>
+  group_by(iso, variable, year, unit, model, scenario) |>
+  summarize(value = sum(value, na.rm = TRUE), .groups = "drop")
+dat_ceds <- rbind(dat_ceds, dat_ceds_eh)
 
 
 #add sectoral data based on IAMC2 mappings
