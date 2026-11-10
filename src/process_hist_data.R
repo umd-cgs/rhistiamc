@@ -979,7 +979,7 @@ dat_owid_co2 <- dat_owid_co2 %>%
   rename(variable_iamc = IAMC) %>%
   # Change population variable to units of million individuals from individuals
   # and change 
-  mutate(value = ifelse(variable_iamc == "Population", value * 10^(-6), ifelse(variable_iamc == "GDP|PPP", value * 10^(-9), value)),
+  mutate(value = ifelse(variable_iamc == "Population", value * 10^(-6), ifelse(variable_iamc == "GDP|PPP", value * 10^(-9), ifelse(variable_iamc == "Emissions|N2O", value * 1000 / 273, value))),
          unit = ifelse(unit == "persons", "million", ifelse(unit == "MTCO2", "Mt CO2/yr", ifelse(unit == "MTCH4", "Mt CH4/yr", ifelse(unit == "$ (Year 2011)", "billion US$2011/yr", unit))))) |>
   mutate(iso_code = ifelse(country == "World", "World", iso_code)) |>
   select(country, year, iso_code,variable_iamc, value, unit) %>%

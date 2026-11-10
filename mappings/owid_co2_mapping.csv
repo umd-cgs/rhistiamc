@@ -40,7 +40,7 @@ ghg_per_capita,,tonnes per person
 land_use_change_co2,,MTCO2
 land_use_change_co2_per_capita,,tonnes per person
 methane_per_capita,,tonnes per person
-nitrous_oxide,Emissions|NO2,MTCO2
+nitrous_oxide,Emissions|N2O,kt N2O/yr
 nitrous_oxide_per_capita,,tonnes per person
 oil_co2,Emissions|CO2|Oil,MTCO2
 oil_co2_per_capita,,tonnes per person
